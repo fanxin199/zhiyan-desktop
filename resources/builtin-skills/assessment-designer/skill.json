@@ -1,13 +1,13 @@
 {
   "id": "assessment-designer",
-  "name": "题库与评价设计",
-  "description": "按教学目标、难度和题型生成题库、答案、解析、评分量规与形成性评价活动。",
-  "version": "1.0.0",
+  "name": "生物医学题库与评价设计",
+  "description": "根据输入内容或上传材料生成生物医学单项选择题、简答题和论述题，并提供答案、解析、分点评分标准与二次核验。",
+  "version": "1.1.0",
   "entry": "SKILL.md",
   "triggers": {
-    "commands": ["/quiz", "/题库"],
-    "promptPatterns": ["(题库|试题|考试|测验|选择题|评分量规|rubric|quiz)"],
-    "fileTypes": [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".md"]
+    "commands": ["/quiz", "/题库", "/出题"],
+    "promptPatterns": ["(题库|试题|考试题|测验题|出题|命题|单项选择题|单选题|选择题|简答题|论述题|问答题|评分标准|评分量规|rubric|quiz|mcq|multiple-choice|short-answer|essay question)"],
+    "fileTypes": []
   },
   "allowedTools": ["read", "write", "edit", "web_fetch", "web_search"],
   "assets": [],
