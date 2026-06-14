@@ -27,6 +27,10 @@ const api = {
     ipcRenderer.invoke('file:read-binary', filePath),
   inspectPdf: (path) =>
     ipcRenderer.invoke('file:inspect-pdf', { path }),
+  analyzeCoursewareSource: (path) =>
+    ipcRenderer.invoke('courseware:analyze-source', { path }),
+  loadCoursewareProject: (path) =>
+    ipcRenderer.invoke('courseware:load-project', { path }),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

@@ -27,6 +27,12 @@ module.exports = {
   directories: {
     output: process.env.ZHIYAN_DIST_DIR || 'dist'
   },
+  extraResources: [
+    {
+      from: 'resources/builtin-skills',
+      to: 'builtin-skills'
+    }
+  ],
   files: [
     'out/**/*',
     'package.json',

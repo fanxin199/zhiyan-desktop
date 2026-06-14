@@ -1,0 +1,18 @@
+{
+  "commands": [
+    {
+      "id": "python",
+      "label": "Python",
+      "command": "python",
+      "required": false,
+      "installHint": "用于 Matplotlib、Seaborn 等绘图；安装前需用户确认。"
+    },
+    {
+      "id": "rscript",
+      "label": "R / Rscript",
+      "command": "Rscript",
+      "required": false,
+      "installHint": "用于 ggplot2、ComplexHeatmap 等绘图；安装前需用户确认。"
+    }
+  ]
+}

@@ -9,11 +9,14 @@
 - 在导出前审核图片并调整图片与幻灯片的对应关系
 - 导出可继续编辑的 PPTX、DOCX 和本地课程项目
 - 本地保存 API Key 与项目资料，不要求安装 Python
+- 内置 8 类教学科研 AI Skills，由模型按对话和附件自动选择
+- 检测 Python、R、Pandoc 等可选工具，安装必须经过用户确认
 
 ## 开发
 
 ```powershell
 npm ci
+npm run hooks:install
 npm run dev
 ```
 
@@ -39,3 +42,10 @@ npm run dist:win
 ## 产品状态
 
 当前版本为个人自用 Alpha，优先确保教学课件流程稳定、简单、可恢复。自动更新暂未启用。
+
+## 项目文档
+
+- [产品路线图](docs/PROJECT_ROADMAP.md)
+- [课件素材工作流](docs/COURSEWARE_ARCHITECTURE.md)
+- [Git hooks 与 worktree 开发流程](docs/DEVELOPMENT.md)
+- [AI 能力与内置 Skills 架构](docs/AI_SKILL_ARCHITECTURE.md)

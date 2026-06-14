@@ -1,0 +1,15 @@
+{
+  "id": "academic-writer",
+  "name": "论文与基金写作",
+  "description": "修改或起草生物医学论文、基金、综述和学位论文，强化逻辑、证据链与术语准确性。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/write-paper", "/论文"],
+    "promptPatterns": ["(论文|基金|标书|综述|学位论文|摘要|discussion|manuscript|grant)"],
+    "fileTypes": [".doc", ".docx", ".md", ".txt", ".pdf"]
+  },
+  "allowedTools": ["read", "write", "edit", "grep", "find", "ls", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
+  "assets": [],
+  "priority": 72
+}

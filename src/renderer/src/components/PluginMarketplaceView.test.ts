@@ -189,7 +189,7 @@ describe('skillMarketplaceItemsFromDiscoveredSkills', () => {
         scope: 'global',
         legacy: true
       }
-    ], { project: 'Project', global: 'Global' })
+    ], { builtin: 'Built-in', project: 'Project', global: 'Global' })
 
     expect(items).toEqual([
       expect.objectContaining({
@@ -203,6 +203,28 @@ describe('skillMarketplaceItemsFromDiscoveredSkills', () => {
         group: 'personal',
         title: 'Remotion Best Practices',
         sourceLabel: 'Global'
+      })
+    ])
+  })
+
+  it('marks bundled skills as system-managed built-in capabilities', () => {
+    const items = skillMarketplaceItemsFromDiscoveredSkills([
+      {
+        id: 'courseware-builder',
+        name: '教学课件设计',
+        description: '生成教学课件。',
+        root: '/private/skills/builtin/courseware-builder',
+        entryPath: '/private/skills/builtin/courseware-builder/SKILL.md',
+        scope: 'builtin',
+        legacy: false
+      }
+    ], { builtin: '智研内置', project: '项目', global: '全局' })
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        id: 'courseware-builder',
+        sourceLabel: '智研内置',
+        systemManaged: true
       })
     ])
   })

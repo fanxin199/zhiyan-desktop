@@ -1,0 +1,15 @@
+{
+  "id": "courseware-builder",
+  "name": "教学课件设计",
+  "description": "将教材、讲义、论文或已有 PPT 转化为可直接授课的低文字密度课件，并复用来源文件中的有效图示。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/ppt", "/courseware"],
+    "promptPatterns": ["(课件|教学PPT|幻灯片|slide deck|presentation)"],
+    "fileTypes": [".ppt", ".pptx", ".pdf"]
+  },
+  "allowedTools": ["read", "write", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
+  "assets": [],
+  "priority": 80
+}

@@ -42,6 +42,7 @@ import {
 import { defaultKunDataDir } from './runtime/kun-adapter'
 import { appendManagedLogLine } from './logger'
 import { guiSkillRootsForRuntime, normalizeSkillRootPath } from './services/skill-service'
+import { syncBuiltinSkills } from './services/builtin-skill-service'
 
 let child: ChildProcess | null = null
 let childLogCapture: KunChildLogCapture | null = null
@@ -281,9 +282,16 @@ export async function syncGuiManagedKunConfig(
       launch: ClawScheduleMcpLaunchConfig
     }
     mcpConfigPath?: string
+    builtinSkillSourceRoot?: string
   }
 ): Promise<void> {
   const configPath = join(dataDir, 'config.json')
+  const builtinSkills = await syncBuiltinSkills({
+    dataDir,
+    ...(options?.builtinSkillSourceRoot
+      ? { sourceRoot: options.builtinSkillSourceRoot }
+      : {})
+  })
   const existing = sanitizeKunConfigSections(await readJsonObjectIfExists(configPath))
   const importedMcpServers = await readGuiManagedMcpServers(
     options?.mcpConfigPath ?? resolveKunMcpJsonPath()
@@ -305,7 +313,11 @@ export async function syncGuiManagedKunConfig(
   const skills = objectValue(capabilities.skills)
   const storage = storageConfigForRuntime(runtime.storage)
   const mcpSearch = runtime.mcpSearch
-  const skillCapability = await skillCapabilityConfigForRuntime(skills, options?.scheduleMcp?.settings)
+  const skillCapability = await skillCapabilityConfigForRuntime(
+    skills,
+    options?.scheduleMcp?.settings,
+    builtinSkills.available ? builtinSkills.root : undefined
+  )
   const next = {
     serve: {
       ...serve,
@@ -387,9 +399,11 @@ function buildGuiScheduleKunMcpServer(
 
 async function skillCapabilityConfigForRuntime(
   existing: Record<string, unknown>,
-  settings?: AppSettingsV1
+  settings?: AppSettingsV1,
+  builtinSkillRoot?: string
 ): Promise<Record<string, unknown>> {
   const roots = uniqueStrings([
+    ...(builtinSkillRoot ? [normalizeSkillRootPath(builtinSkillRoot)] : []),
     ...stringArrayValue(existing.roots).map(normalizeSkillRootPath),
     ...(await guiSkillRootsForRuntime(settings)).map((root) => root.path)
   ])

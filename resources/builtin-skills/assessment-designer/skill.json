@@ -1,0 +1,15 @@
+{
+  "id": "assessment-designer",
+  "name": "题库与评价设计",
+  "description": "按教学目标、难度和题型生成题库、答案、解析、评分量规与形成性评价活动。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/quiz", "/题库"],
+    "promptPatterns": ["(题库|试题|考试|测验|选择题|评分量规|rubric|quiz)"],
+    "fileTypes": [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".md"]
+  },
+  "allowedTools": ["read", "write", "edit", "web_fetch", "web_search"],
+  "assets": [],
+  "priority": 70
+}

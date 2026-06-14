@@ -97,8 +97,12 @@ export function InitialSetupDialog(): ReactElement {
       const next = await rendererRuntimeClient.setSettings(form)
       setForm(next)
       await applyI18n(next.locale)
-      void reloadUiSettings()
-      void probeRuntime('background')
+      await reloadUiSettings()
+      await probeRuntime('user')
+      const runtimeState = useChatStore.getState()
+      if (runtimeState.runtimeConnection !== 'ready') {
+        throw new Error(runtimeState.error || '无法连接 AI 服务，请检查 API Key 和服务地址。')
+      }
       closeInitialSetup()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))

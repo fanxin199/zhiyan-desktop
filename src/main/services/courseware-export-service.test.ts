@@ -5,6 +5,7 @@ import JSZip from 'jszip'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { CoursewareProject } from '../../shared/courseware'
 import { exportCoursewarePackage } from './courseware-export-service'
+import { loadCoursewareProject } from './courseware-project-service'
 
 const tempDirs: string[] = []
 
@@ -14,7 +15,7 @@ afterEach(async () => {
 
 function project(): CoursewareProject {
   return {
-    version: 1,
+    version: 2,
     request: {
       sourcePath: 'C:\\books\\immunology.pdf',
       pageStart: 10,
@@ -25,6 +26,12 @@ function project(): CoursewareProject {
       focus: '三信号模型',
       includeRecentLiterature: false,
       maxLiteratureResults: 6
+    },
+    sourceDocument: {
+      kind: 'pdf',
+      path: 'C:\\books\\immunology.pdf',
+      pageCount: 20,
+      searchable: true
     },
     blueprint: {
       title: 'T 细胞活化',
@@ -68,7 +75,7 @@ function project(): CoursewareProject {
       },
       evidenceRefs: []
     }],
-    sourceFigures: [],
+    sourceVisuals: [],
     evidence: [],
     generatedAt: '2026-06-12T09:00:00.000Z'
   }
@@ -97,7 +104,7 @@ describe('exportCoursewarePackage', () => {
     expect(documentXml).toContain('缺少共刺激信号时')
     expect(documentXml).toContain('无反应或耐受状态')
 
-    const savedProject = JSON.parse(await readFile(result.projectPath, 'utf8')) as CoursewareProject
+    const savedProject = await loadCoursewareProject(result.projectPath)
     expect(savedProject.slides).toHaveLength(2)
     expect(savedProject.blueprint.title).toBe('T 细胞活化')
   })

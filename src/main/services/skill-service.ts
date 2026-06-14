@@ -1,11 +1,12 @@
 import { existsSync, readdirSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { basename, join, resolve } from 'node:path'
-import type { AppSettingsV1 } from '../../shared/app-settings'
+import { basename, delimiter, extname, join, resolve } from 'node:path'
+import { getKunRuntimeSettings, type AppSettingsV1 } from '../../shared/app-settings'
 import { expandHomePath } from './workspace-service'
+import { builtinSkillRootForDataDir } from './builtin-skill-service'
 
-export type GuiSkillScope = 'project' | 'global'
+export type GuiSkillScope = 'builtin' | 'project' | 'global'
 
 export type GuiSkillSummary = {
   id: string
@@ -15,6 +16,16 @@ export type GuiSkillSummary = {
   entryPath: string
   scope: GuiSkillScope
   legacy: boolean
+  dependencies?: GuiSkillDependencyStatus[]
+}
+
+export type GuiSkillDependencyStatus = {
+  id: string
+  label: string
+  kind: 'command'
+  required: boolean
+  available: boolean
+  installHint?: string
 }
 
 export type GuiSkillListResult =
@@ -54,8 +65,17 @@ export async function guiSkillRootsForRuntime(
     ...(settings?.claw.skills.extraDirs ?? []),
     ...(settings?.schedule.skills.extraDirs ?? [])
   ].map(normalizeSkillRootPath)
+  const builtinRoots = settings
+    ? [{
+        path: builtinSkillRootForDataDir(
+          expandHomePath(getKunRuntimeSettings(settings).dataDir)
+        ),
+        scope: 'builtin' as const
+      }]
+    : []
 
   return uniqueSkillRoots([
+    ...builtinRoots.filter((root) => existsSync(root.path)),
     ...projectRoots
       .filter((root) => existsSync(root))
       .map((path) => ({ path, scope: 'project' as const })),
@@ -152,6 +172,7 @@ async function packageCandidates(root: string): Promise<string[]> {
 }
 
 async function loadSkillSummary(root: string, scope: GuiSkillScope): Promise<GuiSkillSummary | null> {
+  const dependencies = await loadSkillDependencies(root)
   const manifestPath = join(root, 'skill.json')
   if (existsSync(manifestPath)) {
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>
@@ -164,7 +185,8 @@ async function loadSkillSummary(root: string, scope: GuiSkillScope): Promise<Gui
       root,
       entryPath: join(root, entry),
       scope,
-      legacy: false
+      legacy: false,
+      ...(dependencies.length > 0 ? { dependencies } : {})
     }
   }
   const entryPath = join(root, 'SKILL.md')
@@ -179,8 +201,61 @@ async function loadSkillSummary(root: string, scope: GuiSkillScope): Promise<Gui
     root,
     entryPath,
     scope,
-    legacy: true
+    legacy: true,
+    ...(dependencies.length > 0 ? { dependencies } : {})
   }
+}
+
+async function loadSkillDependencies(root: string): Promise<GuiSkillDependencyStatus[]> {
+  try {
+    const parsed = JSON.parse(await readFile(join(root, 'dependencies.json'), 'utf8')) as {
+      commands?: Array<{
+        id?: unknown
+        label?: unknown
+        command?: unknown
+        required?: unknown
+        installHint?: unknown
+      }>
+    }
+    if (!Array.isArray(parsed.commands)) return []
+    return parsed.commands.flatMap((item) => {
+      const id = stringValue(item.id)
+      const command = stringValue(item.command)
+      if (!id || !command) return []
+      const installHint = stringValue(item.installHint)
+      return [{
+        id,
+        label: stringValue(item.label) || id,
+        kind: 'command' as const,
+        required: item.required === true,
+        available: commandAvailable(command),
+        ...(installHint ? { installHint } : {})
+      }]
+    })
+  } catch {
+    return []
+  }
+}
+
+export function commandAvailable(
+  command: string,
+  env: NodeJS.ProcessEnv = process.env,
+  platform: NodeJS.Platform = process.platform
+): boolean {
+  if (!command.trim()) return false
+  if (command.includes('/') || command.includes('\\')) return existsSync(resolve(command))
+  const pathEntries = (env.PATH ?? env.Path ?? env.path ?? '')
+    .split(delimiter)
+    .filter(Boolean)
+  const extensions = platform === 'win32'
+    ? (env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean)
+    : ['']
+  const hasExtension = Boolean(extname(command))
+  return pathEntries.some((pathEntry) =>
+    (hasExtension ? [''] : extensions).some((extension) =>
+      existsSync(join(pathEntry, `${command}${extension}`))
+    )
+  )
 }
 
 function readFrontmatter(content: string): { id?: string; name?: string; description?: string } {
@@ -253,7 +328,8 @@ function dedupeSkills(skills: GuiSkillSummary[]): GuiSkillSummary[] {
 }
 
 function compareSkillSummary(a: GuiSkillSummary, b: GuiSkillSummary): number {
-  if (a.scope !== b.scope) return a.scope === 'project' ? -1 : 1
+  const order: Record<GuiSkillScope, number> = { builtin: 0, project: 1, global: 2 }
+  if (a.scope !== b.scope) return order[a.scope] - order[b.scope]
   return a.name.localeCompare(b.name)
 }
 

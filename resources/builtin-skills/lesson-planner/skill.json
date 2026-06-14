@@ -1,0 +1,15 @@
+{
+  "id": "lesson-planner",
+  "name": "智能教案",
+  "description": "根据课程信息、章节材料和教学对象生成规范、可执行的高校教案与课堂活动设计。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/lesson", "/教案"],
+    "promptPatterns": ["(教案|教学设计|课程设计|课堂活动|lesson plan)"],
+    "fileTypes": [".pdf", ".doc", ".docx", ".md", ".txt"]
+  },
+  "allowedTools": ["read", "write", "edit", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
+  "assets": [],
+  "priority": 75
+}

@@ -1,0 +1,15 @@
+{
+  "id": "research-data-analyst",
+  "name": "科研数据分析",
+  "description": "为转录组、单细胞、空间组学、免疫组库、流式和常规统计任务制定并执行可复现分析。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/analyze", "/数据分析"],
+    "promptPatterns": ["(数据分析|生信|单细胞|空间转录组|RNA-seq|BCR|TCR|流式|统计分析|scRNA|bulk RNA)"],
+    "fileTypes": [".csv", ".tsv", ".xlsx", ".h5ad", ".h5", ".rds", ".mtx", ".fcs"]
+  },
+  "allowedTools": ["read", "write", "edit", "grep", "find", "ls", "bash", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
+  "assets": [],
+  "priority": 90
+}

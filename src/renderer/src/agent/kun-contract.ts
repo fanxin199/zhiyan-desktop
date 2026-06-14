@@ -265,7 +265,7 @@ export type CoreRuntimeSkillJson = {
   description?: string
   version?: string
   root?: string
-  scope?: 'project' | 'global'
+  scope?: 'builtin' | 'project' | 'global'
   legacy?: boolean
   triggers?: {
     commands?: string[]

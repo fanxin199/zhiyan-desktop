@@ -284,6 +284,39 @@ describe('syncGuiManagedKunConfig', () => {
     ]))
   })
 
+  it('installs and enables bundled first-party skills', async () => {
+    if (!tempRoot) throw new Error('temp root not initialized')
+    const sourceRoot = join(tempRoot, 'builtin-source')
+    const skillRoot = join(sourceRoot, 'lesson-planner')
+    mkdirSync(skillRoot, { recursive: true })
+    writeFileSync(join(skillRoot, 'skill.json'), JSON.stringify({
+      id: 'lesson-planner',
+      name: '智能教案',
+      description: '生成教学设计与教案。',
+      version: '1.0.0',
+      entry: 'SKILL.md',
+      triggers: { commands: [], promptPatterns: ['教案'], fileTypes: ['.pdf'] },
+      allowedTools: ['read', 'write'],
+      assets: [],
+      priority: 20
+    }), 'utf8')
+    writeFileSync(join(skillRoot, 'SKILL.md'), '# 智能教案', 'utf8')
+    const module = await import('./kun-process')
+
+    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings(), {
+      builtinSkillSourceRoot: sourceRoot
+    })
+
+    const parsed = JSON.parse(readFileSync(join(tempRoot, 'config.json'), 'utf8')) as any
+    const installedRoot = join(tempRoot, 'skills', 'builtin')
+    expect(parsed.capabilities.skills).toMatchObject({
+      enabled: true,
+      roots: expect.arrayContaining([installedRoot])
+    })
+    expect(readFileSync(join(installedRoot, 'lesson-planner', 'SKILL.md'), 'utf8'))
+      .toBe('# 智能教案')
+  })
+
   it('writes GUI-managed MCP search settings without removing existing servers', async () => {
     if (!tempRoot) throw new Error('temp root not initialized')
     const configPath = join(tempRoot, 'config.json')

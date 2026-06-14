@@ -1,0 +1,18 @@
+{
+  "commands": [
+    {
+      "id": "pandoc",
+      "label": "Pandoc",
+      "command": "pandoc",
+      "required": false,
+      "installHint": "用于高质量文档格式转换；安装前需用户确认。"
+    },
+    {
+      "id": "libreoffice",
+      "label": "LibreOffice",
+      "command": "soffice",
+      "required": false,
+      "installHint": "用于 Office 文档转换与渲染；安装前需用户确认。"
+    }
+  ]
+}

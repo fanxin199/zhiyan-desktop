@@ -1,4 +1,5 @@
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist'
+import type { SourceVisualAsset } from '../../../shared/courseware'
 
 GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.mjs',
@@ -79,4 +80,44 @@ export async function cropImageDataUrl(
     canvas.height
   )
   return canvas.toDataURL('image/png')
+}
+
+export async function materializePdfVisualAssets(
+  base64: string,
+  assets: SourceVisualAsset[]
+): Promise<SourceVisualAsset[]> {
+  const pdf = await getDocument({
+    data: base64ToBytes(base64),
+    useSystemFonts: true
+  }).promise
+  try {
+    const pageImages = new Map<number, string>()
+    const materialized: SourceVisualAsset[] = []
+    for (const asset of assets.slice(0, 40)) {
+      if (!asset.crop) {
+        materialized.push(asset)
+        continue
+      }
+      let pageDataUrl = pageImages.get(asset.sourceIndex)
+      if (!pageDataUrl) {
+        const page = await pdf.getPage(asset.sourceIndex)
+        const viewport = page.getViewport({ scale: 1.45 })
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.ceil(viewport.width)
+        canvas.height = Math.ceil(viewport.height)
+        const context = canvas.getContext('2d')
+        if (!context) throw new Error('无法创建教材页面预览。')
+        await page.render({ canvasContext: context, viewport }).promise
+        pageDataUrl = canvas.toDataURL('image/png')
+        pageImages.set(asset.sourceIndex, pageDataUrl)
+      }
+      materialized.push({
+        ...asset,
+        imageDataUrl: await cropImageDataUrl(pageDataUrl, asset.crop)
+      })
+    }
+    return materialized
+  } finally {
+    await pdf.destroy()
+  }
 }

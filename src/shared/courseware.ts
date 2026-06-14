@@ -80,6 +80,39 @@ export const sourceFigureRefSchema = z.object({
   imageDataUrl: z.string().max(20_000_000).optional()
 }).strict()
 
+export const coursewareSourceKindSchema = z.enum(['pdf', 'pptx'])
+
+export const coursewareSourceDocumentSchema = z.object({
+  kind: coursewareSourceKindSchema,
+  path: z.string().trim().min(1).max(4_096),
+  pageCount: z.number().int().positive().max(100_000),
+  searchable: z.boolean().default(true)
+}).strict()
+
+export const sourceVisualAssetSchema = z.object({
+  id: z.string().trim().min(1).max(160),
+  sourceKind: coursewareSourceKindSchema,
+  sourceIndex: z.number().int().positive(),
+  sourceName: z.string().trim().max(512).optional(),
+  mediaType: z.string().trim().min(1).max(128),
+  role: z.enum(['figure', 'photo', 'chart', 'diagram', 'decorative', 'unknown']),
+  status: z.enum(['approved', 'rejected', 'pending']),
+  confidence: z.number().min(0).max(1),
+  occurrences: z.array(z.number().int().positive()).min(1).max(1_000),
+  caption: z.string().trim().max(2_000).optional(),
+  nearbyText: z.string().trim().max(8_000).optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  crop: z.object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    width: z.number().positive().max(1),
+    height: z.number().positive().max(1)
+  }).strict().optional(),
+  imageDataUrl: z.string().max(20_000_000).optional(),
+  assetPath: z.string().trim().max(1_024).optional()
+}).strict()
+
 export const coursewareRequestSchema = z.object({
   sourcePath: z.string().trim().min(1).max(4_096),
   pageStart: z.number().int().positive(),
@@ -136,7 +169,7 @@ export const coursewareSlideSpecSchema = z.object({
   evidenceRefs: z.array(evidenceRefSchema).max(20).default([])
 }).strict()
 
-export const coursewareProjectSchema = z.object({
+const coursewareProjectV1Schema = z.object({
   version: z.literal(1),
   request: coursewareRequestSchema,
   blueprint: coursewareBlueprintSchema,
@@ -149,14 +182,87 @@ export const coursewareProjectSchema = z.object({
   generatedAt: z.string().datetime()
 }).strict()
 
+const coursewareProjectV2Schema = z.object({
+  version: z.literal(2),
+  request: coursewareRequestSchema,
+  sourceDocument: coursewareSourceDocumentSchema,
+  blueprint: coursewareBlueprintSchema,
+  slides: z.preprocess(
+    (value) => Array.isArray(value) ? value.slice(0, MAX_COURSEWARE_SLIDES) : value,
+    z.array(coursewareSlideSpecSchema).min(1).max(MAX_COURSEWARE_SLIDES)
+  ),
+  sourceVisuals: z.array(sourceVisualAssetSchema).max(200).default([]),
+  evidence: z.array(evidenceRefSchema).max(100).default([]),
+  generatedAt: z.string().datetime()
+}).strict()
+
+function migrateCoursewareProject(value: unknown): unknown {
+  const legacy = coursewareProjectV1Schema.safeParse(value)
+  if (!legacy.success) return value
+  const project = legacy.data
+  const sourceKind = project.request.sourcePath.toLowerCase().endsWith('.pptx') ? 'pptx' : 'pdf'
+  return {
+    version: 2,
+    request: project.request,
+    sourceDocument: {
+      kind: sourceKind,
+      path: project.request.sourcePath,
+      pageCount: project.request.pageEnd,
+      searchable: true
+    },
+    blueprint: project.blueprint,
+    slides: project.slides,
+    sourceVisuals: project.sourceFigures.map((figure) => ({
+      id: figure.id,
+      sourceKind,
+      sourceIndex: figure.pageNumber,
+      mediaType: figure.imageDataUrl?.match(/^data:([^;,]+)/)?.[1] ?? 'image/png',
+      role: 'figure',
+      status: 'approved',
+      confidence: 1,
+      occurrences: [figure.pageNumber],
+      ...(figure.caption ? { caption: figure.caption } : {}),
+      ...(figure.crop ? { crop: figure.crop } : {}),
+      ...(figure.imageDataUrl ? { imageDataUrl: figure.imageDataUrl } : {})
+    })),
+    evidence: project.evidence,
+    generatedAt: project.generatedAt
+  }
+}
+
+export const coursewareProjectSchema = z.preprocess(
+  migrateCoursewareProject,
+  coursewareProjectV2Schema
+)
+
+export function parseCoursewareProject(value: unknown): z.infer<typeof coursewareProjectV2Schema> {
+  return coursewareProjectSchema.parse(value)
+}
+
 export type CoursewareAudience = z.infer<typeof coursewareAudienceSchema>
 export type CoursewareRequest = z.infer<typeof coursewareRequestSchema>
 export type CoursewareBlueprintSection = z.infer<typeof coursewareBlueprintSectionSchema>
 export type CoursewareBlueprint = z.infer<typeof coursewareBlueprintSchema>
 export type SlideSpec = z.infer<typeof coursewareSlideSpecSchema>
 export type SourceFigureRef = z.infer<typeof sourceFigureRefSchema>
+export type CoursewareSourceKind = z.infer<typeof coursewareSourceKindSchema>
+export type CoursewareSourceDocument = z.infer<typeof coursewareSourceDocumentSchema>
+export type SourceVisualAsset = z.infer<typeof sourceVisualAssetSchema>
 export type EvidenceRef = z.infer<typeof evidenceRefSchema>
 export type CoursewareProject = z.infer<typeof coursewareProjectSchema>
+
+export type CoursewareSourceAnalysisResult =
+  | {
+      ok: true
+      document: CoursewareSourceDocument
+      text: string
+      assets: SourceVisualAsset[]
+    }
+  | {
+      ok: false
+      code: 'UNSUPPORTED_SOURCE' | 'READ_FAILED' | 'OCR_REQUIRED'
+      message: string
+    }
 
 export type CoursewareBlueprintGenerationInput = {
   request: CoursewareRequest

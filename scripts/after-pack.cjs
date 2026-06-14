@@ -83,6 +83,15 @@ function validateBundledKunRuntime(context) {
     join(root, 'node_modules', 'better-sqlite3', 'package.json'),
     'root better-sqlite3 dependency'
   )
+  const resources = packedResourcesDir(context)
+  assertExists(
+    join(resources, 'builtin-skills', 'courseware-builder', 'skill.json'),
+    'built-in courseware skill'
+  )
+  assertExists(
+    join(resources, 'builtin-skills', 'research-data-analyst', 'skill.json'),
+    'built-in research data analysis skill'
+  )
 }
 
 function maybeAdhocSignMacApp(context) {

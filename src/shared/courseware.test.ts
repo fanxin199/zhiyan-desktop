@@ -1,12 +1,74 @@
 import { describe, expect, it } from 'vitest'
 import {
   coursewareBlueprintSchema,
+  parseCoursewareProject,
   coursewareProjectSchema,
   coursewareRequestSchema,
   coursewareSlideSpecSchema
 } from './courseware'
 
 describe('courseware contracts', () => {
+  it('migrates a version 1 project to the version 2 visual asset model', () => {
+    const migrated = parseCoursewareProject({
+      version: 1,
+      request: {
+        sourcePath: 'C:\\books\\immunology.pdf',
+        pageStart: 1,
+        pageEnd: 10,
+        topic: 'B cell activation',
+        durationMinutes: 90,
+        audience: 'undergraduate',
+        focus: '',
+        includeRecentLiterature: false,
+        maxLiteratureResults: 6
+      },
+      blueprint: {
+        title: 'B cell activation',
+        audience: 'undergraduate',
+        durationMinutes: 90,
+        teachingGoal: 'Explain the activation pathway.',
+        sections: [{
+          id: 'section-1',
+          title: 'Signals',
+          objective: 'Explain activation signals.',
+          summary: 'BCR, co-receptor, and T-cell help.',
+          slideCount: 1,
+          emphasis: ['BCR']
+        }]
+      },
+      slides: [{
+        id: 'slide-1',
+        sectionId: 'section-1',
+        kind: 'content',
+        title: 'Activation',
+        bullets: ['Signal one'],
+        speakerNotes: 'Explain signal one.',
+        evidenceRefs: []
+      }],
+      sourceFigures: [{
+        id: 'figure-1',
+        pageNumber: 2,
+        caption: 'Figure 1',
+        imageDataUrl: 'data:image/png;base64,AA=='
+      }],
+      evidence: [],
+      generatedAt: '2026-06-14T00:00:00.000Z'
+    })
+
+    expect(migrated.version).toBe(2)
+    expect(migrated.sourceDocument).toMatchObject({
+      kind: 'pdf',
+      pageCount: 10
+    })
+    expect(migrated.sourceVisuals[0]).toMatchObject({
+      id: 'figure-1',
+      sourceKind: 'pdf',
+      sourceIndex: 2,
+      role: 'figure',
+      status: 'approved'
+    })
+  })
+
   it('rejects an inverted PDF page range', () => {
     const result = coursewareRequestSchema.safeParse({
       sourcePath: 'C:\\books\\immunology.pdf',

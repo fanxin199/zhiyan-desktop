@@ -51,6 +51,7 @@ type MarketplaceItem = {
   sourceLabel?: string
   statusTone?: 'default' | 'success' | 'warning' | 'error'
   systemManaged?: boolean
+  dependencies?: SkillListItem['dependencies']
   mcpConfig?: (workspaceRoot: string) => JsonRecord
   skillInstructions?: string
 }
@@ -270,7 +271,7 @@ function itemDescription(item: MarketplaceItem, t: (key: string) => string): str
 
 export function skillMarketplaceItemsFromDiscoveredSkills(
   skills: SkillListItem[],
-  labels: { project: string; global: string }
+  labels: { builtin: string; project: string; global: string }
 ): MarketplaceItem[] {
   return skills.map((skill) => ({
     id: skill.id,
@@ -278,7 +279,14 @@ export function skillMarketplaceItemsFromDiscoveredSkills(
     title: skill.name,
     description: skill.description ?? skill.root,
     group: 'personal' as const,
-    sourceLabel: skill.scope === 'project' ? labels.project : labels.global
+    sourceLabel:
+      skill.scope === 'builtin'
+        ? labels.builtin
+        : skill.scope === 'project'
+          ? labels.project
+          : labels.global,
+    systemManaged: skill.scope === 'builtin',
+    dependencies: skill.dependencies
   }))
 }
 
@@ -409,48 +417,12 @@ const RECOMMENDED_ITEMS: MarketplaceItem[] = [
         ['-y', '@upstash/context7-mcp@latest']
       )
   },
-  {
-    id: 'code-review',
-    kind: 'skill',
-    titleKey: 'pluginSkillReviewTitle',
-    descriptionKey: 'pluginSkillReviewDesc',
-    group: 'recommended',
-    skillInstructions:
-      'Use this skill when reviewing a code change. Prioritize correctness, regressions, security, performance, and missing tests. Lead with concrete findings and file references.'
-  },
-  {
-    id: 'frontend-polish',
-    kind: 'skill',
-    titleKey: 'pluginSkillFrontendTitle',
-    descriptionKey: 'pluginSkillFrontendDesc',
-    group: 'recommended',
-    skillInstructions:
-      'Use this skill when improving UI. Preserve the product style, check responsive states, avoid generic layouts, and verify the result visually before handing it back.'
-  },
-  {
-    id: 'bug-hunt',
-    kind: 'skill',
-    titleKey: 'pluginSkillBugTitle',
-    descriptionKey: 'pluginSkillBugDesc',
-    group: 'recommended',
-    skillInstructions:
-      'Use this skill when investigating bugs. Reproduce or narrow the symptom, trace the data flow, identify the smallest fix, and add focused verification where possible.'
-  },
-  {
-    id: 'release-notes',
-    kind: 'skill',
-    titleKey: 'pluginSkillReleaseTitle',
-    descriptionKey: 'pluginSkillReleaseDesc',
-    group: 'recommended',
-    skillInstructions:
-      'Use this skill when preparing release notes. Group user-facing changes by outcome, call out migrations or risks, and keep wording concise and scannable.'
-  }
 ]
 
 export function PluginMarketplaceView(): ReactElement {
   const { t } = useTranslation('common')
   const workspaceRoot = normalizeWorkspaceRoot(useChatStore((s) => s.workspaceRoot))
-  const [activeKind, setActiveKind] = useState<PluginKind>('mcp')
+  const [activeKind, setActiveKind] = useState<PluginKind>('skill')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<PluginFilter>('all')
   const [installed, setInstalled] = useState<string[]>(() => loadInstalledPlugins())
@@ -625,6 +597,7 @@ export function PluginMarketplaceView(): ReactElement {
   )
   const discoveredSkillItems = useMemo(
     () => skillMarketplaceItemsFromDiscoveredSkills(discoveredSkills, {
+      builtin: t('pluginSkillSourceBuiltin'),
       project: t('pluginSkillSourceProject'),
       global: t('pluginSkillSourceGlobal')
     }),
@@ -684,7 +657,7 @@ export function PluginMarketplaceView(): ReactElement {
   const builtInItems = visibleItems.filter((item) => item.systemManaged)
   const recommendedItems = visibleItems.filter((item) => !item.systemManaged && !isInstalled(item))
   const personalItems = visibleItems.filter((item) =>
-    item.group === 'personal' ||
+    (!item.systemManaged && item.group === 'personal') ||
     (!item.systemManaged && isInstalled(item) && !discoveredSkillIds.has(item.id) && !discoveredMcpIds.has(item.id))
   )
   const mcpRuntimeOverlay = useMemo(
@@ -829,7 +802,7 @@ export function PluginMarketplaceView(): ReactElement {
               {t('pluginTabSkill')}
             </TabButton>
           </div>
-          <div className="flex items-center gap-2">
+          {activeKind === 'mcp' ? <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => void openManageTarget()}
@@ -846,7 +819,7 @@ export function PluginMarketplaceView(): ReactElement {
               <Plus className="h-4 w-4" strokeWidth={1.9} />
               {t('pluginCreate')}
             </button>
-          </div>
+          </div> : null}
         </div>
 
         <div className="mt-9 flex flex-col items-center text-center">
@@ -880,7 +853,11 @@ export function PluginMarketplaceView(): ReactElement {
         </div>
 
         {activeKind === 'skill' ? (
-          <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center">
+          <details className="mt-4 rounded-xl border border-ds-border bg-ds-card px-4 py-3">
+            <summary className="cursor-pointer text-[13px] font-semibold text-ds-muted">
+              {t('pluginSkillAdvanced')}
+            </summary>
+            <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
             <select
               value={selectedSkillRoot?.id ?? ''}
               onChange={(event) => setSkillRootId(event.target.value as SkillRootId)}
@@ -902,6 +879,14 @@ export function PluginMarketplaceView(): ReactElement {
             </button>
             <button
               type="button"
+              onClick={() => setCustomOpen((value) => !value)}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-ds-border bg-ds-card px-3 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+            >
+              <Plus className="h-4 w-4" />
+              {t('pluginCreate')}
+            </button>
+            <button
+              type="button"
               onClick={() => void refreshSkillList()}
               disabled={skillListLoading}
               className="inline-flex h-10 items-center gap-2 rounded-xl border border-ds-border bg-ds-card px-3 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:cursor-not-allowed disabled:opacity-60"
@@ -918,7 +903,8 @@ export function PluginMarketplaceView(): ReactElement {
                 {t('pluginSkillDiscoveredCount', { count: discoveredSkills.length })}
               </span>
             )}
-          </div>
+            </div>
+          </details>
         ) : null}
 
         {activeKind === 'mcp' ? (
@@ -953,19 +939,17 @@ export function PluginMarketplaceView(): ReactElement {
 
         {notice ? <NoticeView notice={notice} /> : null}
 
-        {activeKind === 'mcp' ? (
-          <PluginSection
-            title={t('pluginBuiltIn')}
-            emptyText={t('pluginNoResults')}
-            items={builtInItems}
-            busyId={busyId}
-            isInstalled={isInstalled}
-            onAdd={addItem}
-            t={t}
-          />
-        ) : null}
-
         <PluginSection
+          title={t('pluginBuiltIn')}
+          emptyText={t('pluginNoResults')}
+          items={builtInItems}
+          busyId={busyId}
+          isInstalled={isInstalled}
+          onAdd={addItem}
+          t={t}
+        />
+
+        {recommendedItems.length > 0 ? <PluginSection
           title={t('pluginRecommended')}
           emptyText={t('pluginNoResults')}
           items={recommendedItems}
@@ -973,7 +957,7 @@ export function PluginMarketplaceView(): ReactElement {
           isInstalled={isInstalled}
           onAdd={addItem}
           t={t}
-        />
+        /> : null}
 
         <PluginSection
           title={t('pluginPersonal')}
@@ -1175,6 +1159,27 @@ function PluginSection({
                   <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ds-muted">
                     {itemDescription(item, t)}
                   </p>
+                  {item.dependencies?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {item.dependencies.map((dependency) => (
+                        <span
+                          key={dependency.id}
+                          title={dependency.installHint}
+                          className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                            dependency.available
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-200'
+                          }`}
+                        >
+                          {dependency.label} · {
+                            dependency.available
+                              ? t('pluginDependencyAvailable')
+                              : t('pluginDependencyMissing')
+                          }
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <button
                   type="button"

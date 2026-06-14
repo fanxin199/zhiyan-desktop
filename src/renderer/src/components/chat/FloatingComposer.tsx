@@ -112,7 +112,7 @@ type Props = {
     name: string
     description?: string
     root?: string
-    scope?: 'project' | 'global'
+    scope?: 'builtin' | 'project' | 'global'
     legacy?: boolean
     triggers?: {
       commands?: string[]
@@ -197,8 +197,12 @@ function isProjectSkillRoot(skillRoot: string | undefined, workspaceRoot: string
   return Boolean(root && workspace && (root === workspace || root.startsWith(`${workspace}/`)))
 }
 
-function isProjectSkill(skill: { root?: string; scope?: 'project' | 'global' }, workspaceRoot: string): boolean {
-  return skill.scope === 'project' || (skill.scope !== 'global' && isProjectSkillRoot(skill.root, workspaceRoot))
+function isProjectSkill(
+  skill: { root?: string; scope?: 'builtin' | 'project' | 'global' },
+  workspaceRoot: string
+): boolean {
+  return skill.scope === 'project' ||
+    (!skill.scope && isProjectSkillRoot(skill.root, workspaceRoot))
 }
 
 function normalizedImageFile(file: File, mimeTypeHint?: string): File | null {

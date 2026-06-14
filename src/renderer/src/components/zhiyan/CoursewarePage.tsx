@@ -30,13 +30,16 @@ import type {
   CoursewareBlueprint,
   CoursewareProject,
   CoursewareRequest,
+  CoursewareSourceDocument,
   EvidenceRef,
   SlideSpec,
-  SourceFigureRef
+  SourceVisualAsset
 } from '../../../../shared/courseware'
 import { MAX_COURSEWARE_SLIDES } from '../../../../shared/courseware'
+import { assignApprovedVisualsToSlides } from '../../../../shared/courseware-visual-assignment'
 import {
   cropImageDataUrl,
+  materializePdfVisualAssets,
   renderPdfPageDataUrl,
   type NormalizedCrop
 } from '../../lib/pdf-page-image'
@@ -47,7 +50,7 @@ type CoursewarePageProps = {
 }
 
 type Step = 'request' | 'blueprint' | 'slides'
-type BusyAction = 'blueprint' | 'slides' | 'regenerate' | 'figure' | 'export' | null
+type BusyAction = 'source' | 'blueprint' | 'slides' | 'regenerate' | 'figure' | 'export' | null
 
 const AUDIENCE_PRESETS: Array<{
   id: CoursewareAudience
@@ -135,7 +138,8 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
   const [evidence, setEvidence] = useState<EvidenceRef[]>([])
   const [blueprint, setBlueprint] = useState<CoursewareBlueprint | null>(null)
   const [slides, setSlides] = useState<SlideSpec[]>([])
-  const [sourceFigures, setSourceFigures] = useState<SourceFigureRef[]>([])
+  const [sourceDocument, setSourceDocument] = useState<CoursewareSourceDocument | null>(null)
+  const [sourceVisuals, setSourceVisuals] = useState<SourceVisualAsset[]>([])
   const [activeSlideIndex, setActiveSlideIndex] = useState(0)
   const [blueprintInstruction, setBlueprintInstruction] = useState('')
   const [slideInstruction, setSlideInstruction] = useState('')
@@ -195,33 +199,46 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
     })
   }, [])
 
-  async function choosePdf(): Promise<void> {
+  async function chooseSource(): Promise<void> {
     const result = await window.dsGui.pickFile({
-      filters: [{ name: 'PDF 教材', extensions: ['pdf'] }]
+      filters: [{ name: '教材文件', extensions: ['pdf', 'pptx'] }]
     })
     if (!result.canceled && result.path) {
-      setBusy('blueprint')
+      setBusy('source')
       setMessage('')
       setWarning('')
       try {
-        const inspected = await window.dsGui.inspectPdf(result.path)
-        if (!inspected.ok) {
-          setMessage(inspected.message)
+        const analyzed = await window.dsGui.analyzeCoursewareSource(result.path)
+        if (!analyzed.ok) {
+          setMessage(analyzed.message)
           return
         }
+        let assets = analyzed.assets
+        if (analyzed.document.kind === 'pdf' && assets.length > 0) {
+          const binary = await window.dsGui.readFileBinary(result.path)
+          if (binary.ok) {
+            assets = await materializePdfVisualAssets(binary.data, assets)
+          } else {
+            setWarning(`已读取教材文字，但自动提取图片失败：${binary.message}`)
+          }
+        }
+        const sourceName = result.path.split(/[\\/]/).pop() ?? ''
+        setSourceDocument(analyzed.document)
+        setSourceText(analyzed.text)
+        setSourceVisuals(assets)
         setRequest((current) => ({
           ...current,
           sourcePath: result.path as string,
           pageStart: 1,
-          pageEnd: inspected.pageCount,
-          topic: current.topic || (result.path?.split(/[\\/]/).pop()?.replace(/\.pdf$/i, '') ?? '')
+          pageEnd: analyzed.document.pageCount,
+          topic: current.topic || sourceName.replace(/\.(pdf|pptx)$/i, '')
         }))
-        setPageCount(inspected.pageCount)
+        setPageCount(analyzed.document.pageCount)
         setFigurePage(1)
         setPagePreview('')
         setCrop(null)
-        if (!inspected.searchable) {
-          setWarning('PDF 已识别，但抽样页面未发现可搜索文字，可能是扫描版 PDF。')
+        if (!analyzed.document.searchable || !analyzed.text.trim()) {
+          setWarning('文件中未检测到可搜索文字。扫描版 PDF 需要先完成 OCR，才能生成可靠的课件内容。')
         }
       } catch (error) {
         setMessage(errorMessage(error))
@@ -233,23 +250,17 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
   async function createBlueprint(extraInstruction = ''): Promise<void> {
     if (!canGenerateBlueprint) {
-      setMessage('请选择教材 PDF，并填写授课主题。')
+      setMessage('请选择 PDF 或 PPTX 教材，并填写授课主题。')
       return
     }
     setBusy('blueprint')
     setMessage('')
     setWarning('')
     try {
-      const extracted = await window.dsGui.extractPdfRange(
-        request.sourcePath,
-        request.pageStart,
-        request.pageEnd
-      )
-      if (!extracted.ok) {
-        setMessage(extracted.message)
+      if (!sourceText.trim()) {
+        setMessage('教材中没有可用于生成课件的文字，请更换可搜索文件或先完成 OCR。')
         return
       }
-      setSourceText(extracted.text)
       setFigurePage(request.pageStart)
 
       let records: EvidenceRef[] = evidence
@@ -281,7 +292,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         : request
       const result = await window.dsGui.generateCoursewareBlueprint({
         request: adjustedRequest,
-        sourceText: extracted.text,
+        sourceText,
         evidence: records
       })
       if (!result.ok) {
@@ -318,9 +329,13 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         setMessage(result.message)
         return
       }
-      setSlides(result.value)
+      const assigned = assignApprovedVisualsToSlides(result.value, sourceVisuals)
+      setSlides(assigned.slides)
       setActiveSlideIndex(0)
       setStep('slides')
+      if (assigned.unmatchedAssetIds.length > 0) {
+        setWarning(`有 ${assigned.unmatchedAssetIds.length} 张已保留图片尚未匹配页面，可在逐页复核时手工指定。`)
+      }
       if ((result.degradedBatches ?? 0) > 0) {
         setWarning(
           `${result.degradedBatches} 个模型批次未在时限内返回，已保留对应页面的可编辑基础稿；其他批次不受影响。`
@@ -369,17 +384,55 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
     if (!result.canceled && result.path) setOutputDirectory(result.path)
   }
 
+  async function openProject(): Promise<void> {
+    const selected = await window.dsGui.pickFile({
+      filters: [
+        { name: '智研课件项目', extensions: ['zhiyan-courseware'] },
+        { name: '旧版课件项目', extensions: ['json'] }
+      ]
+    })
+    if (selected.canceled || !selected.path) return
+    setBusy('source')
+    setMessage('')
+    setWarning('')
+    try {
+      const project = await window.dsGui.loadCoursewareProject(selected.path)
+      setRequest(project.request)
+      setSourceDocument(project.sourceDocument)
+      setSourceVisuals(project.sourceVisuals)
+      setEvidence(project.evidence)
+      setBlueprint(project.blueprint)
+      setSlides(project.slides)
+      setPageCount(project.sourceDocument.pageCount)
+      setFigurePage(project.request.pageStart)
+      setActiveSlideIndex(0)
+      setStep('slides')
+      const analyzed = await window.dsGui.analyzeCoursewareSource(project.sourceDocument.path)
+      if (analyzed.ok) {
+        setSourceText(analyzed.text)
+      } else {
+        setSourceText('')
+        setWarning('项目已打开；原教材暂时不可读取，因此可继续编辑和导出，但不能重新调用 AI 生成。')
+      }
+    } catch (error) {
+      setMessage(errorMessage(error))
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function exportPackage(): Promise<void> {
-    if (!blueprint || slides.length === 0) return
+    if (!blueprint || !sourceDocument || slides.length === 0) return
     setBusy('export')
     setMessage('')
     setExportPaths([])
     const project: CoursewareProject = {
-      version: 1,
+      version: 2,
       request,
+      sourceDocument,
       blueprint,
       slides,
-      sourceFigures,
+      sourceVisuals,
       evidence,
       generatedAt: new Date().toISOString()
     }
@@ -518,14 +571,20 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         ? crop
         : { x: 0, y: 0, width: 1, height: 1 }
       const imageDataUrl = await cropImageDataUrl(pagePreview, selectedCrop)
-      const figure: SourceFigureRef = {
+      const figure: SourceVisualAsset = {
         id: `figure-${Date.now()}`,
-        pageNumber: figurePage,
+        sourceKind: 'pdf',
+        sourceIndex: figurePage,
+        mediaType: 'image/png',
+        role: 'figure',
+        status: 'approved',
+        confidence: 1,
+        occurrences: [figurePage],
         crop: selectedCrop,
         caption: figureCaption.trim() || `教材第 ${figurePage} 页配图`,
         imageDataUrl
       }
-      setSourceFigures((current) => [...current, figure])
+      setSourceVisuals((current) => [...current, figure])
       updateActiveSlide({
         visual: {
           type: 'source-figure',
@@ -558,6 +617,15 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             <p className="mt-1.5 text-[13px] text-ds-muted">
               先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿。
             </p>
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => void openProject()}
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-[11px] font-semibold text-ds-text hover:border-accent"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              打开已有课件项目
+            </button>
           </div>
           <div className="flex min-w-[300px] items-center gap-2">
             {['教学任务', '课件蓝图', '逐页复核'].map((label, index) => (
@@ -594,24 +662,24 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               </h2>
               <div className="space-y-4">
                 <div>
-                  <span className={labelClass}>教材 PDF</span>
+                  <span className={labelClass}>教材 PDF / PPTX</span>
                   <button
                     type="button"
                     disabled={busy !== null}
-                    onClick={() => void choosePdf()}
+                    onClick={() => void chooseSource()}
                     className="flex w-full items-center gap-3 rounded-xl border border-dashed border-ds-border bg-ds-subtle px-4 py-4 text-left transition hover:border-accent"
                   >
                     <Upload className="h-5 w-5 shrink-0 text-accent" />
                     <span className="min-w-0">
                       <span className="block text-[13px] font-semibold text-ds-text">
-                        {busy === 'blueprint'
-                          ? '正在读取 PDF 信息…'
-                          : request.sourcePath ? '已选择教材' : '选择可搜索文字的 PDF 教材'}
+                        {busy === 'source'
+                          ? '正在分析教材文字与图片…'
+                          : request.sourcePath ? '已选择教材' : '选择 PDF 或 PPTX 教材'}
                       </span>
                       <span className="block truncate text-[11px] text-ds-muted">
                         {request.sourcePath
-                          ? `${request.sourcePath} · 共 ${pageCount || request.pageEnd} 页，将自动读取整本 PDF`
-                          : '选择后自动识别总页数，无需手工填写页码'}
+                          ? `${request.sourcePath} · 共 ${pageCount || request.pageEnd} 页`
+                          : '将自动提取文字，并识别可用于新课件的原图'}
                       </span>
                     </span>
                   </button>
@@ -716,6 +784,67 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               </section>
             </aside>
 
+            {sourceVisuals.length > 0 && (
+              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm lg:col-span-2">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-[14px] font-bold text-ds-text">教材图片审核</h2>
+                    <p className="mt-1 text-[11px] text-ds-muted">
+                      已自动排除重复徽标和小装饰图。仅“保留”的图片会进入新课件。
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-ds-subtle px-3 py-1 text-[10px] text-ds-muted">
+                    保留 {sourceVisuals.filter((asset) => asset.status === 'approved').length} /
+                    共 {sourceVisuals.length} 张
+                  </span>
+                </div>
+                <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {sourceVisuals.map((asset) => (
+                    <article
+                      key={asset.id}
+                      className={`overflow-hidden rounded-xl border ${
+                        asset.status === 'approved'
+                          ? 'border-accent/50 bg-accent/5'
+                          : 'border-ds-border-muted bg-ds-subtle opacity-70'
+                      }`}
+                    >
+                      {asset.imageDataUrl && (
+                        <img
+                          src={asset.imageDataUrl}
+                          alt={asset.caption || asset.sourceName || '教材图片'}
+                          className="h-32 w-full bg-white object-contain"
+                        />
+                      )}
+                      <div className="p-3">
+                        <p className="line-clamp-2 text-[11px] font-semibold text-ds-text">
+                          {asset.caption || asset.sourceName || '未命名教材图片'}
+                        </p>
+                        <p className="mt-1 text-[9px] text-ds-muted">
+                          {asset.sourceKind === 'pptx' ? '原PPT' : 'PDF'} 第 {asset.sourceIndex} 页
+                          {asset.occurrences.length > 1 ? ` · 出现 ${asset.occurrences.length} 次` : ''}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setSourceVisuals((current) => current.map((item) =>
+                            item.id === asset.id
+                              ? {
+                                  ...item,
+                                  status: item.status === 'approved' ? 'rejected' : 'approved',
+                                  role: item.role === 'decorative' ? 'figure' : item.role
+                                }
+                              : item
+                          ))}
+                          className="mt-2 w-full rounded-lg border border-ds-border px-2 py-1.5 text-[10px] font-semibold text-ds-text"
+                        >
+                          {asset.status === 'approved' ? '排除这张图' : '保留这张图'}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <button
               type="button"
               disabled={!canGenerateBlueprint || busy !== null}
@@ -723,7 +852,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               className="flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:col-span-2"
             >
               {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              提取教材并生成课件蓝图
+              生成课件蓝图
             </button>
           </div>
         )}
@@ -1048,6 +1177,47 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             </main>
 
             <aside className="space-y-4">
+              {sourceVisuals.some((asset) => asset.status === 'approved' && asset.imageDataUrl) && (
+                <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
+                  <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
+                    <ImagePlus className="h-4 w-4 text-accent" />
+                    已保留的教材图片
+                  </h2>
+                  <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto">
+                    {sourceVisuals
+                      .filter((asset) => asset.status === 'approved' && asset.imageDataUrl)
+                      .map((asset) => (
+                        <button
+                          key={asset.id}
+                          type="button"
+                          onClick={() => updateActiveSlide({
+                            visual: {
+                              type: 'source-figure',
+                              title: asset.caption || asset.sourceName || '教材原图',
+                              figureId: asset.id
+                            }
+                          })}
+                          className={`overflow-hidden rounded-lg border text-left ${
+                            activeSlide.visual?.figureId === asset.id
+                              ? 'border-accent ring-2 ring-accent/20'
+                              : 'border-ds-border-muted'
+                          }`}
+                        >
+                          <img
+                            src={asset.imageDataUrl}
+                            alt={asset.caption || '教材图片'}
+                            className="h-20 w-full bg-white object-contain"
+                          />
+                          <span className="line-clamp-2 block px-2 py-1.5 text-[9px] text-ds-text">
+                            {asset.caption || `${asset.sourceIndex} 页图片`}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </section>
+              )}
+
+              {sourceDocument?.kind === 'pdf' && (
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
                 <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
                   <ImagePlus className="h-4 w-4 text-accent" />
@@ -1117,6 +1287,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   </div>
                 )}
               </section>
+              )}
 
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
                 <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
@@ -1124,7 +1295,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   导出教学课件包
                 </h2>
                 <p className="mb-3 text-[11px] leading-relaxed text-ds-muted">
-                  包含可编辑 PPTX、逐页讲稿 DOCX 和可继续修改的项目 JSON。默认保存到教材所在文件夹。
+                  包含可编辑 PPTX、逐页讲稿 DOCX 和可继续修改的 `.zhiyan-courseware` 项目包。默认保存到教材所在文件夹。
                 </p>
                 <button
                   type="button"

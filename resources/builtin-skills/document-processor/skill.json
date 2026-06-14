@@ -1,0 +1,15 @@
+{
+  "id": "document-processor",
+  "name": "文档整理与转换",
+  "description": "读取、整理、改写和转换 PDF、Word、Markdown、表格及常见教学科研文档。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/document", "/文档"],
+    "promptPatterns": ["(整理文档|转换格式|Word|PDF|Markdown|提取文字|合并文档|document)"],
+    "fileTypes": [".pdf", ".doc", ".docx", ".md", ".txt", ".csv", ".xlsx"]
+  },
+  "allowedTools": ["read", "write", "edit", "grep", "find", "ls", "bash"],
+  "assets": [],
+  "priority": 65
+}

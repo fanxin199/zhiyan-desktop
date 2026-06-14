@@ -10,6 +10,7 @@ import {
   type EvidenceRef,
   type SlideSpec
 } from '../../shared/courseware'
+import { writeCoursewareProjectArchive } from './courseware-project-service'
 
 type HtmlToDocxConverter = (
   htmlString: string,
@@ -264,27 +265,47 @@ function addInteractionSlide(pptx: PptxGenJS, slide: PptxGenJS.Slide, spec: Slid
 }
 
 function addSourceFigure(
-  pptx: PptxGenJS,
   slide: PptxGenJS.Slide,
   project: CoursewareProject,
   spec: SlideSpec
-): boolean {
-  const figure = project.sourceFigures.find((item) => item.id === spec.visual?.figureId)
-  if (!figure?.imageDataUrl) return false
-  slide.addImage({
-    data: figure.imageDataUrl,
-    x: 6.9,
-    y: 1.35,
-    w: 5.7,
-    h: 4.95,
-    transparency: 0
-  })
+): { x: number; y: number; w: number; h: number } | null {
+  const figure = project.sourceVisuals.find((item) =>
+    item.id === spec.visual?.figureId && item.status === 'approved'
+  )
+  if (!figure?.imageDataUrl) return null
+  const ratio = figure.width && figure.height
+    ? figure.width / figure.height
+    : figure.crop
+      ? figure.crop.width / figure.crop.height
+      : 4 / 3
+  const wide = ratio >= 1.55
+  const target = wide
+    ? { x: 0.85, y: 1.35, w: 11.65, h: 3.75 }
+    : { x: 7.05, y: 1.35, w: 5.4, h: 4.95 }
+  const targetRatio = target.w / target.h
+  const image = ratio > targetRatio
+    ? {
+        x: target.x,
+        y: target.y + (target.h - target.w / ratio) / 2,
+        w: target.w,
+        h: target.w / ratio
+      }
+    : {
+        x: target.x + (target.w - target.h * ratio) / 2,
+        y: target.y,
+        w: target.h * ratio,
+        h: target.h
+      }
+  slide.addImage({ data: figure.imageDataUrl, ...image, transparency: 0 })
+  const sourceLabel = figure.sourceKind === 'pptx'
+    ? `原PPT第 ${figure.sourceIndex} 页`
+    : `教材第 ${figure.sourceIndex} 页`
   slide.addText(
-    `${figure.caption ?? '教材原图'}（来源：教材第 ${figure.pageNumber} 页）`,
+    `${figure.caption ?? '教材原图'}（来源：${sourceLabel}）`,
     {
-      x: 6.9,
-      y: 6.4,
-      w: 5.7,
+      x: target.x,
+      y: wide ? 5.16 : 6.4,
+      w: target.w,
       h: 0.38,
       fontFace: 'Microsoft YaHei',
       fontSize: 10,
@@ -294,7 +315,9 @@ function addSourceFigure(
       fit: 'shrink'
     }
   )
-  return true
+  return wide
+    ? { x: 0.95, y: 5.55, w: 11.4, h: 1.15 }
+    : { x: 0.75, y: 1.45, w: 5.75, h: 4.95 }
 }
 
 function buildPresentation(project: CoursewareProject): PptxGenJS {
@@ -394,8 +417,16 @@ function buildPresentation(project: CoursewareProject): PptxGenJS {
           margin: 0
         })
         addBulletContent(slide, spec.bullets, { x: 4.25, y: 1.45, w: 8.05, h: 4.9 })
-      } else if (spec.visual?.type === 'source-figure' && addSourceFigure(pptx, slide, project, spec)) {
-        addBulletContent(slide, spec.bullets, { x: 0.75, y: 1.45, w: 5.65, h: 4.95 })
+      } else if (spec.visual?.type === 'source-figure') {
+        const bulletBox = addSourceFigure(slide, project, spec)
+        if (bulletBox) {
+          addBulletContent(slide, spec.bullets, {
+            ...bulletBox,
+            fontSize: bulletBox.h < 2 ? 14 : 18
+          })
+        } else {
+          addBulletContent(slide, spec.bullets, { x: 0.85, y: 1.4, w: 11.7, h: 5.2 })
+        }
       } else {
         addBulletContent(slide, spec.bullets, { x: 0.85, y: 1.4, w: 11.7, h: 5.2 })
       }
@@ -477,7 +508,7 @@ export async function exportCoursewarePackage(
     const baseName = safeFileName(project.blueprint.title || project.request.topic)
     const pptxPath = join(outputDirectory, `${baseName}-课件.pptx`)
     const docxPath = join(outputDirectory, `${baseName}-逐页讲稿.docx`)
-    const projectPath = join(outputDirectory, `${baseName}-课件项目.json`)
+    const projectPath = join(outputDirectory, `${baseName}.zhiyan-courseware`)
 
     const presentation = buildPresentation(project)
     await presentation.writeFile({ fileName: pptxPath, compression: true })
@@ -490,7 +521,7 @@ export async function exportCoursewarePackage(
       fontSize: 22
     })
     await writeFile(docxPath, await bufferFromDocxResult(docx))
-    await writeFile(projectPath, `${JSON.stringify(project, null, 2)}\n`, 'utf8')
+    await writeCoursewareProjectArchive(project, projectPath)
 
     return {
       ok: true,

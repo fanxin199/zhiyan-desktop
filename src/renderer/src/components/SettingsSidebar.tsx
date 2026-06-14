@@ -1,5 +1,14 @@
-import type { Dispatch, ReactElement, SetStateAction } from 'react'
-import { Bot, ChevronLeft, Globe, PencilLine, Settings, Smartphone } from 'lucide-react'
+import { useState, type Dispatch, type ReactElement, type SetStateAction } from 'react'
+import {
+  Bot,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  PencilLine,
+  Settings,
+  Smartphone
+} from 'lucide-react'
 
 type SettingsCategory = 'general' | 'write' | 'agents' | 'claw'
 
@@ -14,6 +23,9 @@ export function SettingsSidebar({
   setCategory: Dispatch<SetStateAction<SettingsCategory>>
   t: (key: string) => string
 }): ReactElement {
+  const [showAdvanced, setShowAdvanced] = useState(
+    category === 'agents' || category === 'claw'
+  )
   const catCls = (c: SettingsCategory): string =>
     `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium transition ${
       category === c
@@ -43,14 +55,28 @@ export function SettingsSidebar({
           <PencilLine className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
           {t('write')}
         </button>
-        <button type="button" className={catCls('agents')} onClick={() => setCategory('agents')}>
-          <Bot className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
-          {t('agents')}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((value) => !value)}
+          className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-ds-muted transition hover:bg-ds-hover"
+        >
+          {showAdvanced
+            ? <ChevronDown className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
+            : <ChevronRight className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />}
+          高级设置
         </button>
-        <button type="button" className={catCls('claw')} onClick={() => setCategory('claw')}>
-          <Smartphone className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
-          {t('claw')}
-        </button>
+        {showAdvanced && (
+          <>
+            <button type="button" className={catCls('agents')} onClick={() => setCategory('agents')}>
+              <Bot className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
+              AI 服务与模型
+            </button>
+            <button type="button" className={catCls('claw')} onClick={() => setCategory('claw')}>
+              <Smartphone className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
+              远程与自动任务
+            </button>
+          </>
+        )}
       </nav>
       <div className="ds-no-drag mt-auto border-t border-ds-border p-3">
         <div className="flex items-center gap-2 rounded-xl px-2 py-2">

@@ -1,12 +1,63 @@
 import { describe, expect, it } from 'vitest'
 import { stat } from 'node:fs/promises'
 import {
+  analyzePdfCoursewareSource,
   extractPdfRange,
   inspectPdf,
   resolvePdfJsDocumentOptions
 } from './courseware-pdf-service'
 
 describe('extractPdfRange', () => {
+  it('detects a large embedded figure and links its caption', async () => {
+    const result = await analyzePdfCoursewareSource(
+      'C:\\books\\immunology.pdf',
+      {
+        readPdf: async () => new Uint8Array([1, 2, 3]),
+        openPdf: async () => ({
+          numPages: 1,
+          getPage: async () => ({
+            getViewport: () => ({ width: 1000, height: 800 }),
+            getOperatorList: async () => ({
+              fnArray: [12, 85],
+              argsArray: [
+                [700, 0, 0, 400, 100, 260],
+                ['img-1']
+              ]
+            }),
+            getTextContent: async () => ({
+              items: [
+                { str: 'Figure 2. B cell activation pathway', transform: [1, 0, 0, 1, 120, 220] }
+              ]
+            })
+          }),
+          destroy: async () => undefined
+        })
+      }
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.document).toMatchObject({
+      kind: 'pdf',
+      pageCount: 1,
+      searchable: true
+    })
+    expect(result.assets).toHaveLength(1)
+    expect(result.assets[0]).toMatchObject({
+      sourceKind: 'pdf',
+      sourceIndex: 1,
+      role: 'figure',
+      status: 'approved',
+      caption: 'Figure 2. B cell activation pathway',
+      crop: {
+        x: 0.1,
+        y: 0.175,
+        width: 0.7,
+        height: 0.5
+      }
+    })
+  })
+
   it('reads the PDF page count without asking the user for a range', async () => {
     const result = await inspectPdf(
       'C:\\books\\immunology.pdf',

@@ -10,7 +10,7 @@ import {
   defaultWriteSettings,
   type AppSettingsV1
 } from '../../shared/app-settings'
-import { listGuiSkills } from './skill-service'
+import { commandAvailable, listGuiSkills } from './skill-service'
 
 describe('skill-service', () => {
   let tempRoot = ''
@@ -95,6 +95,22 @@ describe('skill-service', () => {
       })
     ]))
     expect(projectSkills.map((skill) => skill.id)).not.toContain('skill')
+  })
+
+  it('checks command dependencies using PATH without executing them', async () => {
+    const binRoot = join(tempRoot, 'bin')
+    await mkdir(binRoot, { recursive: true })
+    const commandName = process.platform === 'win32' ? 'zhiyan-tool.cmd' : 'zhiyan-tool'
+    await writeFile(join(binRoot, commandName), '', 'utf8')
+
+    expect(commandAvailable('zhiyan-tool', {
+      PATH: binRoot,
+      PATHEXT: '.CMD'
+    }, process.platform)).toBe(true)
+    expect(commandAvailable('missing-zhiyan-tool', {
+      PATH: binRoot,
+      PATHEXT: '.CMD'
+    }, process.platform)).toBe(false)
   })
 
   function createSettings(workspaceRoot: string): AppSettingsV1 {

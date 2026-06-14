@@ -57,6 +57,8 @@ import type {
   CoursewareExportRequest,
   CoursewareExportResult,
   CoursewareGenerationResult,
+  CoursewareProject,
+  CoursewareSourceAnalysisResult,
   CoursewareSlideGenerationInput,
   CoursewareSlideGenerationProgress,
   CoursewareSlideRegenerationInput,
@@ -96,8 +98,17 @@ export type SkillListItem = {
   description?: string
   root: string
   entryPath: string
-  scope: 'project' | 'global'
+  scope: 'builtin' | 'project' | 'global'
   legacy: boolean
+  dependencies?: SkillDependencyStatus[]
+}
+export type SkillDependencyStatus = {
+  id: string
+  label: string
+  kind: 'command'
+  required: boolean
+  available: boolean
+  installHint?: string
 }
 export type SkillListResult =
   | { ok: true; skills: SkillListItem[]; validationErrors: Array<{ root: string; message: string }> }
@@ -160,6 +171,8 @@ export type DsGuiApi = {
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   readFileBinary: (filePath: string) => Promise<{ ok: true; data: string; size: number } | { ok: false; message: string }>
   inspectPdf: (path: string) => Promise<PdfInspectResult>
+  analyzeCoursewareSource: (path: string) => Promise<CoursewareSourceAnalysisResult>
+  loadCoursewareProject: (path: string) => Promise<CoursewareProject>
   extractPdfRange: (
     path: string,
     pageStart: number,

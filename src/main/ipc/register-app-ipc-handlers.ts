@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import {
+  getKunRuntimeSettings,
   type AppSettingsPatch,
   type AppSettingsV1,
   type ClawRunResult,
@@ -33,6 +34,7 @@ import {
   coursewareExportPayloadSchema,
   coursewarePdfInspectPayloadSchema,
   coursewarePdfRangePayloadSchema,
+  coursewareSourcePathPayloadSchema,
   coursewareSlideRegenerationPayloadSchema,
   coursewareSlidesGenerationPayloadSchema,
   deepseekConfigContentSchema,
@@ -95,6 +97,7 @@ import {
 } from '../services/write-inline-completion-service'
 import { copyWriteDocumentAsRichText, exportWriteDocument } from '../services/write-export-service'
 import { listGuiSkills } from '../services/skill-service'
+import { syncBuiltinSkills } from '../services/builtin-skill-service'
 import { extractPdfRange, inspectPdf } from '../services/courseware-pdf-service'
 import { searchPubMed } from '../services/pubmed-service'
 import {
@@ -103,6 +106,8 @@ import {
   regenerateCoursewareSlide
 } from '../services/courseware-generation-service'
 import { exportCoursewarePackage } from '../services/courseware-export-service'
+import { loadCoursewareProject } from '../services/courseware-project-service'
+import { analyzeCoursewareSource } from '../services/courseware-source-service'
 
 type GuiUpdaterModule = typeof import('../gui-updater')
 
@@ -529,6 +534,24 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     return inspectPdf(request.path)
   })
 
+  ipcMain.handle('courseware:analyze-source', async (_, payload: unknown) => {
+    const request = parseIpcPayload(
+      'courseware:analyze-source',
+      coursewareSourcePathPayloadSchema,
+      payload
+    )
+    return analyzeCoursewareSource(request.path)
+  })
+
+  ipcMain.handle('courseware:load-project', async (_, payload: unknown) => {
+    const request = parseIpcPayload(
+      'courseware:load-project',
+      coursewareSourcePathPayloadSchema,
+      payload
+    )
+    return loadCoursewareProject(request.path)
+  })
+
   ipcMain.handle('literature:search-pubmed', async (_, payload: unknown) =>
     searchPubMed(
       parseIpcPayload('literature:search-pubmed', pubMedSearchPayloadSchema, payload)
@@ -610,6 +633,9 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   ipcMain.handle('skill:list', async (_, payload: unknown) => {
     const request = parseIpcPayload('skill:list', skillListPayloadSchema, payload)
     const settings = await store.load()
+    await syncBuiltinSkills({
+      dataDir: expandHomePath(getKunRuntimeSettings(settings).dataDir)
+    })
     return listGuiSkills(settings, request.workspaceRoot)
   })
 

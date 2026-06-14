@@ -1,0 +1,18 @@
+{
+  "commands": [
+    {
+      "id": "python",
+      "label": "Python",
+      "command": "python",
+      "required": false,
+      "installHint": "用于 Python 生信与统计流程；安装前需用户确认。"
+    },
+    {
+      "id": "rscript",
+      "label": "R / Rscript",
+      "command": "Rscript",
+      "required": false,
+      "installHint": "用于 R/Bioconductor 分析；安装前需用户确认。"
+    }
+  ]
+}

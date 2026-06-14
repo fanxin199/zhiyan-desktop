@@ -1,0 +1,15 @@
+{
+  "id": "scientific-visualizer",
+  "name": "科研绘图与机制图",
+  "description": "生成适合课堂、汇报和论文前期打磨的统计图、机制图与 BioRender 风格绘图说明。",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "triggers": {
+    "commands": ["/figure", "/绘图"],
+    "promptPatterns": ["(科研绘图|机制图|示意图|热图|火山图|森林图|BioRender|figure|visualization)"],
+    "fileTypes": [".csv", ".tsv", ".xlsx", ".svg", ".png", ".pdf"]
+  },
+  "allowedTools": ["read", "write", "edit", "grep", "find", "ls", "bash", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
+  "assets": [],
+  "priority": 78
+}

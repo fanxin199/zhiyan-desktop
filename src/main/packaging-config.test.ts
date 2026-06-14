@@ -78,6 +78,24 @@ describe('electron-builder Kun packaging', () => {
       touch(join(unpackedRoot, relativePath))
     }
     touch(join(unpackedRoot, 'node_modules/better-sqlite3/package.json'))
+    touch(join(
+      context.appOutDir,
+      'DeepSeek GUI.app',
+      'Contents',
+      'Resources',
+      'builtin-skills',
+      'courseware-builder',
+      'skill.json'
+    ))
+    touch(join(
+      context.appOutDir,
+      'DeepSeek GUI.app',
+      'Contents',
+      'Resources',
+      'builtin-skills',
+      'research-data-analyst',
+      'skill.json'
+    ))
 
     expect(() => afterPack._internals.validateBundledKunRuntime(context)).not.toThrow()
 
