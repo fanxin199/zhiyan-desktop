@@ -55,7 +55,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "transcript:diff": "node ./scripts/transcript-diff.mjs",
     "serve": "node ./dist/cli/serve-entry.js",
     "dev": "tsc -p tsconfig.build.json --watch"
   },
