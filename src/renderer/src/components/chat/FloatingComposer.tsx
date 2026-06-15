@@ -67,7 +67,6 @@ import {
   formatPercent,
   useThreadUsageState
 } from '../../hooks/use-thread-usage'
-import { GitBranchPicker } from './GitBranchPicker'
 import {
   FloatingComposerModelPicker,
   type ComposerReasoningEffort
@@ -1746,7 +1745,6 @@ export function FloatingComposer({
       {compact ? null : (
         <div className="ds-composer-footer mt-1 flex min-h-7 flex-wrap items-center justify-between gap-x-2.5 gap-y-1.5 px-3">
           <div className="ds-composer-footer-left flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            <GitBranchPicker workspaceRoot={effectiveWorkspaceRoot} />
             {showThreadUsageFooter ? (
               <div
                 className="ds-composer-usage ds-no-drag inline-flex min-h-7 max-w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 overflow-visible rounded-lg border border-ds-border-muted bg-ds-card/72 px-2.5 py-0.5 text-[12.5px] font-medium leading-5 text-ds-muted shadow-sm"
