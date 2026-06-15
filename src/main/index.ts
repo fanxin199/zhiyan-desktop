@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, powerSaveBlocker, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, Tray } from 'electron'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,9 +13,7 @@ import {
   getActiveAgentApiKey,
   getKunRuntimeSettings,
   mergeKunRuntimeSettings,
-  mergeClawSettings,
   mergeModelProviderSettings,
-  mergeScheduleSettings,
   mergeWriteSettings,
   normalizeAppSettings,
   normalizeAppBehaviorSettings,
@@ -26,7 +24,6 @@ import {
 } from '../shared/app-settings'
 import { parseRuntimeErrorBody, runtimeErrorToError, type RuntimeErrorCode } from '../shared/runtime-error'
 import type { GuiUpdateState } from '../shared/gui-update'
-import { isAllowedDevPreviewUrl } from '../shared/dev-preview-url'
 import { fetchUpstreamModelIds } from './upstream-models'
 import {
   kunRuntimeAdapter,
@@ -35,31 +32,9 @@ import {
   runtimeRequestViaHost
 } from './runtime/kun-adapter'
 import { configureLogger, logError, logWarn, pruneOnStartup } from './logger'
-import { createClawRuntime, type ClawRuntime } from './claw-runtime'
-import { createScheduleRuntime, type ScheduleRuntime } from './schedule-runtime'
-import { runClawScheduleMcpServerFromArgv } from './claw-schedule-mcp-server'
-import {
-  clawScheduleMcpSettingsChanged,
-  resolveKunMcpJsonPath,
-  syncClawScheduleMcpConfig,
-  type ClawScheduleMcpLaunchConfig
-} from './claw-schedule-mcp-config'
+import { resolveKunMcpJsonPath } from './kun-config-path'
 import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
-import {
-  configureManagedWeixinBridgeUrlResolver,
-  pollFeishuInstall,
-  pollWeixinInstall,
-  startFeishuInstallQrcode,
-  startWeixinInstallQrcode
-} from './claw-platform-install'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
-import {
-  configureWeixinBridgeRuntimeContextProvider,
-  ensureWeixinBridgeRpcUrl,
-  sendWeixinBridgeMessage,
-  stopWeixinBridgeRuntime
-} from './weixin-bridge-runtime'
-import { webhookUrl } from './claw-runtime-helpers'
 import { isKunHealthResponseBody } from './kun-health'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -78,24 +53,6 @@ function traceStartup(label: string, detail?: unknown): void {
   }
 }
 
-function shouldStartWeixinBridgeRuntime(settings: AppSettingsV1): boolean {
-  return settings.claw.enabled &&
-    settings.claw.im.enabled &&
-    settings.claw.channels.some((channel) => channel.enabled && channel.provider === 'weixin')
-}
-
-function syncWeixinBridgeRuntime(settings: AppSettingsV1): void {
-  if (!shouldStartWeixinBridgeRuntime(settings)) return
-  void ensureWeixinBridgeRpcUrl().catch((error) => {
-    logWarn('weixin-bridge', 'Failed to start managed WeChat bridge.', {
-      message: error instanceof Error ? error.message : String(error)
-    })
-  })
-}
-
-const runningClawScheduleMcpServer =
-  process.argv.includes('--gui-schedule-mcp-server') || process.argv.includes('--claw-schedule-mcp-server')
-
 function resolveLogDirectory(): string {
   return join(app.getPath('userData'), 'logs')
 }
@@ -104,14 +61,6 @@ function resolvePreloadPath(): string {
   const cjsPath = join(__dirname, '../preload/index.cjs')
   if (existsSync(cjsPath)) return cjsPath
   return join(__dirname, '../preload/index.mjs')
-}
-
-function getClawScheduleMcpLaunchConfig(): ClawScheduleMcpLaunchConfig {
-  return {
-    appPath: app.getAppPath(),
-    execPath: process.execPath,
-    isPackaged: app.isPackaged
-  }
 }
 
 function sleep(ms: number): Promise<void> {
@@ -139,19 +88,13 @@ function runtimeJsonError(code: string, message: string): Error {
 traceStartup('main module evaluated')
 app.setName('智研助手')
 
-if (runningClawScheduleMcpServer && process.platform === 'darwin') {
-  app.dock.hide()
-}
-
-if (!runningClawScheduleMcpServer && process.platform === 'win32') {
+if (process.platform === 'win32') {
   app.setAppUserModelId(APP_USER_MODEL_ID)
 }
 
 let mainWindow: BrowserWindow | null = null
 let store: JsonSettingsStore
 let logDir = ''
-let clawRuntime: ClawRuntime | null = null
-let scheduleRuntime: ScheduleRuntime | null = null
 let managedRuntimesStoppedForQuit = false
 let managedRuntimesStopPromise: Promise<void> | null = null
 let appBehavior: AppBehaviorConfigV1 = normalizeAppBehaviorSettings()
@@ -163,11 +106,6 @@ type GuiUpdaterModule = typeof import('./gui-updater')
 let guiUpdaterModulePromise: Promise<GuiUpdaterModule> | null = null
 let guiUpdaterInitialized = false
 
-function emitClawChannelActivity(payload: { channelId: string; threadId: string }): void {
-  if (!mainWindow || mainWindow.isDestroyed()) return
-  mainWindow.webContents.send('claw:channel-activity', payload)
-}
-
 async function stopManagedRuntimesForQuit(): Promise<void> {
   if (managedRuntimesStoppedForQuit) return
   await stopManagedRuntimes()
@@ -177,9 +115,6 @@ async function stopManagedRuntimesForQuit(): Promise<void> {
 async function stopManagedRuntimes(): Promise<void> {
   if (!managedRuntimesStopPromise) {
     managedRuntimesStopPromise = (async () => {
-      scheduleRuntime?.stop()
-      clawRuntime?.stop()
-      stopWeixinBridgeRuntime()
       await kunRuntimeAdapter.stopAndWait()
     })().finally(() => {
       managedRuntimesStopPromise = null
@@ -225,37 +160,6 @@ async function readGuiUpdateState(): Promise<GuiUpdateState> {
 }
 
 
-function installDevPreviewWebviewGuards(): void {
-  app.on('web-contents-created', (_, contents) => {
-    contents.on('will-attach-webview', (event, webPreferences, params) => {
-      const src = typeof params.src === 'string' ? params.src : ''
-      if (!isAllowedDevPreviewUrl(src)) {
-        event.preventDefault()
-        return
-      }
-
-      delete webPreferences.preload
-      delete (webPreferences as { preloadURL?: string }).preloadURL
-      webPreferences.nodeIntegration = false
-      webPreferences.contextIsolation = true
-      webPreferences.sandbox = true
-      webPreferences.webSecurity = true
-      webPreferences.allowRunningInsecureContent = false
-    })
-
-    contents.on('will-navigate', (event, navigationUrl) => {
-      if (contents.getType() !== 'webview') return
-      if (!isAllowedDevPreviewUrl(navigationUrl)) event.preventDefault()
-    })
-
-    contents.setWindowOpenHandler(({ url }) => {
-      if (contents.getType() !== 'webview') return { action: 'allow' }
-      return isAllowedDevPreviewUrl(url) ? { action: 'allow' } : { action: 'deny' }
-    })
-  })
-}
-
-
 function createAppIcon(source: string): Electron.NativeImage {
   return source.startsWith('data:')
     ? nativeImage.createFromDataURL(source)
@@ -265,10 +169,9 @@ function createAppIcon(source: string): Electron.NativeImage {
 
 const appIcon = createAppIcon(zhiyanLogoPng)
 traceStartup('app icon loaded', { source: zhiyanLogoPng.startsWith('data:') ? 'data-url' : 'path' })
-const gotSingleInstanceLock = runningClawScheduleMcpServer || app.requestSingleInstanceLock()
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
 traceStartup('single instance lock checked', {
-  gotSingleInstanceLock,
-  skippedForClawScheduleMcpServer: runningClawScheduleMcpServer
+  gotSingleInstanceLock
 })
 
 function trayLabels(locale: AppSettingsV1['locale']): { show: string; quit: string; tooltip: string } {
@@ -710,7 +613,7 @@ function canonicalSettingsValue(value: unknown): unknown {
 }
 
 function runtimeStartupConfigChanged(prev: AppSettingsV1, next: AppSettingsV1): boolean {
-  return kunRuntimeConfigChanged(prev, next) || clawScheduleMcpSettingsChanged(prev, next)
+  return kunRuntimeConfigChanged(prev, next)
 }
 
 async function restartManagedRuntimeForSettingsChange(
@@ -758,19 +661,9 @@ async function runtimeRequest(
   }
 }
 
-if (runningClawScheduleMcpServer) {
-  void runClawScheduleMcpServerFromArgv(process.argv).catch((error) => {
-    console.error('[claw-schedule-mcp] server failed:', error)
-    process.exit(1)
-  })
-} else {
 app.whenReady().then(async () => {
   traceStartup('app.whenReady:start')
   if (!gotSingleInstanceLock) return
-
-  traceStartup('install webview guards:start')
-  installDevPreviewWebviewGuards()
-  traceStartup('install webview guards:done')
 
   if (process.platform === 'darwin' && !appIcon.isEmpty()) {
     app.dock.setIcon(appIcon)
@@ -783,10 +676,6 @@ app.whenReady().then(async () => {
   appBehavior = initial.appBehavior
   syncLoginItemSettings(initial)
   syncTray(initial)
-  await syncClawScheduleMcpConfig(initial, getClawScheduleMcpLaunchConfig()).catch((error) => {
-    console.error('[claw-schedule-mcp] failed to sync config on startup:', error)
-  })
-
   logDir = resolveLogDirectory()
   configureLogger({
     dir: logDir,
@@ -794,30 +683,6 @@ app.whenReady().then(async () => {
     retentionDays: initial.log.retentionDays
   })
   traceStartup('logger configured')
-  scheduleRuntime = createScheduleRuntime({ store, runtimeRequest, logError, powerSaveBlocker })
-  scheduleRuntime.sync(initial)
-  clawRuntime = createClawRuntime({
-    store,
-    runtimeRequest,
-    logError,
-    notifyChannelActivity: emitClawChannelActivity,
-    sendWeixinBridgeMessage,
-    createScheduledTaskFromText: (text, options) =>
-      scheduleRuntime?.createScheduledTaskFromText(text, options) ?? Promise.resolve({ kind: 'noop' })
-  })
-  clawRuntime.sync(initial)
-  configureWeixinBridgeRuntimeContextProvider(async () => {
-    const settings = await store.load()
-    const channel = settings.claw.channels.find((item) => item.enabled && item.provider === 'weixin')
-    return {
-      webhookUrl: webhookUrl(settings),
-      webhookSecret: settings.claw.im.secret,
-      channelId: channel?.id ?? ''
-    }
-  })
-  configureManagedWeixinBridgeUrlResolver(ensureWeixinBridgeRpcUrl)
-  syncWeixinBridgeRuntime(initial)
-
   traceStartup('ipc registration:start')
   const applySettingsPatch = async (partial: AppSettingsPatch): Promise<AppSettingsV1> => {
     const prev = await store.load()
@@ -833,24 +698,18 @@ app.whenReady().then(async () => {
         ...(partial.appBehavior ?? {})
       }),
       write: mergeWriteSettings(prev.write, partial.write),
-      claw: mergeClawSettings(prev.claw, partial.claw),
-      schedule: mergeScheduleSettings(prev.schedule, partial.schedule),
+      claw: prev.claw,
+      schedule: prev.schedule,
       guiUpdate: { ...prev.guiUpdate, ...(partial.guiUpdate ?? {}) }
     })
     if (prev.log.enabled !== next.log.enabled || prev.log.retentionDays !== next.log.retentionDays) {
       configureLogger({ enabled: next.log.enabled, retentionDays: next.log.retentionDays })
     }
     const saved = await store.patch(partial)
-    await syncClawScheduleMcpConfig(saved, getClawScheduleMcpLaunchConfig()).catch((error) => {
-      console.error('[claw-schedule-mcp] failed to sync config after settings change:', error)
-    })
     if (prev.guiUpdate.channel !== saved.guiUpdate.channel && guiUpdaterModulePromise) {
       void guiUpdaterModulePromise.then((module) => module.setGuiUpdateChannel(saved.guiUpdate.channel))
     }
     queueRuntimeSettingsApply(prev, saved)
-    scheduleRuntime?.sync(saved)
-    clawRuntime?.sync(saved)
-    syncWeixinBridgeRuntime(saved)
     syncLoginItemSettings(saved)
     syncTray(saved)
     return saved
@@ -871,12 +730,6 @@ app.whenReady().then(async () => {
       return runtimeRequest(settings, path, { method, body })
     },
     fetchUpstreamModels: fetchModels,
-    getClawRuntime: () => clawRuntime,
-    getScheduleRuntime: () => scheduleRuntime,
-    startFeishuInstallQrcode,
-    pollFeishuInstall,
-    startWeixinInstallQrcode,
-    pollWeixinInstall,
     resolveKunConfigPath: resolveKunMcpJsonPath,
     showTurnCompleteNotification,
     getAppVersion: () => app.getVersion(),
@@ -918,7 +771,6 @@ app.whenReady().then(async () => {
   dialog.showErrorBox('智研助手启动失败', message)
   app.quit()
 })
-}
 
 app.on('window-all-closed', () => {
   void stopManagedRuntimes().catch((error) => {

@@ -16,25 +16,24 @@ npm run hooks:install
 
 ## Worktree 使用节点
 
-`git worktree` 只用于开发隔离，不暴露给教师用户。
+`git worktree` 只用于开发隔离，不暴露给教师用户。项目采用“一个功能或工具修改，一个
+worktree”的固定规则。
 
-### 适合使用
+### 必须使用
 
-- 一个功能预计修改多个模块或持续超过半天。
-- 同时维护稳定分支和新功能。
-- 需要并行处理紧急修复与正在开发的功能。
-- 发布前需要独立验证安装包。
+- 新增、替换或删除一个工具、Skill 或 Agent 能力。
+- 修改一个教师可见功能或工作流。
+- 调整运行时、权限、文件处理、导出或安装包。
+- 修复需要修改生产代码的问题。
 
-### 不需要使用
-
-- 文案修正、单文件小改动或可在一次提交中完成的修复。
-- 尚未明确边界的探索性修改。
+只有纯文档勘误可以直接在当前分支完成。探索性调查不修改文件；一旦开始修改，先建立
+worktree。
 
 ### 推荐流程
 
 ```powershell
 git fetch origin
-git worktree add .worktrees/feat-name -b feat/name main
+git worktree add .worktrees/feat-name -b codex/feat-name main
 Set-Location .worktrees/feat-name
 npm ci
 ```
@@ -46,14 +45,21 @@ npm test
 npm run typecheck
 npm run lint -- --max-warnings=0
 npm run build
-git push -u origin feat/name
+git add .
+git commit -m "feat: describe the change"
 ```
 
-合并并确认不再需要后，再移除 worktree：
+测试和提交通过后，在主工作区快进合并；再次确认主分支测试通过后再推送：
 
 ```powershell
+Set-Location ../..
+git switch main
+git merge --ff-only codex/feat-name
+npm test
+npm run typecheck
+git push origin main
 git worktree remove .worktrees/feat-name
-git branch -d feat/name
+git branch -d codex/feat-name
 ```
 
 ## 提交边界
@@ -62,3 +68,4 @@ git branch -d feat/name
 - 产品功能、测试和必要文档放在同一功能分支。
 - 不提交 API Key、本地教材、导出课件、日志、安装包或个人配置。
 - 第三方代码来源和许可证变更必须同步更新 `THIRD_PARTY_NOTICES.md`。
+- 不在未测试的 worktree 中直接修改或覆盖主分支。

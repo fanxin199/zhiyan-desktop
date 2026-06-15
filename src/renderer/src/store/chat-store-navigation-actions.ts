@@ -21,14 +21,12 @@ import {
 } from '../lib/thread-fork-registry'
 import { workspaceLabelFromPath } from '../lib/workspace-label'
 import { isInternalTemporaryWorkspace, normalizeWorkspaceRoot } from '../lib/workspace-path'
-import { buildClawRuntimePrompt, getActiveAgentApiKey } from '@shared/app-settings'
+import { getActiveAgentApiKey } from '@shared/app-settings'
 import type { ChatState, ChatStoreGet, ChatStoreSet } from './chat-store-types'
 import {
-  activeClawChannel,
   compactCodeWorkspaceRoots,
   forgetCodeWorkspaceRoot,
   hydrateBlockModelLabels,
-  isClawThread,
   optimisticUserModelLabel,
   readCodeWorkspaceRoots,
   readStoredComposerModel,
@@ -78,7 +76,6 @@ import {
   looksLikeActiveTurnError,
   readActiveWriteWorkspace,
   readWriteWorkspaceRoots,
-  rememberPendingClawFeishuMirror,
   runtimeErrorDetail,
   runtimeStreamRecoveringMessage,
   shouldOpenSettingsForError,
@@ -95,8 +92,6 @@ type StoreActionContext = {
 }
 
 let bootPromise: Promise<void> | null = null
-let clawChannelActivityUnsubscribe: (() => void) | null = null
-
 export function createNavigationActions(
   { set, get, sseAbortRef }: StoreActionContext
 ): Pick<ChatState, 'openCode' | 'openWrite' | 'ensureWriteThreadForWorkspace' | 'createWriteThread' | 'selectWriteThread' | 'probeRuntime' | 'boot' | 'chooseWorkspace' | 'clearWorkspace' | 'deleteWorkspace' | 'refreshThreads' | 'setThreadSearch' | 'setShowArchivedThreads'> {
@@ -106,12 +101,12 @@ export function createNavigationActions(
     const activeThread = state.activeThreadId
       ? state.threads.find((thread) => thread.id === state.activeThreadId) ?? null
       : null
-    if (activeThread && isCodeThread(activeThread, state.clawChannels)) {
+    if (activeThread && isCodeThread(activeThread)) {
       set({ route: 'chat' })
       return
     }
 
-    const codeThreads = state.threads.filter((thread) => isCodeThread(thread, state.clawChannels))
+    const codeThreads = state.threads.filter((thread) => isCodeThread(thread))
     const selectedWorkspace = normalizeWorkspaceRoot(state.workspaceRoot)
     const target =
       latestThread(codeThreads.filter((thread) => threadBelongsToWorkspace(thread, selectedWorkspace))) ??
@@ -349,30 +344,6 @@ export function createNavigationActions(
         applyTheme(settings.theme)
         applyUiFontScale(settings.uiFontScale)
         await get().applyI18nFromSettings(settings.locale)
-        if (!clawChannelActivityUnsubscribe && typeof window.dsGui.onClawChannelActivity === 'function') {
-          clawChannelActivityUnsubscribe = window.dsGui.onClawChannelActivity(({ channelId, threadId }) => {
-            void (async () => {
-              const state = get()
-              if (typeof window.dsGui === 'undefined') return
-              const settings = await rendererRuntimeClient.getSettings({ forceRefresh: true })
-              const channels = settings.claw.channels
-              const activeChannelId = channels.some(
-                (channel) => channel.id === state.activeClawChannelId && channel.enabled
-              )
-                ? state.activeClawChannelId
-                : channels.find((channel) => channel.enabled)?.id ?? ''
-              set({ clawChannels: channels, activeClawChannelId: activeChannelId })
-              void get().refreshThreads()
-              if (state.route === 'claw' && state.activeClawChannelId === channelId) {
-                if (state.activeThreadId !== threadId) {
-                  await get().selectThread(threadId)
-                } else {
-                  await get().recoverActiveTurn()
-                }
-              }
-            })()
-          })
-        }
         set({
           route: 'dashboard',
           initialSetupOpen: needsInitialSetup,
@@ -380,8 +351,6 @@ export function createNavigationActions(
           workspaceRoot,
           codeWorkspaceRoots,
           workspaceLabel: workspaceLabelFromPath(workspaceRoot),
-          clawChannels: settings.claw.channels,
-          activeClawChannelId: settings.claw.channels.find((channel) => channel.enabled)?.id ?? '',
           runtimeConnection: needsInitialSetup ? 'idle' : get().runtimeConnection,
           error: needsInitialSetup ? null : get().error,
           runtimeErrorDetail: needsInitialSetup ? null : get().runtimeErrorDetail
@@ -441,7 +410,7 @@ export function createNavigationActions(
           return workspaceRoot
         }
         const workspaceThreads = get().threads
-          .filter((thread) => isCodeThread(thread, get().clawChannels))
+          .filter((thread) => isCodeThread(thread))
           .filter((thread) => threadBelongsToWorkspace(thread, workspaceRoot))
           .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
 
@@ -568,7 +537,7 @@ export function createNavigationActions(
       const codeWorkspaceRoots = rememberCodeWorkspaceRoots(
         get().codeWorkspaceRoots,
         threads
-          .filter((thread) => isCodeThread(thread, get().clawChannels))
+          .filter((thread) => isCodeThread(thread))
           .map((thread) => thread.workspace)
       )
       const sidebarThreads = await filterThreadsForSidebar(threads, p)
@@ -616,8 +585,7 @@ export function createNavigationActions(
       const activeThreadIsManagedInCodeRoute =
         get().route === 'chat' &&
         activeThread != null &&
-        (isWriteThreadId(activeThread.id, writeRegistry) ||
-          isClawThread(activeThread, get().clawChannels))
+        isWriteThreadId(activeThread.id, writeRegistry)
       const shouldClearSelection =
         activeThreadId != null && !displayThreads.some((thread) => thread.id === activeThreadId)
       if (shouldClearSelection) {
@@ -642,7 +610,7 @@ export function createNavigationActions(
           threads: displayThreads,
           codeWorkspaceRoots: compactCodeWorkspaceRoots([
             ...displayThreads
-              .filter((thread) => isCodeThread(thread, s.clawChannels))
+              .filter((thread) => isCodeThread(thread))
               .map((thread) => thread.workspace),
             ...codeWorkspaceRoots
           ]),

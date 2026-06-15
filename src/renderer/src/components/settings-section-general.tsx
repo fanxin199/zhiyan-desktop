@@ -85,12 +85,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
     mcpNotice,
     saveMcpConfig,
     loadMcpConfig,
-    openMcpConfigDir,
-    pickClawWorkspace,
-    resetClawWorkspaceToDefault,
-    clawWorkspacePickerError,
-    splitSettingsList,
-    listSettingsText
+    openMcpConfigDir
   } = ctx
   const platform = typeof window !== 'undefined' ? window.dsGui?.platform ?? '' : ''
   const openAtLoginSupported = platform === 'win32' || platform === 'darwin'

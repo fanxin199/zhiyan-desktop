@@ -233,12 +233,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
     runtimeDiagnosticsNotice,
     refreshKunDiagnostics,
     disableMemoryRecord,
-    deleteMemoryRecord,
-    pickClawWorkspace,
-    resetClawWorkspaceToDefault,
-    clawWorkspacePickerError,
-    splitSettingsList,
-    listSettingsText
+    deleteMemoryRecord
   } = ctx
   const mcpSearch = kun.mcpSearch ?? {
     enabled: false,
@@ -1248,28 +1243,6 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           {selectedSkillRoot?.path || t('skillsRootUnavailable')}
                         </code>
                       </div>
-                    }
-                  />
-                  <SettingRow
-                    title={t('skillsScanDirs')}
-                    description={t('skillsScanDirsDesc')}
-                    wideControl
-                    control={
-                      <textarea
-                        value={listSettingsText(form.claw.skills.extraDirs)}
-                        onChange={(event) =>
-                          update({
-                            claw: {
-                              skills: {
-                                extraDirs: splitSettingsList(event.target.value)
-                              }
-                            }
-                          })
-                        }
-                        spellCheck={false}
-                        placeholder={selectedSkillRoot?.path || '~/.agents/skills'}
-                        className="min-h-24 w-full rounded-2xl border border-ds-border bg-ds-card px-4 py-3 font-mono text-[13px] leading-6 text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
-                      />
                     }
                   />
                   <SettingRow

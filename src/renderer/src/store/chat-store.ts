@@ -22,7 +22,7 @@ import {
 } from '../lib/thread-fork-registry'
 import { workspaceLabelFromPath } from '../lib/workspace-label'
 import { isInternalTemporaryWorkspace, normalizeWorkspaceRoot } from '../lib/workspace-path'
-import { buildClawRuntimePrompt, getActiveAgentApiKey } from '@shared/app-settings'
+import { getActiveAgentApiKey } from '@shared/app-settings'
 import type {
   AppRoute,
   ChatState,
@@ -33,17 +33,12 @@ import type {
   SettingsRouteSection
 } from './chat-store-types'
 import { createAppActions } from './chat-store-app-actions'
-import { createClawActions } from './chat-store-claw-actions'
 import { createSideActions } from './chat-store-side-actions'
 import {
-  activeClawChannel,
   compactCodeWorkspaceRoots,
   forgetCodeWorkspaceRoot,
   hydrateBlockModelLabels,
-  isClawThread,
   mergeComposerPickList,
-  newClawChannel,
-  normalizeClawComposerModel,
   optimisticUserModelLabel,
   persistComposerModel,
   readCodeWorkspaceRoots,
@@ -92,7 +87,6 @@ import {
   looksLikeActiveTurnError,
   readActiveWriteWorkspace,
   readWriteWorkspaceRoots,
-  rememberPendingClawFeishuMirror,
   runtimeErrorDetail,
   runtimeStreamRecoveringMessage,
   shouldOpenSettingsForError,
@@ -104,8 +98,6 @@ import { createThreadActions } from './chat-store-thread-actions'
 import { createMaintenanceActions } from './chat-store-maintenance-actions'
 
 export type { AppRoute, SettingsRouteSection } from './chat-store-types'
-export { CLAW_COMPOSER_MODEL_IDS } from './chat-store-helpers'
-
 let sseAbort: AbortController | null = null
 const sseAbortRef = {
   get current(): AbortController | null {
@@ -157,25 +149,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   unreadThreadIds: {},
   sideConversations: {},
   sidePanel: { open: false, activeSideId: null },
-  clawChannels: [],
-  activeClawChannelId: '',
-
-  ...createClawActions({
-    set,
-    get,
-    i18n,
-    getProvider,
-    newClawChannel,
-    normalizeClawComposerModel,
-    activeClawChannel,
-    normalizeWorkspaceRoot: (workspaceRoot) => normalizeWorkspaceRoot(workspaceRoot ?? undefined),
-    formatRuntimeError,
-    shouldOpenSettingsForError,
-    clearedThreadSelection,
-    sseAbortRef,
-    clearBusyWatchdog
-  }),
-
   ...createAppActions({
     set,
     get,

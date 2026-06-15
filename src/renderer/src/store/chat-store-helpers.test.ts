@@ -1,15 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ClawImChannelV1 } from '@shared/app-settings'
-import { CLAW_MANAGED_INSTRUCTIONS_HEADING } from '@shared/app-settings'
 import {
   MAX_TURN_MODEL_LABELS,
   MAX_CODE_WORKSPACE_ROOTS,
-  clawThreadIdsFromChannels,
-  clawThreadTitleLooksManaged,
   compactCodeWorkspaceRoots,
   hydrateBlockModelLabels,
-  isClawThread,
-  newClawChannel,
   normalizeTurnModelMap,
   rememberTurnModel
 } from './chat-store-helpers'
@@ -34,44 +28,7 @@ function createMemoryStorage(): Storage {
   }
 }
 
-function clawChannel(): ClawImChannelV1 {
-  const now = '2026-06-01T00:00:00.000Z'
-  return {
-    id: 'channel-1',
-    provider: 'feishu',
-    label: 'Feishu Agent',
-    enabled: true,
-    model: 'auto',
-    threadId: 'kun-channel',
-    workspaceRoot: '/Users/zxy/project',
-    agentProfile: {
-      name: '',
-      description: '',
-      identity: '',
-      personality: '',
-      userContext: '',
-      replyRules: ''
-    },
-    conversations: [
-      {
-        id: 'conversation-1',
-        chatId: 'chat-1',
-        remoteThreadId: 'remote-1',
-        latestMessageId: 'message-1',
-        senderId: 'sender-1',
-        senderName: 'Alex',
-        localThreadId: 'kun-conversation',
-        workspaceRoot: '/Users/zxy/project',
-        createdAt: now,
-        updatedAt: now
-      }
-    ],
-    createdAt: now,
-    updatedAt: now
-  }
-}
-
-describe('chat-store Claw helpers', () => {
+describe('chat-store helpers', () => {
   beforeEach(() => {
     vi.stubGlobal('localStorage', createMemoryStorage())
   })
@@ -114,39 +71,6 @@ describe('chat-store Claw helpers', () => {
     expect(compacted[0]).toBe('/Users/zxy/project-0')
     expect(compacted.at(-1)).toBe(`/Users/zxy/project-${MAX_CODE_WORKSPACE_ROOTS - 1}`)
     expect(compacted).not.toContain(`/Users/zxy/project-${MAX_CODE_WORKSPACE_ROOTS}`)
-  })
-
-  it('collects channel and conversation thread ids for Claw sessions', () => {
-    const ids = clawThreadIdsFromChannels([clawChannel()])
-
-    expect(ids.has('kun-channel')).toBe(true)
-    expect(ids.has('kun-conversation')).toBe(true)
-  })
-
-  it('uses product default agent names for new Claw channels', () => {
-    const feishu = newClawChannel('feishu')
-    const weixin = newClawChannel('weixin')
-
-    expect(feishu.label).toBe('feishu agent')
-    expect(feishu.agentProfile.name).toBe('feishu agent')
-    expect(weixin.label).toBe('weixin agent')
-    expect(weixin.agentProfile.name).toBe('weixin agent')
-  })
-
-  it('recognizes Claw managed prompt summaries as Claw sessions', () => {
-    expect(
-      clawThreadTitleLooksManaged(`${CLAW_MANAGED_INSTRUCTIONS_HEADING} DeepSeek GUI scheduled-task tools`)
-    ).toBe(true)
-    expect(isClawThread({ id: 'kun-leaked', title: '[Claw:Feishu Agent]' })).toBe(true)
-  })
-
-  it('recognizes Claw sessions by registered thread id', () => {
-    expect(
-      isClawThread(
-        { id: 'kun-conversation', title: 'hi' },
-        [clawChannel()]
-      )
-    ).toBe(true)
   })
 
   it('normalizes and caps persisted turn model labels', () => {

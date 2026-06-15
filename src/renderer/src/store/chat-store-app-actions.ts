@@ -27,8 +27,6 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
   | 'openWrite'
   | 'openSettings'
   | 'openPlugins'
-  | 'openClaw'
-  | 'openSchedule'
   | 'openDashboard'
   | 'openSyllabus'
   | 'openPptGen'
@@ -104,19 +102,10 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
       })),
 
     openPlugins: (host?: PluginHostRoute) =>
-      set((state) => ({
+      set(() => ({
         route: 'plugins',
-        pluginHostRoute: host ?? (state.route === 'claw' ? 'claw' : 'chat')
+        pluginHostRoute: host ?? 'chat'
       })),
-
-    openClaw: () => {
-      set({ route: 'claw' })
-      void get().refreshClawChannels()
-    },
-
-    openSchedule: () => {
-      set({ route: 'schedule' })
-    },
 
     openDashboard: () => {
       set({ route: 'dashboard' })
@@ -169,13 +158,7 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
       applyUiFontScale(settings.uiFontScale)
       set({
         workspaceRoot,
-        workspaceLabel: workspaceLabelFromPath(workspaceRoot),
-        clawChannels: settings.claw.channels,
-        activeClawChannelId: settings.claw.channels.some(
-          (channel) => channel.id === get().activeClawChannelId && channel.enabled
-        )
-          ? get().activeClawChannelId
-          : settings.claw.channels.find((channel) => channel.enabled)?.id ?? ''
+        workspaceLabel: workspaceLabelFromPath(workspaceRoot)
       })
       await get().applyI18nFromSettings(settings.locale)
       if (get().runtimeConnection === 'ready') {

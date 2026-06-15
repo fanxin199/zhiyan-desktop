@@ -1,8 +1,6 @@
 import { Fragment, useState, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen, GitFork, RefreshCw, Settings } from 'lucide-react'
-import type { ClawImChannelV1 } from '@shared/app-settings'
-import { AnimatedWorkLogo } from './AnimatedWorkLogo'
 import { InitialSessionUsageHeatmap } from './InitialSessionUsageHeatmap'
 import { WhaleHeroStage } from './WhaleHeroStage'
 
@@ -11,61 +9,6 @@ import { WhaleHeroStage } from './WhaleHeroStage'
  * turn content yet. Lifted out of the timeline component so the main
  * file can focus on rendering turns and scroll behaviour.
  */
-
-function clawChannelDisplayName(
-  channel: ClawImChannelV1 | null,
-  fallback: string
-): string {
-  if (!channel) return fallback
-  return (
-    channel.agentProfile.name.trim()
-    || channel.label.trim()
-    || channel.agentProfile.description.trim()
-    || fallback
-  )
-}
-
-function ClawEmptyHero({
-  channel,
-  onSelectSuggestion
-}: {
-  channel: ClawImChannelV1 | null
-  onSelectSuggestion?: (prompt: string) => void
-}): ReactElement {
-  const { t } = useTranslation('common')
-  const agentName = clawChannelDisplayName(channel, t('clawEmptyHeroFallbackName'))
-  void onSelectSuggestion
-  const hasInboundConversation = Boolean(
-    channel?.threadId.trim() ||
-    channel?.conversations.some((conversation) => conversation.localThreadId.trim()) ||
-    channel?.conversations.length ||
-    channel?.remoteSession?.chatId?.trim()
-  )
-
-  return (
-    <div className="ds-no-drag flex justify-center px-4 pb-6 pt-12 md:px-8 md:pt-16">
-      <div className="w-full max-w-[980px] rounded-[32px] border border-ds-border-muted bg-ds-card/78 px-8 py-10 text-center shadow-[0_16px_40px_rgba(15,23,42,0.06)] backdrop-blur md:px-12 md:py-14">
-        <div className="mx-auto max-w-[720px]">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] border border-ds-border-muted bg-ds-main/55 text-accent">
-            <AnimatedWorkLogo
-              active
-              className="ds-claw-empty-whale-logo"
-              phase="lead"
-              size="md"
-            />
-          </div>
-
-          <h1 className="mt-6 text-[34px] font-semibold tracking-[-0.055em] text-ds-ink md:text-[48px]">
-            {t('clawEmptyHeroTitle', { name: agentName })}
-          </h1>
-          <p className="mt-3 text-[15px] leading-7 text-ds-muted md:text-[16px]">
-            {hasInboundConversation ? t('clawEmptyHeroSub') : t('clawEmptyHeroNeedsInbound')}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function RuntimeWakeHero({
   onRetry,
@@ -112,23 +55,17 @@ function RuntimeWakeHero({
 }
 
 export function MessageTimelineEmptyHero({
-  route,
   ready,
   hasWorkspace,
-  activeClawChannel,
   onPickWorkspace,
   onRetry,
-  onOpenSettings,
-  onSelectSuggestion
+  onOpenSettings
 }: {
-  route: 'chat' | 'claw'
   ready: boolean
   hasWorkspace: boolean
-  activeClawChannel: ClawImChannelV1 | null
   onPickWorkspace: () => void
   onRetry: () => void
   onOpenSettings: () => void
-  onSelectSuggestion?: (prompt: string) => void
 }): ReactElement {
   const { t } = useTranslation('common')
 
@@ -154,15 +91,6 @@ export function MessageTimelineEmptyHero({
           {t('selectWorkspace')}
         </button>
       </div>
-    )
-  }
-
-  if (route === 'claw') {
-    return (
-      <ClawEmptyHero
-        channel={activeClawChannel}
-        onSelectSuggestion={onSelectSuggestion}
-      />
     )
   }
 

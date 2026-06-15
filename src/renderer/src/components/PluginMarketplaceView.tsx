@@ -66,7 +66,6 @@ type SkillRootOption = {
 }
 
 const INSTALLED_STORAGE_KEY = 'deepseekgui.installedPlugins'
-const GUI_SCHEDULE_MCP_SERVER_ID = 'gui_schedule'
 
 function loadInstalledPlugins(): string[] {
   try {
@@ -354,14 +353,6 @@ function skillNameLooksValid(raw: string): boolean {
 
 const RECOMMENDED_ITEMS: MarketplaceItem[] = [
   {
-    id: GUI_SCHEDULE_MCP_SERVER_ID,
-    kind: 'mcp',
-    titleKey: 'pluginMcpGuiScheduleTitle',
-    descriptionKey: 'pluginMcpGuiScheduleDesc',
-    group: 'recommended',
-    systemManaged: true
-  },
-  {
     id: 'filesystem',
     kind: 'mcp',
     titleKey: 'pluginMcpFilesystemTitle',
@@ -609,7 +600,7 @@ export function PluginMarketplaceView(): ReactElement {
       connected: t('pluginMcpSourceConnected'),
       error: t('pluginMcpSourceError'),
       disabled: t('pluginMcpSourceDisabled')
-    }).filter((item) => item.id !== GUI_SCHEDULE_MCP_SERVER_ID),
+    }),
     [mcpConfigText, t, toolDiagnostics]
   )
   const discoveredMcpIds = useMemo(
@@ -663,8 +654,7 @@ export function PluginMarketplaceView(): ReactElement {
   const mcpRuntimeOverlay = useMemo(
     () => buildMcpMarketplaceOverlay({
       runtimeInfo,
-      toolDiagnostics,
-      managedServers: [{ id: GUI_SCHEDULE_MCP_SERVER_ID, toolCount: 4 }]
+      toolDiagnostics
     }),
     [runtimeInfo, toolDiagnostics]
   )

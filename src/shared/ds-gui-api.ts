@@ -1,13 +1,4 @@
-import type {
-  AppSettingsPatch,
-  AppSettingsV1,
-  ClawRunResult,
-  ClawTaskFromTextResult,
-  ClawRuntimeStatus,
-  ScheduleRunResult,
-  ScheduleRuntimeStatus,
-  ScheduleTaskFromTextResult
-} from './app-settings'
+import type { AppSettingsPatch, AppSettingsV1 } from './app-settings'
 import type { EditorListResult, EditorOpenResult, OpenEditorPathOptions } from './editor'
 import type { GitBranchesResult } from './git-branches'
 import type {
@@ -123,13 +114,6 @@ export type TurnCompleteNotificationPayload = {
 export type SystemNotificationResult =
   | { ok: true; shown: boolean; reason?: string }
   | { ok: false; message: string }
-export type ClawChannelActivityPayload = {
-  channelId: string
-  threadId: string
-}
-export type ClawChannelMirrorResult =
-  | { ok: true }
-  | { ok: false; message: string }
 export type UpstreamModelsResult =
   | { ok: true; modelIds: string[]; modelGroups?: ModelProviderModelGroup[] }
   | { ok: false; message: string }
@@ -138,13 +122,6 @@ export type ModelProviderModelGroup = {
   label: string
   modelIds: string[]
 }
-export type ClawImInstallQrResult =
-  | { ok: true; url: string; deviceCode: string; userCode: string; interval: number; expireIn: number }
-  | { ok: false; message: string }
-export type ClawImInstallPollResult =
-  | { done: true; kind: 'feishu'; appId: string; appSecret: string; domain: string }
-  | { done: true; kind: 'weixin'; accountId: string; sessionKey: string }
-  | { done: false; error?: string }
 export type SseEventPayload = { streamId: string; data: unknown }
 export type SseEndPayload = { streamId: string }
 export type SseErrorPayload = { streamId: string; status?: number; message?: string }
@@ -155,18 +132,6 @@ export type DsGuiApi = {
   setSettings: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (path: string, method?: string, body?: string) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
-  getClawStatus: () => Promise<ClawRuntimeStatus>
-  runClawTask: (taskId: string) => Promise<ClawRunResult>
-  getScheduleStatus: () => Promise<ScheduleRuntimeStatus>
-  runScheduleTask: (taskId: string) => Promise<ScheduleRunResult>
-  startClawImInstallQr: (
-    provider: 'feishu' | 'weixin',
-    options?: { isLark?: boolean }
-  ) => Promise<ClawImInstallQrResult>
-  pollClawImInstall: (
-    provider: 'feishu' | 'weixin',
-    deviceCode: string
-  ) => Promise<ClawImInstallPollResult>
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   readFileBinary: (filePath: string) => Promise<{ ok: true; data: string; size: number } | { ok: false; message: string }>
@@ -244,25 +209,6 @@ export type DsGuiApi = {
   onSseEvent: (handler: (payload: SseEventPayload) => void) => () => void
   onSseEnd: (handler: (payload: SseEndPayload) => void) => () => void
   onSseError: (handler: (payload: SseErrorPayload) => void) => () => void
-  onClawChannelActivity: (handler: (payload: ClawChannelActivityPayload) => void) => () => void
-  mirrorClawChannelMessage: (
-    threadId: string,
-    text: string,
-    direction: 'user' | 'assistant'
-  ) => Promise<ClawChannelMirrorResult>
-  mirrorClawChannelMessageToFeishu: (
-    threadId: string,
-    text: string,
-    direction: 'user' | 'assistant'
-  ) => Promise<ClawChannelMirrorResult>
-  createClawTaskFromText: (
-    text: string,
-    options?: { channelId?: string; modelHint?: string; mode?: 'agent' | 'plan' }
-  ) => Promise<ClawTaskFromTextResult>
-  createScheduleTaskFromText: (
-    text: string,
-    options?: { workspaceRoot?: string; modelHint?: string; mode?: 'agent' | 'plan' }
-  ) => Promise<ScheduleTaskFromTextResult>
   runDesktopCommand: (command: DesktopCommand) => Promise<void>
   openExternal: (url: string) => Promise<void>
   showTurnCompleteNotification: (

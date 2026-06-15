@@ -6,11 +6,10 @@ import {
   ChevronRight,
   Globe,
   PencilLine,
-  Settings,
-  Smartphone
+  Settings
 } from 'lucide-react'
 
-type SettingsCategory = 'general' | 'write' | 'agents' | 'claw'
+type SettingsCategory = 'general' | 'write' | 'agents'
 
 export function SettingsSidebar({
   category,
@@ -23,9 +22,7 @@ export function SettingsSidebar({
   setCategory: Dispatch<SetStateAction<SettingsCategory>>
   t: (key: string) => string
 }): ReactElement {
-  const [showAdvanced, setShowAdvanced] = useState(
-    category === 'agents' || category === 'claw'
-  )
+  const [showAdvanced, setShowAdvanced] = useState(category === 'agents')
   const catCls = (c: SettingsCategory): string =>
     `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium transition ${
       category === c
@@ -66,16 +63,10 @@ export function SettingsSidebar({
           高级设置
         </button>
         {showAdvanced && (
-          <>
-            <button type="button" className={catCls('agents')} onClick={() => setCategory('agents')}>
-              <Bot className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
-              AI 服务与模型
-            </button>
-            <button type="button" className={catCls('claw')} onClick={() => setCategory('claw')}>
-              <Smartphone className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
-              远程与自动任务
-            </button>
-          </>
+          <button type="button" className={catCls('agents')} onClick={() => setCategory('agents')}>
+            <Bot className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
+            AI 服务与模型
+          </button>
         )}
       </nav>
       <div className="ds-no-drag mt-auto border-t border-ds-border p-3">

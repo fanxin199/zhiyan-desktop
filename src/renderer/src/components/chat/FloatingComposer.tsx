@@ -499,14 +499,8 @@ export function FloatingComposer({
   const setActiveThreadGoal = useChatStore((s) => s.setActiveThreadGoal)
   const setActiveThreadGoalStatus = useChatStore((s) => s.setActiveThreadGoalStatus)
   const clearActiveThreadGoal = useChatStore((s) => s.clearActiveThreadGoal)
-  const clawChannels = useChatStore((s) => s.clawChannels)
-  const activeClawChannelId = useChatStore((s) => s.activeClawChannelId)
   const compact = variant === 'compact'
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const activeClawChannel = useMemo(
-    () => clawChannels.find((channel) => channel.id === activeClawChannelId) ?? null,
-    [activeClawChannelId, clawChannels]
-  )
   const activeThreadWorkspace = activeThreadId
     ? threads.find((thread) => thread.id === activeThreadId)?.workspace
     : ''
@@ -522,23 +516,7 @@ export function FloatingComposer({
   )
   const threadUsage = threadUsageState.usage
   const effectiveWorkspaceRoot = normalizeWorkspaceRoot(activeThreadWorkspace || workspaceRootOverride || workspaceRoot)
-  const clawAgentName =
-    activeClawChannel?.agentProfile.name.trim()
-    || activeClawChannel?.label.trim()
-    || t('clawEmptyHeroFallbackName')
-  const clawHasInboundConversation = Boolean(
-    activeThreadId ||
-    activeClawChannel?.threadId.trim() ||
-    activeClawChannel?.conversations.some((conversation) => conversation.localThreadId.trim()) ||
-    activeClawChannel?.conversations.length ||
-    activeClawChannel?.remoteSession?.chatId?.trim()
-  )
-
-  const canCompose = runtimeReady && (
-    route === 'claw'
-      ? clawHasInboundConversation
-      : (hasActiveThread || !!effectiveWorkspaceRoot)
-  )
+  const canCompose = runtimeReady && (hasActiveThread || !!effectiveWorkspaceRoot)
   const canChangeModel = canCompose && !busy
   const canSend = canCompose && (
     input.trim().length > 0 ||
@@ -549,8 +527,8 @@ export function FloatingComposer({
   const showIntentToolbar = !compact && route === 'chat'
   const showComposerMenuButton = showIntentToolbar
   const canTogglePlanMode = canCompose && Boolean(onPlanCommand)
-  const canOpenGoalPanel = canCompose && route !== 'claw'
-  const canRunReview = canCompose && route !== 'claw' && Boolean(onReviewCommand)
+  const canOpenGoalPanel = canCompose
+  const canRunReview = canCompose && Boolean(onReviewCommand)
   const canOpenComposerMenu = showComposerMenuButton && (canTogglePlanMode || canOpenGoalPanel || canRunReview)
   const showToolbarStartControls = showComposerMenuButton
   const stretchModelPicker =
@@ -574,28 +552,20 @@ export function FloatingComposer({
     ? t('runtimeActionNeedsConnection')
     : !hasActiveThread && !effectiveWorkspaceRoot
       ? t('workspaceRequiredToCreateThread')
-      : goalPanelOpen && route !== 'claw'
+      : goalPanelOpen
         ? t('goalComposerPlaceholder')
       : busy
         ? t('composerQueuePlaceholder')
-        : route === 'claw'
-            ? clawHasInboundConversation
-              ? t('clawPlaceholder', { name: clawAgentName })
-              : t('clawPlaceholderNeedsInbound')
-            : mode === 'plan'
-              ? t('composerPlanPlaceholder')
-              : hasActiveThread
-                ? t('placeholder')
-                : t('composerStartsThread')
+        : mode === 'plan'
+          ? t('composerPlanPlaceholder')
+          : hasActiveThread
+            ? t('placeholder')
+            : t('composerStartsThread')
   const footerHint = !runtimeReady
     ? t('composerOfflineHint')
     : !hasActiveThread && !effectiveWorkspaceRoot
       ? t('composerWorkspaceHint')
-      : route === 'claw'
-          ? clawHasInboundConversation
-            ? t('clawComposerHint')
-            : t('clawComposerHintNeedsInbound')
-          : t('composerSlashHint')
+      : t('composerSlashHint')
   const slashCommands = useMemo<SlashCommand[]>(() => {
     const threadActionDisabled = !runtimeReady || busy || !activeThreadId
     const goalActionDisabled = !canOpenGoalPanel
@@ -610,8 +580,7 @@ export function FloatingComposer({
       })
     }
 
-    if (route !== 'claw') {
-      const dynamicSkillCommands = skillCommands
+    const dynamicSkillCommands = skillCommands
         .filter((skill) => skill.id.trim() && skill.name.trim())
         .sort((left, right) => {
           const leftProject = isProjectSkill(left, effectiveWorkspaceRoot)
@@ -643,9 +612,9 @@ export function FloatingComposer({
             disabled: !runtimeReady
           }
         })
-      commands.push(...dynamicSkillCommands)
+    commands.push(...dynamicSkillCommands)
 
-      commands.push({
+    commands.push({
         id: 'goal',
         title: t('slashCommandGoalTitle'),
         description: t('slashCommandGoalDescription'),
@@ -654,7 +623,7 @@ export function FloatingComposer({
         disabled: goalActionDisabled
       })
 
-      if (onBtwCommand && !hideBtwCommand) {
+    if (onBtwCommand && !hideBtwCommand) {
         // `/btw` is available even while the main thread is busy — the
         // point of the command is to run a parallel aside next to a
         // running task.
@@ -668,7 +637,7 @@ export function FloatingComposer({
         })
       }
 
-      if (onReviewCommand) {
+    if (onReviewCommand) {
         commands.push({
           id: 'review',
           title: t('slashCommandReviewTitle'),
@@ -679,7 +648,7 @@ export function FloatingComposer({
         })
       }
 
-      commands.push(
+    commands.push(
         {
           id: 'compact',
           title: t('slashCommandCompactTitle'),
@@ -698,7 +667,7 @@ export function FloatingComposer({
         }
       )
 
-      if (activeThreadArchived) {
+    if (activeThreadArchived) {
         commands.push({
           id: 'restore',
           title: t('slashCommandRestoreTitle'),
@@ -707,7 +676,7 @@ export function FloatingComposer({
           icon: <RotateCcw className="h-4 w-4" strokeWidth={1.9} />,
           disabled: threadActionDisabled
         })
-      } else {
+    } else {
         commands.push({
           id: 'archive',
           title: t('slashCommandArchiveTitle'),
@@ -716,7 +685,6 @@ export function FloatingComposer({
           icon: <Archive className="h-4 w-4" strokeWidth={1.9} />,
           disabled: threadActionDisabled
         })
-      }
     }
 
     return commands
@@ -730,7 +698,6 @@ export function FloatingComposer({
     onBtwCommand,
     onPlanCommand,
     onReviewCommand,
-    route,
     runtimeReady,
     skillCommands,
     t
@@ -769,8 +736,7 @@ export function FloatingComposer({
   const parsedGoalCommand = parseGoalCommand(input)
   const goalPanelDraftObjective = getGoalPanelDraftObjective(input, goalPanelOpen)
   const canSetGoalPanelDraft =
-    route !== 'claw'
-    && runtimeReady
+    runtimeReady
     && canOpenGoalPanel
     && goalPanelDraftObjective.length > 0
   const primaryActionLabel = highlightedSlashCommand

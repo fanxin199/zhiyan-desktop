@@ -60,12 +60,7 @@ describe('electron-builder Kun packaging', () => {
     expect(builderConfig.asarUnpack).not.toEqual(expect.arrayContaining([
       '**/node_modules/node-bin-darwin-*/*',
       '**/node_modules/node-bin-linux-*/*',
-      '**/node_modules/node-bin-win-*/*',
-      '**/node_modules/openclaw/**/*',
-      '**/node_modules/@tencent-weixin/openclaw-weixin/**/*'
-    ]))
-    expect(builderConfig.files).toEqual(expect.arrayContaining([
-      '!**/node_modules/openclaw/**/*'
+      '**/node_modules/node-bin-win-*/*'
     ]))
   })
 

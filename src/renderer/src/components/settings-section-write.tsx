@@ -89,12 +89,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
     mcpNotice,
     saveMcpConfig,
     loadMcpConfig,
-    openMcpConfigDir,
-    pickClawWorkspace,
-    resetClawWorkspaceToDefault,
-    clawWorkspacePickerError,
-    splitSettingsList,
-    listSettingsText
+    openMcpConfigDir
   } = ctx
 
   return (

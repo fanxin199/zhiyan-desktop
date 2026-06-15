@@ -10,14 +10,6 @@ import type {
   ThreadTodoStatus,
   UserInputAnswer
 } from '../agent/types'
-import type {
-  ClawImAgentProfileV1,
-  ClawImChannelV1,
-  ClawImPlatformCredentialV1,
-  ClawImProvider,
-  ClawImSettingsV1,
-  ClawModel
-} from '@shared/app-settings'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
 
 export type QueuedUserMessage = {
@@ -72,9 +64,9 @@ export type SendMessageOverrides = {
 }
 
 export type InitialSetupMode = 'required' | 'preview'
-export type SettingsRouteSection = 'general' | 'write' | 'agents' | 'skill' | 'mcp' | 'claw' | 'api-keys'
-export type AppRoute = 'chat' | 'write' | 'settings' | 'plugins' | 'claw' | 'schedule' | 'dashboard' | 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'textbook' | 'bioinformatics' | 'file-manager'
-export type PluginHostRoute = 'chat' | 'claw'
+export type SettingsRouteSection = 'general' | 'write' | 'agents' | 'skill' | 'mcp' | 'api-keys'
+export type AppRoute = 'chat' | 'write' | 'settings' | 'plugins' | 'dashboard' | 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'textbook' | 'bioinformatics' | 'file-manager'
+export type PluginHostRoute = 'chat'
 
 /**
  * A side conversation ("by-the-way") running alongside the active
@@ -154,9 +146,6 @@ export type ChatState = {
    */
   sideConversations: Record<string, SideConversation>
   sidePanel: SidePanelState
-  clawChannels: ClawImChannelV1[]
-  activeClawChannelId: string
-  appendLocalClawTurn: (userText: string, replyText: string) => void
   setError: (message: string | null) => void
   setComposerModel: (modelId: string) => void
   loadComposerModels: () => Promise<void>
@@ -168,8 +157,6 @@ export type ChatState = {
   selectWriteThread: (threadId: string, workspaceRoot?: string) => Promise<void>
   openSettings: (section?: SettingsRouteSection) => void
   openPlugins: (host?: PluginHostRoute) => void
-  openClaw: () => void
-  openSchedule: () => void
   openDashboard: () => void
   openSyllabus: () => void
   openPptGen: () => void
@@ -178,25 +165,6 @@ export type ChatState = {
   openTextbook: () => void
   openBioinformatics: () => void
   openFileManager: () => void
-  refreshClawChannels: () => Promise<void>
-  addClawChannel: (
-    provider: ClawImProvider,
-    agentProfile?: Partial<ClawImAgentProfileV1>,
-    platformCredential?: ClawImPlatformCredentialV1,
-    options?: {
-      channelId?: string
-      model?: string
-      workspaceRoot?: string
-      enabled?: boolean
-      im?: Partial<ClawImSettingsV1>
-      preserveRoute?: boolean
-    }
-  ) => Promise<void>
-  selectClawChannel: (channelId: string) => Promise<void>
-  selectClawConversation: (channelId: string, threadId: string) => Promise<void>
-  deleteClawChannel: (channelId: string) => Promise<void>
-  resetClawChannelSession: (channelId: string) => Promise<void>
-  setClawChannelModel: (channelId: string, model: string) => Promise<void>
   openInitialSetup: (mode?: InitialSetupMode) => void
   closeInitialSetup: () => void
   boot: () => Promise<void>

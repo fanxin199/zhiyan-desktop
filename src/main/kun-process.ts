@@ -32,13 +32,7 @@ import {
   SubagentsCapabilityConfig,
   WebCapabilityConfig
 } from '../../kun/src/contracts/capabilities.js'
-import {
-  buildClawScheduleMcpArgs,
-  GUI_SCHEDULE_MCP_SERVER_NAME,
-  resolveClawScheduleMcpCommand,
-  resolveKunMcpJsonPath,
-  type ClawScheduleMcpLaunchConfig
-} from './claw-schedule-mcp-config'
+import { resolveKunMcpJsonPath } from './kun-config-path'
 import { defaultKunDataDir } from './runtime/kun-adapter'
 import { appendManagedLogLine } from './logger'
 import { guiSkillRootsForRuntime, normalizeSkillRootPath } from './services/skill-service'
@@ -52,7 +46,6 @@ const KUN_STARTUP_TIMEOUT_MS = 15_000
 const KUN_STOP_GRACE_MS = 5_000
 const KUN_STOP_FORCE_MS = 1_000
 const STDERR_TAIL_MAX_CHARS = 4_000
-const GUI_SCHEDULE_MCP_TIMEOUT_MS = 5_000
 const DEFAULT_KUN_MODEL_PROFILES: Record<string, Record<string, unknown>> = {
   'deepseek-v4-pro': {
     contextWindowTokens: 1_000_000,
@@ -211,16 +204,7 @@ export async function startKunChild(settings: AppSettingsV1): Promise<void> {
     )
   }
   const dataDir = resolveKunDataDir(runtime)
-  await syncGuiManagedKunConfig(dataDir, runtime, {
-    scheduleMcp: {
-      settings,
-      launch: {
-        appPath: app.getAppPath(),
-        execPath: process.execPath,
-        isPackaged: app.isPackaged
-      }
-    }
-  })
+  await syncGuiManagedKunConfig(dataDir, runtime, { settings })
   lastResolvedBinary = resolution.command === process.execPath
     ? resolution.args.join(' ')
     : resolution.command
@@ -277,10 +261,7 @@ export async function syncGuiManagedKunConfig(
     'mcpSearch' | 'tokenEconomy' | 'storage' | 'contextCompaction' | 'runtimeTuning'
   >,
   options?: {
-    scheduleMcp?: {
-      settings: AppSettingsV1
-      launch: ClawScheduleMcpLaunchConfig
-    }
+    settings?: AppSettingsV1
     mcpConfigPath?: string
     builtinSkillSourceRoot?: string
   }
@@ -293,8 +274,8 @@ export async function syncGuiManagedKunConfig(
       : {})
   })
   const existing = sanitizeKunConfigSections(await readJsonObjectIfExists(configPath))
-  const importedMcpServers = await readGuiManagedMcpServers(
-    options?.mcpConfigPath ?? resolveKunMcpJsonPath()
+  const importedMcpServers = withoutRetiredMcpServers(
+    await readGuiManagedMcpServers(options?.mcpConfigPath ?? resolveKunMcpJsonPath())
   )
   const hasImportedEnabledMcpServer = Object.values(importedMcpServers).some(
     (server) => objectValue(server).enabled !== false
@@ -315,7 +296,7 @@ export async function syncGuiManagedKunConfig(
   const mcpSearch = runtime.mcpSearch
   const skillCapability = await skillCapabilityConfigForRuntime(
     skills,
-    options?.scheduleMcp?.settings,
+    options?.settings,
     builtinSkills.available ? builtinSkills.root : undefined
   )
   const next = {
@@ -341,20 +322,12 @@ export async function syncGuiManagedKunConfig(
       skills: skillCapability,
       mcp: {
         ...mcp,
-        ...(options?.scheduleMcp || mcpSearch.enabled || hasImportedEnabledMcpServer
+        ...(mcpSearch.enabled || hasImportedEnabledMcpServer
           ? { enabled: mcp.enabled === false ? false : true }
           : {}),
         servers: {
-          ...objectValue(mcp.servers),
-          ...importedMcpServers,
-          ...(options?.scheduleMcp
-          ? {
-              [GUI_SCHEDULE_MCP_SERVER_NAME]: buildGuiScheduleKunMcpServer(
-                options.scheduleMcp.settings,
-                options.scheduleMcp.launch
-              )
-            }
-          : {})
+          ...withoutRetiredMcpServers(objectValue(mcp.servers)),
+          ...importedMcpServers
         },
         search: {
           ...search,
@@ -378,23 +351,6 @@ export async function syncGuiManagedKunConfig(
   if (existing && nextText === `${JSON.stringify(existing, null, 2)}\n`) return
   await mkdir(dirname(configPath), { recursive: true })
   await writeFile(configPath, nextText, 'utf8')
-}
-
-function buildGuiScheduleKunMcpServer(
-  settings: AppSettingsV1,
-  launch: ClawScheduleMcpLaunchConfig
-): Record<string, unknown> {
-  return {
-    enabled: true,
-    transport: 'stdio',
-    command: resolveClawScheduleMcpCommand(launch),
-    args: buildClawScheduleMcpArgs(settings, launch),
-    env: {
-      ELECTRON_RUN_AS_NODE: '1'
-    },
-    trustScope: 'user',
-    timeoutMs: GUI_SCHEDULE_MCP_TIMEOUT_MS
-  }
 }
 
 async function skillCapabilityConfigForRuntime(
@@ -430,6 +386,13 @@ function uniqueStrings(values: string[]): string[] {
     out.push(value)
   }
   return out
+}
+
+function withoutRetiredMcpServers(servers: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...servers }
+  delete next.gui_schedule
+  delete next.claw_schedule
+  return next
 }
 
 async function readGuiManagedMcpServers(path: string): Promise<Record<string, unknown>> {

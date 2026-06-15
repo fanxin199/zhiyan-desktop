@@ -9,16 +9,6 @@ const api = {
   runtimeRequest: (path, method, body) =>
     ipcRenderer.invoke('runtime:request', { path, method, body }),
   fetchUpstreamModels: () => ipcRenderer.invoke('upstream:models'),
-  getClawStatus: () => ipcRenderer.invoke('claw:status'),
-  runClawTask: (taskId) =>
-    ipcRenderer.invoke('claw:task:run', taskId),
-  getScheduleStatus: () => ipcRenderer.invoke('schedule:status'),
-  runScheduleTask: (taskId) =>
-    ipcRenderer.invoke('schedule:task:run', taskId),
-  startClawImInstallQr: (provider, options) =>
-    ipcRenderer.invoke('claw:im-install:qrcode', { provider, isLark: options?.isLark }),
-  pollClawImInstall: (provider, deviceCode) =>
-    ipcRenderer.invoke('claw:im-install:poll', { provider, deviceCode }),
   pickWorkspaceDirectory: (defaultPath) =>
     ipcRenderer.invoke('workspace:pick-directory', defaultPath),
   pickFile: (options) =>
@@ -143,32 +133,6 @@ const api = {
     ipcRenderer.on('runtime:sse-error', wrapped)
     return () => ipcRenderer.removeListener('runtime:sse-error', wrapped)
   },
-  onClawChannelActivity: (handler) => {
-    const wrapped = (
-      _: Electron.IpcRendererEvent,
-      payload: Parameters<typeof handler>[0]
-    ) => handler(payload)
-    ipcRenderer.on('claw:channel-activity', wrapped)
-    return () => ipcRenderer.removeListener('claw:channel-activity', wrapped)
-  },
-  mirrorClawChannelMessage: (threadId, text, direction) =>
-    ipcRenderer.invoke('claw:channel:mirror', { threadId, text, direction }),
-  mirrorClawChannelMessageToFeishu: (threadId, text, direction) =>
-    ipcRenderer.invoke('claw:channel:mirror-to-feishu', { threadId, text, direction }),
-  createClawTaskFromText: (text, options) =>
-    ipcRenderer.invoke('claw:task:create-from-text', {
-      text,
-      channelId: options?.channelId,
-      modelHint: options?.modelHint,
-      mode: options?.mode
-    }),
-  createScheduleTaskFromText: (text, options) =>
-    ipcRenderer.invoke('schedule:task:create-from-text', {
-      text,
-      workspaceRoot: options?.workspaceRoot,
-      modelHint: options?.modelHint,
-      mode: options?.mode
-    }),
   runDesktopCommand: (command) =>
     ipcRenderer.invoke('desktop:command', command),
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),

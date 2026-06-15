@@ -5,20 +5,16 @@ import i18n from '../../i18n'
 import { MessageTimelineEmptyHero } from './message-timeline-empty'
 
 function renderHero(options: {
-  route?: 'chat' | 'claw'
   ready?: boolean
   hasWorkspace?: boolean
 } = {}): string {
   return renderToStaticMarkup(
     createElement(MessageTimelineEmptyHero, {
-      route: options.route ?? 'chat',
       ready: options.ready ?? true,
       hasWorkspace: options.hasWorkspace ?? true,
-      activeClawChannel: null,
       onPickWorkspace: () => undefined,
       onRetry: () => undefined,
-      onOpenSettings: () => undefined,
-      onSelectSuggestion: () => undefined
+      onOpenSettings: () => undefined
     })
   )
 }
@@ -35,16 +31,11 @@ describe('MessageTimeline initial heatmap empty hero routing', () => {
     expect(html).not.toContain('Start a new conversation')
   })
 
-  it('keeps offline, missing-workspace, and Claw empty states gated away from the heatmap', () => {
+  it('keeps offline and missing-workspace states gated away from the heatmap', () => {
     const offlineHtml = renderHero({ ready: false })
     expect(offlineHtml).toContain('ZhiYan Assistant is waking the local agent')
     expect(offlineHtml).toContain('ds-runtime-wake-logo')
     expect(offlineHtml).toContain('ds-work-logo')
     expect(renderHero({ hasWorkspace: false })).toContain('Choose working directory')
-    const clawHtml = renderHero({ route: 'claw' })
-    expect(clawHtml).toContain('Start a conversation with this assistant')
-    expect(clawHtml).toContain('ds-claw-empty-whale-logo')
-    expect(clawHtml).toContain('ds-work-logo')
-    expect(clawHtml).not.toContain('Kun usage')
   })
 })

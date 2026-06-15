@@ -44,12 +44,7 @@ export async function guiSkillRootsForRuntime(
   if (!settings && !workspaceRootOverride) return []
   const workspaceRoots = uniqueStrings([
     workspaceRootOverride,
-    settings?.workspaceRoot,
-    settings?.claw.im.workspaceRoot,
-    settings?.schedule.defaultWorkspaceRoot,
-    ...(settings?.claw.channels.map((channel) => channel.workspaceRoot) ?? []),
-    ...(settings?.claw.tasks.map((task) => task.workspaceRoot) ?? []),
-    ...(settings?.schedule.tasks.map((task) => task.workspaceRoot) ?? [])
+    settings?.workspaceRoot
   ].map(normalizeSkillRootPath).filter(Boolean))
   const projectRoots = workspaceRoots.flatMap((workspaceRoot) => [
     join(workspaceRoot, '.codex', 'skills'),
@@ -61,10 +56,6 @@ export async function guiSkillRootsForRuntime(
     join(homedir(), '.kun', 'skills'),
     ...await discoverCodexPluginSkillRoots()
   ]
-  const configuredExtraRoots = [
-    ...(settings?.claw.skills.extraDirs ?? []),
-    ...(settings?.schedule.skills.extraDirs ?? [])
-  ].map(normalizeSkillRootPath)
   const builtinRoots = settings
     ? [{
         path: builtinSkillRootForDataDir(
@@ -81,10 +72,7 @@ export async function guiSkillRootsForRuntime(
       .map((path) => ({ path, scope: 'project' as const })),
     ...globalRoots
       .filter((root) => existsSync(root))
-      .map((path) => ({ path, scope: 'global' as const })),
-    ...configuredExtraRoots
-      .filter(Boolean)
-      .map((path) => ({ path, scope: scopeForConfiguredRoot(path, workspaceRoots) }))
+      .map((path) => ({ path, scope: 'global' as const }))
   ])
 }
 
@@ -331,14 +319,6 @@ function compareSkillSummary(a: GuiSkillSummary, b: GuiSkillSummary): number {
   const order: Record<GuiSkillScope, number> = { builtin: 0, project: 1, global: 2 }
   if (a.scope !== b.scope) return order[a.scope] - order[b.scope]
   return a.name.localeCompare(b.name)
-}
-
-function scopeForConfiguredRoot(path: string, workspaceRoots: string[]): GuiSkillScope {
-  const comparable = comparablePath(path)
-  return workspaceRoots.some((workspaceRoot) => {
-    const workspace = comparablePath(workspaceRoot)
-    return comparable === workspace || comparable.startsWith(`${workspace}/`)
-  }) ? 'project' : 'global'
 }
 
 function uniqueSkillRoots(roots: GuiSkillRoot[]): GuiSkillRoot[] {

@@ -134,9 +134,7 @@ describe('MessageTimeline Kun runtime metadata smoke', () => {
       turnStartedAtByUserId: {},
       turnDurationByUserId: {},
       turnReasoningFirstAtByUserId: {},
-      turnReasoningLastAtByUserId: {},
-      clawChannels: [],
-      activeClawChannelId: ''
+      turnReasoningLastAtByUserId: {}
     })
   })
 

@@ -40,19 +40,16 @@ import {
   DEFAULT_WORKSPACE_ROOT,
   coerceRendererSettings,
   hasValidPort,
-  listSettingsText,
-  mergeSettings,
-  splitSettingsList
+  mergeSettings
 } from './settings-utils'
 import { loadKunDiagnostics } from '../lib/load-kun-diagnostics'
 import {
   AgentsSettingsSection,
-  ClawSettingsSection,
   GeneralSettingsSection,
   WriteSettingsSection
 } from './settings-sections'
 
-type SettingsCategory = 'general' | 'write' | 'agents' | 'claw'
+type SettingsCategory = 'general' | 'write' | 'agents'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type SettingsPatch = AppSettingsPatch
 type SkillRootOption = {
@@ -71,10 +68,7 @@ export function SettingsView(): ReactElement {
   const setRoute = useChatStore((s) => s.setRoute)
   const settingsReturnRoute = useChatStore((s) => s.settingsReturnRoute)
   const settingsSection = useChatStore((s) => s.settingsSection)
-  const openCode = useChatStore((s) => s.openCode)
   const openWrite = useChatStore((s) => s.openWrite)
-  const openClaw = useChatStore((s) => s.openClaw)
-  const openSchedule = useChatStore((s) => s.openSchedule)
   const openInitialSetup = useChatStore((s) => s.openInitialSetup)
   const openPlugins = useChatStore((s) => s.openPlugins)
   const applyI18n = useChatStore((s) => s.applyI18nFromSettings)
@@ -85,7 +79,6 @@ export function SettingsView(): ReactElement {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [workspacePickerError, setWorkspacePickerError] = useState<string | null>(null)
   const [writeWorkspacePickerError, setWriteWorkspacePickerError] = useState<string | null>(null)
-  const [clawWorkspacePickerError, setClawWorkspacePickerError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [showApiKey, setShowApiKey] = useState(false)
@@ -216,10 +209,6 @@ export function SettingsView(): ReactElement {
       setCategory('write')
       return
     }
-    if (settingsSection === 'claw') {
-      setCategory('claw')
-      return
-    }
     // 'agents', 'skill', 'mcp', 'api-keys' all go to agents category
     setCategory('agents')
   }, [settingsSection])
@@ -229,13 +218,12 @@ export function SettingsView(): ReactElement {
     if (
       settingsSection === 'general' ||
       settingsSection === 'write' ||
-      settingsSection === 'claw' ||
       settingsSection === 'api-keys' ||
       category !== 'agents'
     ) {
       return
     }
-    const refs: Record<Exclude<SettingsRouteSection, 'general' | 'write' | 'claw' | 'api-keys'>, HTMLDivElement | null> = {
+    const refs: Record<Exclude<SettingsRouteSection, 'general' | 'write' | 'api-keys'>, HTMLDivElement | null> = {
       agents: agentsSectionRef.current,
       skill: skillSectionRef.current,
       mcp: mcpSectionRef.current
@@ -519,14 +507,6 @@ export function SettingsView(): ReactElement {
         await openWrite()
         return
       }
-      if (settingsReturnRoute === 'claw') {
-        openClaw()
-        return
-      }
-      if (settingsReturnRoute === 'schedule') {
-        openSchedule()
-        return
-      }
       if (settingsReturnRoute === 'plugins') {
         setRoute('plugins')
         return
@@ -658,28 +638,6 @@ export function SettingsView(): ReactElement {
     })
   }
 
-  const pickClawWorkspace = async (): Promise<void> => {
-    try {
-      setClawWorkspacePickerError(null)
-      if (typeof window.dsGui?.pickWorkspaceDirectory !== 'function') {
-        throw new Error('workspace:pick-directory unavailable')
-      }
-      const picked = await window.dsGui.pickWorkspaceDirectory(
-        form.claw.im.workspaceRoot || form.workspaceRoot || undefined
-      )
-      if (!picked.canceled && picked.path) {
-        update({ claw: { im: { workspaceRoot: picked.path } } })
-      }
-    } catch (e) {
-      setClawWorkspacePickerError(formatWorkspacePickerError(e))
-    }
-  }
-
-  const resetClawWorkspaceToDefault = (): void => {
-    setClawWorkspacePickerError(null)
-    update({ claw: { im: { workspaceRoot: '' } } })
-  }
-
   const clearWriteDebugEntries = async (): Promise<void> => {
     setWriteDebugLoading(true)
     setWriteDebugError(null)
@@ -774,12 +732,7 @@ export function SettingsView(): ReactElement {
     runtimeDiagnosticsNotice,
     refreshKunDiagnostics,
     disableMemoryRecord,
-    deleteMemoryRecord,
-    pickClawWorkspace,
-    resetClawWorkspaceToDefault,
-    clawWorkspacePickerError,
-    splitSettingsList,
-    listSettingsText
+    deleteMemoryRecord
   }
 
   return (
@@ -829,7 +782,6 @@ export function SettingsView(): ReactElement {
           {category === 'general' ? <GeneralSettingsSection ctx={settingsSectionContext} /> : null}
           {category === 'write' ? <WriteSettingsSection ctx={settingsSectionContext} /> : null}
           {category === 'agents' ? <AgentsSettingsSection ctx={settingsSectionContext} /> : null}
-          {category === 'claw' ? <ClawSettingsSection ctx={settingsSectionContext} /> : null}
         </div>
       </div>
       {writeDebugModalOpen ? (

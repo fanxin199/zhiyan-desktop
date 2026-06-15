@@ -45,8 +45,7 @@ module.exports = {
     '!**/*.ts',
     '!**/tsconfig*.json',
     '!**/README*',
-    '!**/CHANGELOG*',
-    '!**/node_modules/openclaw/**/*'
+    '!**/CHANGELOG*'
   ],
   artifactName: 'ZhiYan-Assistant-${version}-${os}-${arch}.${ext}',
   afterPack: './scripts/after-pack.cjs',

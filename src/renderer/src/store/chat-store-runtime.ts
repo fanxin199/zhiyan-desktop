@@ -15,9 +15,7 @@ import { rendererRuntimeClient } from '../agent/runtime-client'
 import i18n from '../i18n'
 import { formatRuntimeError, getRuntimeErrorCode } from '../lib/format-runtime-error'
 import { isClawWorkspacePath, isInternalTemporaryWorkspace, normalizeWorkspaceRoot } from '../lib/workspace-path'
-import type { ClawImChannelV1 } from '@shared/app-settings'
 import type { ChatState } from './chat-store-types'
-import { isClawThread } from './chat-store-helpers'
 import {
   collectAssistantTextForTurn,
   reconcileOptimisticUserBlock,
@@ -44,18 +42,9 @@ const RUNTIME_STREAM_RECOVERING_KEY = 'common:runtimeStreamRecovering'
 const LEGACY_RUNTIME_STREAM_RECOVERING_VALUE = 'runtimeStreamRecovering'
 const COMPLETION_NOTIFICATION_DEDUPE_LIMIT = 200
 export const MAX_WATCHED_COMPLETION_NOTIFICATIONS = 200
-export const MAX_PENDING_CLAW_FEISHU_MIRRORS = 50
 const completionNotificationKeys: string[] = []
 const completionNotificationKeySet = new Set<string>()
 const watchCompletionNotificationKeys = new Map<string, string>()
-
-export type PendingClawFeishuMirror = {
-  threadId: string
-  userBlockId: string
-  userText: string
-}
-
-const pendingClawFeishuMirrors = new Map<string, PendingClawFeishuMirror>()
 
 export function watchTurnCompletionNotification(threadId: string, now = Date.now()): void {
   const normalizedThreadId = threadId.trim()
@@ -80,47 +69,6 @@ export function completionNotificationDedupeKeyForWatchedThread(
 
 export function clearWatchedCompletionNotifications(): void {
   watchCompletionNotificationKeys.clear()
-}
-
-export function rememberPendingClawFeishuMirror(
-  turnId: string,
-  mirror: PendingClawFeishuMirror
-): void {
-  const normalizedTurnId = turnId.trim()
-  const normalizedMirror = {
-    threadId: mirror.threadId.trim(),
-    userBlockId: mirror.userBlockId.trim(),
-    userText: mirror.userText.trim()
-  }
-  if (
-    !normalizedTurnId ||
-    !normalizedMirror.threadId ||
-    !normalizedMirror.userBlockId ||
-    !normalizedMirror.userText
-  ) {
-    return
-  }
-  pendingClawFeishuMirrors.delete(normalizedTurnId)
-  pendingClawFeishuMirrors.set(normalizedTurnId, normalizedMirror)
-  while (pendingClawFeishuMirrors.size > MAX_PENDING_CLAW_FEISHU_MIRRORS) {
-    const oldestTurnId = pendingClawFeishuMirrors.keys().next().value
-    if (!oldestTurnId) break
-    pendingClawFeishuMirrors.delete(oldestTurnId)
-  }
-}
-
-export function takePendingClawFeishuMirror(
-  turnId: string | null | undefined
-): PendingClawFeishuMirror | undefined {
-  const normalizedTurnId = turnId?.trim()
-  if (!normalizedTurnId) return undefined
-  const mirror = pendingClawFeishuMirrors.get(normalizedTurnId)
-  pendingClawFeishuMirrors.delete(normalizedTurnId)
-  return mirror
-}
-
-export function clearPendingClawFeishuMirrors(): void {
-  pendingClawFeishuMirrors.clear()
 }
 
 export function buildFollowupMessageFromUserInput(
@@ -354,15 +302,13 @@ export function looksLikeActiveTurnError(error: unknown): boolean {
 }
 
 export function isCodeThread(
-  thread: NormalizedThread,
-  clawChannels: ClawImChannelV1[] = []
+  thread: NormalizedThread
 ): boolean {
   const workspace = normalizeWorkspaceRoot(thread.workspace)
   return Boolean(workspace) &&
     thread.archived !== true &&
     !isInternalTemporaryWorkspace(thread.workspace) &&
     !isClawWorkspacePath(thread.workspace) &&
-    !isClawThread(thread, clawChannels) &&
     !isWriteThreadId(thread.id)
 }
 
@@ -928,19 +874,9 @@ export function buildThreadEventSink(
       clearBusyWatchdog()
       const completedState = get()
       const completedThreadId = completedState.activeThreadId
-      const completedTurnId = completedState.currentTurnId
       const completedKey = completedState.currentTurnId
         ? `turn:${completedState.currentTurnId}`
         : `active:${completedThreadId ?? 'unknown'}:${completedState.lastSeq}`
-      const pendingMirror = takePendingClawFeishuMirror(completedTurnId)
-      const assistantMirrorText =
-        pendingMirror
-          ? collectAssistantTextForTurn(
-              completedState.blocks,
-              pendingMirror.userBlockId,
-              completedState.liveAssistant
-            )
-          : ''
       set((s) => {
         const base = flushLiveBlocks(s, {
           ...finalizeTurnTiming(s),
@@ -960,13 +896,6 @@ export function buildThreadEventSink(
         }
         return base
       })
-      if (pendingMirror && assistantMirrorText && typeof window.dsGui?.mirrorClawChannelMessage === 'function') {
-        void window.dsGui.mirrorClawChannelMessage(
-          pendingMirror.threadId,
-          assistantMirrorText,
-          'assistant'
-        ).catch(() => undefined)
-      }
       notifyTurnComplete(completedThreadId, completedState, completedKey)
       notifyWriteWorkspaceFileRefresh(get)
       syncTurnCompletionPoll(set, get)
@@ -980,7 +909,6 @@ export function buildThreadEventSink(
       const state = get()
       const message = formatRuntimeError(err)
       const interrupted = isInterruptSettledError(err, message)
-      takePendingClawFeishuMirror(state.currentTurnId)
       set((s) => {
         const wasBusy = s.busy
         const out = flushLiveBlocks(s, {

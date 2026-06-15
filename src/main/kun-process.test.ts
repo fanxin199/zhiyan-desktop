@@ -213,74 +213,22 @@ describe('syncGuiManagedKunConfig', () => {
     expect(parsed.capabilities.mcp.search).toMatchObject({ enabled: false, mode: 'auto' })
   })
 
-  it('adds the built-in schedule MCP server to Kun runtime capabilities', async () => {
-    if (!tempRoot) throw new Error('temp root not initialized')
-    const configPath = join(tempRoot, 'config.json')
-    const module = await import('./kun-process')
-    const settings = createSettings('/tmp/fake-kun-child.js')
-    settings.schedule.internal.port = 9788
-    settings.schedule.internal.secret = 'top-secret'
-
-    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings(), {
-      scheduleMcp: {
-        settings,
-        launch: {
-          appPath: '/tmp/deepseek-gui-test-app',
-          execPath: '/tmp/electron',
-          isPackaged: false
-        }
-      }
-    })
-
-    const parsed = JSON.parse(readFileSync(configPath, 'utf8')) as any
-    expect(parsed.capabilities.mcp.enabled).toBe(true)
-    expect(parsed.capabilities.mcp.servers.gui_schedule).toMatchObject({
-      enabled: true,
-      transport: 'stdio',
-      command: '/tmp/electron',
-      args: [
-        '/tmp/deepseek-gui-test-app/out/main/claw-schedule-mcp-node-entry.js',
-        '--gui-schedule-mcp-server',
-        '--base-url',
-        'http://127.0.0.1:9788',
-        '--secret',
-        'top-secret'
-      ],
-      env: {
-        ELECTRON_RUN_AS_NODE: '1'
-      },
-      trustScope: 'user'
-    })
-  })
-
-  it('adds GUI project and configured global skill roots to Kun runtime capabilities', async () => {
+  it('adds the active project skill root to Kun runtime capabilities', async () => {
     if (!tempRoot) throw new Error('temp root not initialized')
     const configPath = join(tempRoot, 'config.json')
     const module = await import('./kun-process')
     const settings = createSettings('/tmp/fake-kun-child.js')
     const workspaceRoot = join(tempRoot, 'workspace')
-    const extraRoot = join(tempRoot, 'extra-skills')
     settings.workspaceRoot = workspaceRoot
-    settings.claw.skills.extraDirs = [extraRoot]
     mkdirSync(join(workspaceRoot, '.codex', 'skills'), { recursive: true })
 
-    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings(), {
-      scheduleMcp: {
-        settings,
-        launch: {
-          appPath: '/tmp/deepseek-gui-test-app',
-          execPath: '/tmp/electron',
-          isPackaged: false
-        }
-      }
-    })
+    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings(), { settings })
 
     const parsed = JSON.parse(readFileSync(configPath, 'utf8')) as any
     expect(parsed.capabilities.skills.enabled).toBe(true)
     expect(parsed.capabilities.skills.legacySkillMd).toBe(true)
     expect(parsed.capabilities.skills.roots).toEqual(expect.arrayContaining([
-      join(workspaceRoot, '.codex', 'skills'),
-      extraRoot
+      join(workspaceRoot, '.codex', 'skills')
     ]))
   })
 
@@ -571,32 +519,11 @@ describe('syncGuiManagedKunConfig', () => {
     }), 'utf8')
     const module = await import('./kun-process')
 
-    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings(), {
-      scheduleMcp: {
-        settings: createSettings('/tmp/fake-kun-child.js'),
-        launch: {
-          appPath: '/tmp/deepseek-gui-test-app',
-          execPath: '/tmp/electron',
-          isPackaged: false
-        }
-      }
-    })
+    await module.syncGuiManagedKunConfig(tempRoot, defaultKunRuntimeSettings())
 
     const parsed = JSON.parse(readFileSync(configPath, 'utf8')) as any
     expect(parsed.capabilities.mcp.enabled).toBe(false)
-    expect(parsed.capabilities.mcp.servers.gui_schedule).toMatchObject({
-      transport: 'stdio',
-      command: '/tmp/electron',
-      args: [
-        '/tmp/deepseek-gui-test-app/out/main/claw-schedule-mcp-node-entry.js',
-        '--gui-schedule-mcp-server',
-        '--base-url',
-        'http://127.0.0.1:8788'
-      ],
-      env: {
-        ELECTRON_RUN_AS_NODE: '1'
-      }
-    })
+    expect(parsed.capabilities.mcp.servers).toEqual({})
   })
 
   it('does not override an explicitly disabled attachment capability', async () => {

@@ -7,17 +7,9 @@ import { z } from 'zod'
 import {
   getKunRuntimeSettings,
   type AppSettingsPatch,
-  type AppSettingsV1,
-  type ClawRunResult,
-  type ClawTaskFromTextResult,
-  type ClawRuntimeStatus,
-  type ScheduleRunResult,
-  type ScheduleRuntimeStatus,
-  type ScheduleTaskFromTextResult
+  type AppSettingsV1
 } from '../../shared/app-settings'
 import type {
-  ClawImInstallPollResult,
-  ClawImInstallQrResult,
   DesktopCommand,
   RuntimeRequestResult,
   SystemNotificationResult,
@@ -27,9 +19,6 @@ import type {
 } from '../../shared/ds-gui-api'
 import type { GuiUpdateDownloadResult, GuiUpdateInfo, GuiUpdateInstallResult, GuiUpdateState } from '../../shared/gui-update'
 import {
-  clawMirrorPayloadSchema,
-  clawImInstallPollPayloadSchema,
-  clawTaskFromTextPayloadSchema,
   coursewareBlueprintGenerationPayloadSchema,
   coursewareExportPayloadSchema,
   coursewarePdfInspectPayloadSchema,
@@ -48,7 +37,6 @@ import {
   pubMedSearchPayloadSchema,
   rootPathSchema,
   runtimeRequestPayloadSchema,
-  scheduleTaskFromTextPayloadSchema,
   shellOpenExternalUrlSchema,
   skillListPayloadSchema,
   skillSaveFilePayloadSchema,
@@ -69,8 +57,6 @@ import {
   workspaceRootSchema
 } from './app-ipc-schemas'
 import type { JsonSettingsStore } from '../settings-store'
-import type { ClawRuntime } from '../claw-runtime'
-import type { ScheduleRuntime } from '../schedule-runtime'
 import { createAndSwitchGitBranch, getGitBranches, switchGitBranch } from '../services/git-service'
 import {
   createWorkspaceDirectory,
@@ -129,12 +115,6 @@ type RegisterAppIpcHandlersOptions = {
     body?: string
   ) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
-  getClawRuntime: () => ClawRuntime | null
-  getScheduleRuntime: () => ScheduleRuntime | null
-  startFeishuInstallQrcode: (isLark: boolean) => Promise<ClawImInstallQrResult>
-  pollFeishuInstall: (deviceCode: string) => Promise<ClawImInstallPollResult>
-  startWeixinInstallQrcode: (weixinBridgeUrl?: string) => Promise<ClawImInstallQrResult>
-  pollWeixinInstall: (deviceCode: string, weixinBridgeUrl?: string) => Promise<ClawImInstallPollResult>
   resolveKunConfigPath: () => string
   showTurnCompleteNotification: (
     payload: TurnCompleteNotificationPayload
@@ -223,12 +203,6 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     applySettingsPatch,
     runtimeRequest,
     fetchUpstreamModels,
-    getClawRuntime,
-    getScheduleRuntime,
-    startFeishuInstallQrcode,
-    pollFeishuInstall,
-    startWeixinInstallQrcode,
-    pollWeixinInstall,
     resolveKunConfigPath,
     showTurnCompleteNotification,
     getAppVersion,
@@ -334,131 +308,6 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   })
 
   ipcMain.handle('upstream:models', async () => fetchUpstreamModels())
-
-  ipcMain.handle('claw:status', async (): Promise<ClawRuntimeStatus> =>
-    getClawRuntime()?.status() ?? {
-      imServerRunning: false,
-      imUrl: '',
-      runningTaskIds: []
-    }
-  )
-
-  ipcMain.handle('claw:task:run', async (_, taskId: unknown): Promise<ClawRunResult> => {
-    const normalizedTaskId = parseIpcPayload('claw:task:run', streamIdSchema, taskId)
-    const scheduleRuntime = getScheduleRuntime()
-    if (!scheduleRuntime) return { ok: false, message: 'Schedule runtime is not initialized.' }
-    return scheduleRuntime.runTask(normalizedTaskId)
-  })
-
-  ipcMain.handle('schedule:status', async (): Promise<ScheduleRuntimeStatus> =>
-    getScheduleRuntime()?.status() ?? {
-      internalServerRunning: false,
-      internalUrl: '',
-      runningTaskIds: [],
-      powerSaveBlockerActive: false
-    }
-  )
-
-  ipcMain.handle('schedule:task:run', async (_, taskId: unknown): Promise<ScheduleRunResult> => {
-    const normalizedTaskId = parseIpcPayload('schedule:task:run', streamIdSchema, taskId)
-    const scheduleRuntime = getScheduleRuntime()
-    if (!scheduleRuntime) return { ok: false, message: 'Schedule runtime is not initialized.' }
-    return scheduleRuntime.runTask(normalizedTaskId)
-  })
-
-  ipcMain.handle(
-    'claw:channel:mirror',
-    async (_, payload: unknown) => {
-      const request = parseIpcPayload('claw:channel:mirror', clawMirrorPayloadSchema, payload)
-      const clawRuntime = getClawRuntime()
-      if (!clawRuntime) return { ok: false as const, message: 'Claw runtime is not initialized.' }
-      return clawRuntime.mirrorThreadMessageToIm(
-        request.threadId,
-        request.text,
-        request.direction
-      )
-    }
-  )
-
-  ipcMain.handle(
-    'claw:channel:mirror-to-feishu',
-    async (_, payload: unknown) => {
-      const request = parseIpcPayload('claw:channel:mirror-to-feishu', clawMirrorPayloadSchema, payload)
-      const clawRuntime = getClawRuntime()
-      if (!clawRuntime) return { ok: false as const, message: 'Claw runtime is not initialized.' }
-      return clawRuntime.mirrorThreadMessageToIm(
-        request.threadId,
-        request.text,
-        request.direction
-      )
-    }
-  )
-
-  ipcMain.handle(
-    'claw:task:create-from-text',
-    async (_, payload: unknown): Promise<ClawTaskFromTextResult> => {
-      const request = parseIpcPayload(
-        'claw:task:create-from-text',
-        clawTaskFromTextPayloadSchema,
-        payload
-      )
-      const scheduleRuntime = getScheduleRuntime()
-      if (!scheduleRuntime) return { kind: 'error', message: 'Schedule runtime is not initialized.' }
-      const settings = await store.load()
-      const channel = request.channelId
-        ? settings.claw.channels.find((item) => item.id === request.channelId)
-        : undefined
-      return scheduleRuntime.createScheduledTaskFromText(request.text, {
-        workspaceRoot: channel?.workspaceRoot || settings.schedule.defaultWorkspaceRoot || settings.workspaceRoot,
-        modelHint: request.modelHint,
-        mode: request.mode
-      })
-    }
-  )
-
-  ipcMain.handle(
-    'schedule:task:create-from-text',
-    async (_, payload: unknown): Promise<ScheduleTaskFromTextResult> => {
-      const request = parseIpcPayload(
-        'schedule:task:create-from-text',
-        scheduleTaskFromTextPayloadSchema,
-        payload
-      )
-      const scheduleRuntime = getScheduleRuntime()
-      if (!scheduleRuntime) return { kind: 'error', message: 'Schedule runtime is not initialized.' }
-      return scheduleRuntime.createScheduledTaskFromText(request.text, {
-        workspaceRoot: request.workspaceRoot,
-        modelHint: request.modelHint,
-        mode: request.mode
-      })
-    }
-  )
-
-  ipcMain.handle(
-    'claw:im-install:qrcode',
-    async (_, payload: unknown) => {
-      const request = parseIpcPayload(
-        'claw:im-install:qrcode',
-        z.object({ provider: z.enum(['feishu', 'weixin']), isLark: z.boolean().optional() }).strict(),
-        payload
-      )
-      if (request.provider === 'weixin') {
-        return startWeixinInstallQrcode()
-      }
-      return startFeishuInstallQrcode(request.isLark === true)
-    }
-  )
-
-  ipcMain.handle(
-    'claw:im-install:poll',
-    async (_, payload: unknown) => {
-      const request = parseIpcPayload('claw:im-install:poll', clawImInstallPollPayloadSchema, payload)
-      if (request.provider === 'weixin') {
-        return pollWeixinInstall(request.deviceCode)
-      }
-      return pollFeishuInstall(request.deviceCode)
-    }
-  )
 
   ipcMain.handle('workspace:pick-directory', async (_, defaultPath: unknown): Promise<WorkspacePickResult> => {
     const normalizedDefaultPath = parseIpcPayload(

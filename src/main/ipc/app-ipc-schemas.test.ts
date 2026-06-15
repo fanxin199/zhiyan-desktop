@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  clawImInstallPollPayloadSchema,
   isSafeOpenExternalUrl,
   runtimeRequestPayloadSchema,
-  scheduleTaskFromTextPayloadSchema,
   settingsPatchSchema,
   shellOpenExternalUrlSchema,
   skillListPayloadSchema,
@@ -195,16 +193,6 @@ describe('app-ipc-schemas', () => {
     expect(payload.schedule?.internal?.port).toBe(9788)
     expect(payload.schedule?.tasks?.[0]?.schedule?.kind).toBe('daily')
     expect(payload.schedule?.tasks?.[0]?.reasoningEffort).toBe('high')
-
-    const fromText = scheduleTaskFromTextPayloadSchema.parse({
-      text: 'Remind me tomorrow morning to ship the review',
-      workspaceRoot: '/tmp/schedule',
-      modelHint: 'deepseek-v4-pro',
-      mode: 'agent'
-    })
-
-    expect(fromText.workspaceRoot).toBe('/tmp/schedule')
-    expect(fromText.modelHint).toBe('deepseek-v4-pro')
   })
 
   it('strips legacy settings keys before validating settings patches', () => {
@@ -278,16 +266,6 @@ describe('app-ipc-schemas', () => {
         sinceSeq: -1
       })
     ).toThrow()
-  })
-
-  it('accepts long Feishu install device codes', () => {
-    const deviceCode = 'x'.repeat(2_048)
-    const payload = clawImInstallPollPayloadSchema.parse({
-      provider: 'feishu',
-      deviceCode
-    })
-
-    expect(payload.deviceCode).toBe(deviceCode)
   })
 
   it('accepts workspace directory payloads without a child path', () => {

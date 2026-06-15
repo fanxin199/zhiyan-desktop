@@ -43,16 +43,16 @@ function UserMessageBubble({
   }, [block.text, route])
   const parsedClawPrompt = useMemo(() => {
     const parsed = parseClawUserPromptForDisplay(block.text)
-    if (!parsed.managed && !parsed.inbound && block.managedBy !== 'claw' && route !== 'claw') return null
+    if (!parsed.managed && !parsed.inbound && block.managedBy !== 'claw') return null
     return parsed
-  }, [block.managedBy, block.text, route])
+  }, [block.managedBy, block.text])
   const metaDisplayText =
     typeof block.meta?.displayText === 'string' && block.meta.displayText.trim()
       ? block.meta.displayText.trim()
       : null
   const displayText = metaDisplayText ?? parsedWritePrompt?.userInput ?? parsedClawPrompt?.text ?? block.text
   const canEdit = !metaDisplayText
-  const showClawInboundCard = route === 'claw' && parsedClawPrompt?.inbound === true
+  const showClawInboundCard = parsedClawPrompt?.inbound === true
 
   useEffect(() => {
     if (!editing) return

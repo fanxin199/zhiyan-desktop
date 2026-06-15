@@ -14,7 +14,7 @@ export function useSettingsGuiUpdate({
   form,
   t
 }: {
-  category: 'general' | 'write' | 'agents' | 'claw'
+  category: 'general' | 'write' | 'agents'
   channel: GuiUpdateChannel | undefined
   form: AppSettingsV1 | null
   t: (key: string, values?: Record<string, unknown>) => string

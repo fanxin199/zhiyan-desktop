@@ -62,7 +62,6 @@ export function MessageTimeline({
     route,
     workspaceRoot,
     chooseWorkspace,
-    activeClawChannel,
     busy,
     currentTurnUserId,
     turnStartedAtByUserId,
@@ -72,7 +71,6 @@ export function MessageTimeline({
     activeThread
   } = useTimelineStores(activeThreadId)
 
-  const heroRoute: 'chat' | 'claw' = route === 'claw' ? 'claw' : 'chat'
   const hasContent = blocks.length > 0 || live || liveReasoning
   const endRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -117,14 +115,11 @@ export function MessageTimeline({
       <div className="ds-message-timeline-content ds-chat-column-inset mx-auto flex w-full min-w-0 max-w-4xl flex-col gap-8 pb-10 pt-8">
         {!hasContent || !activeThreadId ? (
           <MessageTimelineEmptyHero
-            route={heroRoute}
             ready={runtimeConnection === 'ready'}
             hasWorkspace={!!workspaceRoot}
-            activeClawChannel={activeClawChannel}
             onPickWorkspace={() => void chooseWorkspace()}
             onRetry={onRetryConnection}
             onOpenSettings={onOpenSettings}
-            onSelectSuggestion={onSelectSuggestion}
           />
         ) : null}
 

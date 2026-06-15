@@ -21,14 +21,12 @@ import {
 } from '../lib/thread-fork-registry'
 import { workspaceLabelFromPath } from '../lib/workspace-label'
 import { isInternalTemporaryWorkspace, normalizeWorkspaceRoot } from '../lib/workspace-path'
-import { buildClawRuntimePrompt, getActiveAgentApiKey } from '@shared/app-settings'
+import { getActiveAgentApiKey } from '@shared/app-settings'
 import type { ChatState, ChatStoreGet, ChatStoreSet } from './chat-store-types'
 import {
-  activeClawChannel,
   compactCodeWorkspaceRoots,
   forgetCodeWorkspaceRoot,
   hydrateBlockModelLabels,
-  isClawThread,
   optimisticUserModelLabel,
   readCodeWorkspaceRoots,
   readStoredComposerModel,
@@ -78,7 +76,6 @@ import {
   looksLikeActiveTurnError,
   readActiveWriteWorkspace,
   readWriteWorkspaceRoots,
-  rememberPendingClawFeishuMirror,
   runtimeErrorDetail,
   runtimeStreamRecoveringMessage,
   shouldOpenSettingsForError,
@@ -147,7 +144,7 @@ export function createThreadActions(
             get(),
             p,
             workspaceRoot,
-            (thread) => isCodeThread(thread, get().clawChannels)
+            (thread) => isCodeThread(thread)
           )
       if (reusableThreadId) {
         if (get().activeThreadId !== reusableThreadId) {
@@ -366,10 +363,8 @@ export function createThreadActions(
       const threadSnap = activeThreadId
         ? get().threads.find((thread) => thread.id === activeThreadId)
         : undefined
-      const clawModel = activeClawChannel(get())?.model
       const overrideModel = overrides?.model?.trim()
-      const composerModel =
-        overrideModel ?? (get().route === 'claw' && clawModel ? clawModel : get().composerModel.trim())
+      const composerModel = overrideModel ?? get().composerModel.trim()
       const userModelChip =
         overrides?.modelLabel ?? optimisticUserModelLabel(composerModel, threadSnap?.model)
       const displayText = overrides?.displayText?.trim()
@@ -426,10 +421,8 @@ export function createThreadActions(
       get().blocks.every((block) => block.kind !== 'user') &&
       shouldAutoTitleThread(activeThread)
     const threadSnap = get().threads.find((thread) => thread.id === activeThreadId)
-    const clawModel = activeClawChannel(get())?.model
     const overrideModel = overrides?.model?.trim()
-    const composerModel =
-      queued?.model ?? overrideModel ?? (get().route === 'claw' && clawModel ? clawModel : get().composerModel.trim())
+    const composerModel = queued?.model ?? overrideModel ?? get().composerModel.trim()
     const reasoningEffort = queued?.reasoningEffort ?? overrides?.reasoningEffort?.trim()
     const userModelChip =
       queued?.modelLabel ?? overrides?.modelLabel ?? optimisticUserModelLabel(composerModel, threadSnap?.model)
@@ -497,7 +490,7 @@ export function createThreadActions(
           get(),
           p,
           workspaceRoot,
-          (thread) => isCodeThread(thread, get().clawChannels)
+          (thread) => isCodeThread(thread)
         )
         const reusableThread = reusableThreadId
           ? get().threads.find((thread) => thread.id === reusableThreadId) ?? null
@@ -558,16 +551,11 @@ export function createThreadActions(
     clearBusyWatchdog()
     try {
       const seqAtSend = get().lastSeq
-      const channel = get().route === 'claw' ? activeClawChannel(get()) : null
-      const runtimeText = channel
-        ? buildClawRuntimePrompt(await rendererRuntimeClient.getSettings(), trimmedText, { channel })
-        : trimmedText
-      const runtimeDisplayText = channel ? displayText : userDisplayText
-      const { turnId, userMessageItemId } = await p.sendUserMessage(activeThreadId, runtimeText, {
+      const { turnId, userMessageItemId } = await p.sendUserMessage(activeThreadId, trimmedText, {
         mode,
         ...(composerModel ? { model: composerModel } : {}),
         ...(reasoningEffort ? { reasoningEffort } : {}),
-        ...(runtimeDisplayText ? { displayText: runtimeDisplayText } : {}),
+        ...(userDisplayText ? { displayText: userDisplayText } : {}),
         ...((queued?.guiPlan ?? overrides?.guiPlan) ? { guiPlan: queued?.guiPlan ?? overrides?.guiPlan } : {}),
         ...(attachmentIds.length ? { attachmentIds } : {})
       })
@@ -618,20 +606,6 @@ export function createThreadActions(
             return next
           })()
         }))
-      }
-      if (channel && typeof window.dsGui?.mirrorClawChannelMessage === 'function') {
-        const userMirror = await window.dsGui.mirrorClawChannelMessage(
-          activeThreadId,
-          trimmedText,
-          'user'
-        )
-        if (userMirror.ok) {
-          rememberPendingClawFeishuMirror(turnId, {
-            threadId: activeThreadId,
-            userBlockId: userMessageItemId ?? userBlockId,
-            userText: trimmedText
-          })
-        }
       }
       if (shouldRenameThreadAfterSend) {
         const renamed = await p.renameThread(activeThreadId, generatedTitle).then(() => true).catch(() => {
@@ -720,7 +694,7 @@ export function createThreadActions(
           get(),
           p,
           workspaceRoot,
-          (thread) => isCodeThread(thread, get().clawChannels)
+          (thread) => isCodeThread(thread)
         )
         const createdThread =
           reusableThreadId == null

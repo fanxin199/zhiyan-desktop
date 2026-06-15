@@ -165,12 +165,12 @@ describe('buildMcpMarketplaceOverlay', () => {
 
   it('includes GUI-managed MCP servers before runtime diagnostics connect', () => {
     expect(buildMcpMarketplaceOverlay({
-      managedServers: [{ id: 'gui_schedule', toolCount: 4 }]
+      managedServers: [{ id: 'filesystem', toolCount: 4 }]
     })).toMatchObject({
       status: 'offline',
       configuredServers: 1,
       toolCount: 4,
-      serverIds: ['gui_schedule']
+      serverIds: ['filesystem']
     })
   })
 })
