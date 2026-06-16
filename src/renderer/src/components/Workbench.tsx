@@ -25,9 +25,11 @@ import { ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
   BioinformaticsPage,
   FileManagerPage,
+  GrantWritingPage,
   LiteraturePage,
   PaperPolishPage,
   PptGenPage,
+  ReviewWritingPage,
   SyllabusPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
@@ -120,9 +122,11 @@ export function Workbench(): ReactElement {
     openBioinformatics,
     openDashboard,
     openFileManager,
+    openGrantWriting,
     openLiterature,
     openPaperPolish,
     openPptGen,
+    openReviewWriting,
     openSettings,
     openSyllabus,
     openTextbook,
@@ -155,9 +159,11 @@ export function Workbench(): ReactElement {
     openBioinformatics: state.openBioinformatics,
     openDashboard: state.openDashboard,
     openFileManager: state.openFileManager,
+    openGrantWriting: state.openGrantWriting,
     openLiterature: state.openLiterature,
     openPaperPolish: state.openPaperPolish,
     openPptGen: state.openPptGen,
+    openReviewWriting: state.openReviewWriting,
     openSettings: state.openSettings,
     openSyllabus: state.openSyllabus,
     openTextbook: state.openTextbook,
@@ -427,6 +433,8 @@ export function Workbench(): ReactElement {
     'ppt-gen',
     'paper-polish',
     'literature',
+    'review-writing',
+    'grant-writing',
     'textbook',
     'bioinformatics',
     'file-manager'
@@ -452,6 +460,8 @@ export function Workbench(): ReactElement {
               onOpenPptGen={openPptGen}
               onOpenPaperPolish={openPaperPolish}
               onOpenLiterature={openLiterature}
+              onOpenReviewWriting={openReviewWriting}
+              onOpenGrantWriting={openGrantWriting}
               onOpenTextbook={openTextbook}
               onOpenBioinformatics={openBioinformatics}
               onOpenWrite={openWriteMode}
@@ -481,6 +491,8 @@ export function Workbench(): ReactElement {
             onOpenPptGen={openPptGen}
             onOpenPaperPolish={openPaperPolish}
             onOpenLiterature={openLiterature}
+            onOpenReviewWriting={openReviewWriting}
+            onOpenGrantWriting={openGrantWriting}
             onOpenTextbook={openTextbook}
             onOpenBioinformatics={openBioinformatics}
             onOpenChat={() => setRoute('chat')}
@@ -495,6 +507,10 @@ export function Workbench(): ReactElement {
           <PaperPolishPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'literature' ? (
           <LiteraturePage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+        ) : route === 'review-writing' ? (
+          <ReviewWritingPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+        ) : route === 'grant-writing' ? (
+          <GrantWritingPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'textbook' ? (
           <TextbookPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'bioinformatics' ? (

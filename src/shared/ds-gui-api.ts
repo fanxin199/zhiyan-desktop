@@ -60,6 +60,21 @@ import type {
   SlideSpec,
   CoursewareBlueprint
 } from './courseware'
+import type {
+  TextbookCheckInput,
+  TextbookCheckResult,
+  TextbookExportInput,
+  TextbookExportResult,
+  TextbookFormatRules,
+  TextbookFormatRulesParseInput,
+  TextbookGenerationResult,
+  TextbookOutline,
+  TextbookOutlineGenerationInput,
+  TextbookProject,
+  TextbookSection,
+  TextbookSectionGenerationInput,
+  TextbookSectionRevisionInput
+} from './textbook'
 
 export type RuntimeRequestResult = { ok: boolean; status: number; body: string }
 export type WorkspacePickResult = { canceled: boolean; path: string | null }
@@ -162,6 +177,23 @@ export type DsGuiApi = {
   exportCoursewarePackage: (
     request: CoursewareExportRequest
   ) => Promise<CoursewareExportResult>
+  generateTextbookOutline: (
+    input: TextbookOutlineGenerationInput
+  ) => Promise<TextbookGenerationResult<TextbookOutline>>
+  parseTextbookFormatRules: (
+    input: TextbookFormatRulesParseInput
+  ) => Promise<TextbookGenerationResult<TextbookFormatRules>>
+  generateTextbookSection: (
+    input: TextbookSectionGenerationInput
+  ) => Promise<TextbookGenerationResult<{ section: TextbookSection }>>
+  reviseTextbookSection: (
+    input: TextbookSectionRevisionInput
+  ) => Promise<TextbookGenerationResult<{ section: TextbookSection }>>
+  checkTextbookProject: (
+    input: TextbookCheckInput
+  ) => Promise<TextbookGenerationResult<TextbookCheckResult>>
+  exportTextbookProject: (input: TextbookExportInput) => Promise<TextbookExportResult>
+  loadTextbookProject: (path: string) => Promise<TextbookProject>
   listSkills: (workspaceRoot?: string) => Promise<SkillListResult>
   saveSkillFile: (rootPath: string, skillName: string, content: string) => Promise<SkillSaveResult>
   openSkillRoot: (rootPath: string) => Promise<PathOpenResult>

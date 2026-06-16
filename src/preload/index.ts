@@ -41,6 +41,20 @@ const api = {
     ipcRenderer.invoke('courseware:regenerate-slide', input),
   exportCoursewarePackage: (request) =>
     ipcRenderer.invoke('courseware:export-package', request),
+  generateTextbookOutline: (input) =>
+    ipcRenderer.invoke('textbook:generate-outline', input),
+  parseTextbookFormatRules: (input) =>
+    ipcRenderer.invoke('textbook:parse-format-rules', input),
+  generateTextbookSection: (input) =>
+    ipcRenderer.invoke('textbook:generate-section', input),
+  reviseTextbookSection: (input) =>
+    ipcRenderer.invoke('textbook:revise-section', input),
+  checkTextbookProject: (input) =>
+    ipcRenderer.invoke('textbook:check-project', input),
+  exportTextbookProject: (input) =>
+    ipcRenderer.invoke('textbook:export-project', input),
+  loadTextbookProject: (path) =>
+    ipcRenderer.invoke('textbook:load-project', { path }),
   listSkills: (workspaceRoot) =>
     ipcRenderer.invoke('skill:list', { workspaceRoot }),
   saveSkillFile: (rootPath, skillName, content) =>

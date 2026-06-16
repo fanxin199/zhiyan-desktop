@@ -49,6 +49,8 @@ type ZhiYanDashboardProps = {
   onOpenPptGen: () => void
   onOpenPaperPolish: () => void
   onOpenLiterature: () => void
+  onOpenReviewWriting: () => void
+  onOpenGrantWriting: () => void
   onOpenTextbook: () => void
   onOpenBioinformatics: () => void
   onOpenChat: () => void
@@ -61,6 +63,8 @@ export function ZhiYanDashboard({
   onOpenPptGen,
   onOpenPaperPolish,
   onOpenLiterature,
+  onOpenReviewWriting,
+  onOpenGrantWriting,
   onOpenTextbook,
   onOpenBioinformatics,
   onOpenChat,
@@ -146,6 +150,20 @@ export function ZhiYanDashboard({
               description="差异表达、富集分析、数据可视化（即将开放）"
               gradient="bg-gradient-to-br from-emerald-600 to-emerald-800"
               onClick={onOpenBioinformatics}
+            />
+            <QuickActionCard
+              icon={Search}
+              title="综述撰写"
+              description="围绕科研问题组织文献、框架和初稿"
+              gradient="bg-gradient-to-br from-cyan-600 to-cyan-800"
+              onClick={onOpenReviewWriting}
+            />
+            <QuickActionCard
+              icon={PenTool}
+              title="自然基金撰写"
+              description="辅助立项依据、研究内容与技术路线成稿"
+              gradient="bg-gradient-to-br from-orange-600 to-orange-800"
+              onClick={onOpenGrantWriting}
             />
           </div>
         </div>

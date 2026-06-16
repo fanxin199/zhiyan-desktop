@@ -42,6 +42,15 @@ import {
   coursewareSlideSpecSchema,
   evidenceRefSchema
 } from '../../shared/courseware'
+import {
+  textbookCheckInputSchema,
+  textbookExportInputSchema,
+  textbookFormatRulesParseInputSchema,
+  textbookLoadProjectInputSchema,
+  textbookOutlineGenerationInputSchema,
+  textbookSectionGenerationInputSchema,
+  textbookSectionRevisionInputSchema
+} from '../../shared/textbook'
 
 const MAX_BODY_BYTES = 2_000_000
 const MAX_PATH_LENGTH = 4_096
@@ -796,6 +805,14 @@ export const coursewareExportPayloadSchema = z.object({
   project: coursewareProjectSchema,
   outputDirectory: optionalTrimmedString(MAX_PATH_LENGTH)
 }).strict()
+
+export const textbookOutlineGenerationPayloadSchema = textbookOutlineGenerationInputSchema
+export const textbookFormatRulesParsePayloadSchema = textbookFormatRulesParseInputSchema
+export const textbookSectionGenerationPayloadSchema = textbookSectionGenerationInputSchema
+export const textbookSectionRevisionPayloadSchema = textbookSectionRevisionInputSchema
+export const textbookCheckPayloadSchema = textbookCheckInputSchema
+export const textbookExportPayloadSchema = textbookExportInputSchema
+export const textbookLoadProjectPayloadSchema = textbookLoadProjectInputSchema
 
 export const logErrorPayloadSchema = z
   .object({

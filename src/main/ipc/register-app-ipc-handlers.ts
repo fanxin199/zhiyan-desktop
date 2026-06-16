@@ -43,6 +43,13 @@ import {
   skillSaveFilePayloadSchema,
   settingsPatchSchema,
   streamIdSchema,
+  textbookCheckPayloadSchema,
+  textbookExportPayloadSchema,
+  textbookFormatRulesParsePayloadSchema,
+  textbookLoadProjectPayloadSchema,
+  textbookOutlineGenerationPayloadSchema,
+  textbookSectionGenerationPayloadSchema,
+  textbookSectionRevisionPayloadSchema,
   workspaceDirectoryCreatePayloadSchema,
   workspaceClipboardImageSavePayloadSchema,
   workspaceDirectoryTargetPayloadSchema,
@@ -95,6 +102,15 @@ import {
 import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
+import {
+  checkTextbookProject,
+  exportTextbookProject,
+  generateTextbookOutline,
+  generateTextbookSection,
+  loadTextbookProject,
+  parseTextbookFormatRules,
+  reviseTextbookSection
+} from '../services/textbook-service'
 
 type GuiUpdaterModule = typeof import('../gui-updater')
 
@@ -482,6 +498,52 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       ...request,
       outputDirectory: request.outputDirectory || dirname(request.project.request.sourcePath)
     })
+  })
+
+  ipcMain.handle('textbook:generate-outline', async (_, payload: unknown) =>
+    generateTextbookOutline(
+      await store.load(),
+      parseIpcPayload('textbook:generate-outline', textbookOutlineGenerationPayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:parse-format-rules', async (_, payload: unknown) =>
+    parseTextbookFormatRules(
+      await store.load(),
+      parseIpcPayload('textbook:parse-format-rules', textbookFormatRulesParsePayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:generate-section', async (_, payload: unknown) =>
+    generateTextbookSection(
+      await store.load(),
+      parseIpcPayload('textbook:generate-section', textbookSectionGenerationPayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:revise-section', async (_, payload: unknown) =>
+    reviseTextbookSection(
+      await store.load(),
+      parseIpcPayload('textbook:revise-section', textbookSectionRevisionPayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:check-project', async (_, payload: unknown) =>
+    checkTextbookProject(
+      await store.load(),
+      parseIpcPayload('textbook:check-project', textbookCheckPayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:export-project', async (_, payload: unknown) =>
+    exportTextbookProject(
+      parseIpcPayload('textbook:export-project', textbookExportPayloadSchema, payload)
+    )
+  )
+
+  ipcMain.handle('textbook:load-project', async (_, payload: unknown) => {
+    const request = parseIpcPayload('textbook:load-project', textbookLoadProjectPayloadSchema, payload)
+    return loadTextbookProject(request.path)
   })
 
   ipcMain.handle(

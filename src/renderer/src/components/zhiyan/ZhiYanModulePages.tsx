@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { extractPdfText, type PdfExtractResult } from '@renderer/lib/pdf-text-extractor'
 import { CoursewarePage } from './CoursewarePage'
+import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 
 type ModulePageProps = {
   onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
@@ -177,6 +178,42 @@ const LITERATURE_CONFIG: ModuleConfig = {
     '搜索最近5年关于 CAR-T 细胞疗法在实体瘤中应用的综述文献',
     '帮我检索 PD-1/PD-L1 免疫检查点抑制剂的最新临床试验结果',
     '对这10篇文献生成一份系统性文献综述'
+  ]
+}
+
+const REVIEW_CONFIG: ModuleConfig = {
+  icon: Search,
+  title: '综述撰写',
+  subtitle: '围绕科研问题完成文献框架、证据链整理和综述初稿',
+  gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+  features: [
+    { title: '主题框架', description: '从研究问题生成综述章节结构与论证主线' },
+    { title: '证据组织', description: '按机制、模型、疾病场景和技术路线整理文献' },
+    { title: '初稿生成', description: '生成符合生物医学期刊风格的综述段落' },
+    { title: '争议梳理', description: '明确证据等级、替代解释和未解决问题' }
+  ],
+  quickPrompts: [
+    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述框架',
+    '围绕 TLS、浆细胞和免疫治疗反应整理一篇综述的大纲',
+    '帮我把这些文献组织成综述的 Results/Discussion 逻辑'
+  ]
+}
+
+const GRANT_CONFIG: ModuleConfig = {
+  icon: PenTool,
+  title: '自然基金撰写',
+  subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
+  gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
+  features: [
+    { title: '立项依据', description: '建立科学问题、研究现状、创新点之间的证据链' },
+    { title: '研究内容', description: '拆解目标、假说、关键实验和预期结果' },
+    { title: '技术路线', description: '把实验设计转化为清晰可执行的路线图' },
+    { title: '风险替代', description: '补充技术风险、替代方案和可行性论证' }
+  ],
+  quickPrompts: [
+    '帮我撰写国自然面上项目立项依据，方向是肿瘤微环境中的 B 细胞亚群',
+    '根据我的研究假说设计 3 个研究内容和技术路线',
+    '帮我修改基金申请书的创新点，避免空泛表述'
   ]
 }
 
@@ -857,8 +894,16 @@ export function LiteraturePage(props: ModulePageProps): ReactElement {
   return <ModulePageShell config={LITERATURE_CONFIG} {...props} />
 }
 
+export function ReviewWritingPage(props: ModulePageProps): ReactElement {
+  return <ModulePageShell config={REVIEW_CONFIG} {...props} />
+}
+
+export function GrantWritingPage(props: ModulePageProps): ReactElement {
+  return <ModulePageShell config={GRANT_CONFIG} {...props} />
+}
+
 export function TextbookPage(props: ModulePageProps): ReactElement {
-  return <ModulePageShell config={TEXTBOOK_CONFIG} {...props} />
+  return <TextbookWorkbenchPage className={props.className} />
 }
 
 export function BioinformaticsPage(props: ModulePageProps): ReactElement {

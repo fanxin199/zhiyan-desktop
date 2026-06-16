@@ -27,6 +27,8 @@ type ZhiYanSidebarProps = {
   onOpenPptGen: () => void
   onOpenPaperPolish: () => void
   onOpenLiterature: () => void
+  onOpenReviewWriting: () => void
+  onOpenGrantWriting: () => void
   onOpenTextbook: () => void
   onOpenBioinformatics: () => void
   onOpenWrite: () => void
@@ -54,6 +56,8 @@ const NAV_ITEMS: NavItem[] = [
   // Research
   { id: 'paper-polish', icon: PenTool, label: '论文润色', section: 'research' },
   { id: 'literature', icon: Search, label: '文献检索', section: 'research' },
+  { id: 'review-writing', icon: FileText, label: '综述撰写', section: 'research' },
+  { id: 'grant-writing', icon: PenTool, label: '自然基金撰写', section: 'research' },
   { id: 'bioinformatics', icon: Microscope, label: '生信分析', section: 'research', disabled: true, disabledHint: '即将开放' },
   // Tools
   { id: 'write', icon: FileText, label: '写作工作台', section: 'tools' },
@@ -71,6 +75,8 @@ function getRouteHandler(
     case 'ppt-gen': return props.onOpenPptGen
     case 'paper-polish': return props.onOpenPaperPolish
     case 'literature': return props.onOpenLiterature
+    case 'review-writing': return props.onOpenReviewWriting
+    case 'grant-writing': return props.onOpenGrantWriting
     case 'textbook': return props.onOpenTextbook
     case 'bioinformatics': return props.onOpenBioinformatics
     case 'write': return props.onOpenWrite

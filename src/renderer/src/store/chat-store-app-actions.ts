@@ -32,6 +32,8 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
   | 'openPptGen'
   | 'openPaperPolish'
   | 'openLiterature'
+  | 'openReviewWriting'
+  | 'openGrantWriting'
   | 'openTextbook'
   | 'openBioinformatics'
   | 'openFileManager'
@@ -125,6 +127,14 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
 
     openLiterature: () => {
       set({ route: 'literature' })
+    },
+
+    openReviewWriting: () => {
+      set({ route: 'review-writing' })
+    },
+
+    openGrantWriting: () => {
+      set({ route: 'grant-writing' })
     },
 
     openTextbook: () => {

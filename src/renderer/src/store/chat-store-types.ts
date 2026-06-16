@@ -65,7 +65,7 @@ export type SendMessageOverrides = {
 
 export type InitialSetupMode = 'required' | 'preview'
 export type SettingsRouteSection = 'general' | 'write' | 'agents' | 'skill' | 'mcp' | 'api-keys'
-export type AppRoute = 'chat' | 'write' | 'settings' | 'plugins' | 'dashboard' | 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'textbook' | 'bioinformatics' | 'file-manager'
+export type AppRoute = 'chat' | 'write' | 'settings' | 'plugins' | 'dashboard' | 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'review-writing' | 'grant-writing' | 'textbook' | 'bioinformatics' | 'file-manager'
 export type PluginHostRoute = 'chat'
 
 /**
@@ -162,6 +162,8 @@ export type ChatState = {
   openPptGen: () => void
   openPaperPolish: () => void
   openLiterature: () => void
+  openReviewWriting: () => void
+  openGrantWriting: () => void
   openTextbook: () => void
   openBioinformatics: () => void
   openFileManager: () => void
