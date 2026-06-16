@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  filePickPayloadSchema,
   isSafeOpenExternalUrl,
   runtimeRequestPayloadSchema,
   settingsPatchSchema,
@@ -79,6 +80,33 @@ describe('app-ipc-schemas', () => {
       workspaceRoot: ' /tmp/workspace '
     })).toEqual({ workspaceRoot: '/tmp/workspace' })
     expect(skillListPayloadSchema.parse({})).toEqual({})
+  })
+
+  it('validates file picker filters before opening native dialogs', () => {
+    expect(filePickPayloadSchema.parse({
+      defaultPath: ' /tmp/source.pdf ',
+      filters: [{ name: 'PDF / Word', extensions: ['pdf', 'docx'] }]
+    })).toEqual({
+      defaultPath: '/tmp/source.pdf',
+      filters: [{ name: 'PDF / Word', extensions: ['pdf', 'docx'] }]
+    })
+
+    expect(() =>
+      filePickPayloadSchema.parse({
+        filters: [{ name: 'Bad', extensions: ['../../secret'] }]
+      })
+    ).toThrow(/Invalid file extension/)
+    expect(() =>
+      filePickPayloadSchema.parse({
+        filters: [{ name: 'Bad', extensions: [] }]
+      })
+    ).toThrow()
+    expect(() =>
+      filePickPayloadSchema.parse({
+        filters: [{ name: 'Bad', extensions: ['pdf'] }],
+        unexpected: true
+      })
+    ).toThrow(/Unrecognized key/)
   })
 
   it('accepts Kun thread goal endpoints', () => {

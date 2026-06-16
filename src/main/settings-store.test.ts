@@ -1,10 +1,18 @@
 import { mkdir, mkdtemp, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_APPROVAL_POLICY } from '../shared/app-settings'
 import { DEFAULT_GUI_UPDATE_CHANNEL } from '../shared/gui-update'
 import { JsonSettingsStore } from './settings-store'
+
+vi.mock('electron', () => ({
+  safeStorage: {
+    isEncryptionAvailable: vi.fn(() => true),
+    encryptString: vi.fn((value: string) => Buffer.from(`encrypted:${value}`, 'utf8')),
+    decryptString: vi.fn((value: Buffer) => value.toString('utf8').replace(/^encrypted:/, ''))
+  }
+}))
 
 describe('JsonSettingsStore', () => {
   it('defaults GUI updates to the stable channel for new settings', async () => {
@@ -219,6 +227,42 @@ describe('JsonSettingsStore', () => {
 
     expect(saved.agents.kun.model).toBe('deepseek-reasoner')
     expect(saved.agents.kun.approvalPolicy).toBe('on-request')
+  })
+
+  it('encrypts API keys on disk while preserving decrypted settings on load', async () => {
+    const userDataDir = await mkdtemp(join(tmpdir(), 'ds-gui-settings-'))
+    const settingsPath = join(userDataDir, 'deepseek-gui-settings.json')
+    const store = new JsonSettingsStore(userDataDir)
+    await store.load()
+
+    await store.patch({
+      provider: {
+        apiKey: 'sk-general-secret'
+      },
+      write: {
+        inlineCompletion: {
+          apiKey: 'sk-inline-secret'
+        }
+      }
+    })
+
+    const raw = await readFile(settingsPath, 'utf8')
+    expect(raw).not.toContain('sk-general-secret')
+    expect(raw).not.toContain('sk-inline-secret')
+
+    const persisted = JSON.parse(raw) as {
+      provider: { apiKey: string }
+      write: { inlineCompletion: { apiKey: string } }
+      encryptedSecrets?: Record<string, unknown>
+    }
+    expect(persisted.provider.apiKey).toBe('')
+    expect(persisted.write.inlineCompletion.apiKey).toBe('')
+    expect(persisted.encryptedSecrets?.providerApiKey).toBeTypeOf('string')
+    expect(persisted.encryptedSecrets?.writeInlineCompletionApiKey).toBeTypeOf('string')
+
+    const reloaded = await new JsonSettingsStore(userDataDir).load()
+    expect(reloaded.provider.apiKey).toBe('sk-general-secret')
+    expect(reloaded.write.inlineCompletion.apiKey).toBe('sk-inline-secret')
   })
 
   it('merges desktop behavior patches without keeping invalid startup state', async () => {

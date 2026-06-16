@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { dialog } from 'electron'
 import {
   defaultClawSettings,
   defaultKunRuntimeSettings,
@@ -15,7 +19,9 @@ vi.mock('electron', () => ({
   app: {
     quit: vi.fn()
   },
-  dialog: {},
+  dialog: {
+    showOpenDialog: vi.fn()
+  },
   shell: {},
   ipcMain: {
     handle: vi.fn((channel: string, handler: (event: unknown, payload?: unknown) => Promise<unknown>) => {
@@ -67,6 +73,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
 describe('registerAppIpcHandlers', () => {
   beforeEach(() => {
     handlers.clear()
+    vi.mocked(dialog.showOpenDialog).mockReset()
   })
 
   it('rejects invalid settings patches at the handler boundary', async () => {
@@ -148,5 +155,49 @@ describe('registerAppIpcHandlers', () => {
     expect(webContents.setZoomLevel).toHaveBeenCalledWith(1)
     expect(mainWindow.maximize).toHaveBeenCalledTimes(1)
     expect(mainWindow.close).toHaveBeenCalledTimes(1)
+  })
+
+  it('validates file picker payloads before opening the dialog', async () => {
+    registerAppIpcHandlers(registerOptions())
+
+    const handler = handlers.get('file:pick-file')
+    await expect(
+      handler?.({}, { filters: [{ name: 'Bad', extensions: ['../secret'] }] })
+    ).rejects.toThrow(/Invalid payload for file:pick-file/)
+    expect(dialog.showOpenDialog).not.toHaveBeenCalled()
+  })
+
+  it('only reads binary files that were authorized by the file picker', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-ipc-'))
+    const filePath = join(dir, 'source.pdf')
+    await writeFile(filePath, 'pdf-bytes')
+    try {
+      vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+        canceled: false,
+        filePaths: [filePath],
+        bookmarks: []
+      })
+
+      registerAppIpcHandlers(registerOptions())
+
+      const readBinary = handlers.get('file:read-binary')
+      await expect(readBinary?.({}, filePath)).resolves.toEqual({
+        ok: false,
+        message: 'File must be selected through the file picker before it can be read.'
+      })
+
+      const pickFile = handlers.get('file:pick-file')
+      await expect(pickFile?.({}, {
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+      })).resolves.toEqual({ canceled: false, path: filePath })
+
+      await expect(readBinary?.({}, filePath)).resolves.toEqual({
+        ok: true,
+        data: Buffer.from('pdf-bytes').toString('base64'),
+        size: 9
+      })
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
   })
 })

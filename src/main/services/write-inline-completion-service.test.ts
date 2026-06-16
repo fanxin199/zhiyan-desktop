@@ -158,6 +158,31 @@ describe('requestWriteInlineCompletion', () => {
     })
   })
 
+  it('retries transient inline completion provider failures', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response('temporary overload', { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ text: ' after retry' }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await requestWriteInlineCompletion(createSettings({ maxTokens: 64 }), createRequest())
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(result).toMatchObject({
+      ok: true,
+      completion: ' after retry',
+      mode: 'short'
+    })
+    const debugEntries = listWriteInlineCompletionDebugEntries()
+    expect(debugEntries).toHaveLength(1)
+    expect(debugEntries[0]).toMatchObject({
+      ok: true,
+      completion: ' after retry'
+    })
+  })
+
   it('does not request the API when inline completion is disabled', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)

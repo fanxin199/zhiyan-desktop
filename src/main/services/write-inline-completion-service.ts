@@ -22,6 +22,11 @@ import {
   retrieveWriteInlineCompletionContext,
   type WriteRetrievalContext
 } from './write-retrieval-service'
+import {
+  isRetryableHttpStatus,
+  RetryableHttpResponseError,
+  withProviderRetry
+} from './provider-retry'
 
 const INLINE_COMPLETION_TIMEOUT_MS = 12_000
 const MAX_INLINE_COMPLETION_DEBUG_ENTRIES = 120
@@ -598,17 +603,23 @@ export async function requestWriteInlineCompletion(
           suffix: request.suffix,
           max_tokens: maxTokens
         }
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(INLINE_COMPLETION_TIMEOUT_MS)
+    const { response, text } = await withProviderRetry(async () => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(INLINE_COMPLETION_TIMEOUT_MS)
+      })
+      const text = await response.text()
+      if (!response.ok && isRetryableHttpStatus(response.status)) {
+        throw new RetryableHttpResponseError(response.status, text)
+      }
+      return { response, text }
     })
-    const text = await response.text()
     if (!response.ok) {
       appendInlineCompletionDebugEntry({
         ...debugBase,
@@ -657,18 +668,22 @@ export async function requestWriteInlineCompletion(
       mode: finalMode
     }
   } catch (error) {
+    const rawResponse = error instanceof RetryableHttpResponseError ? error.bodyText : ''
+    const errorMessage = error instanceof RetryableHttpResponseError
+      ? `Inline completion request failed (${error.status}): ${error.bodyText.slice(0, 300)}`
+      : error instanceof Error ? error.message : String(error)
     appendInlineCompletionDebugEntry({
       ...debugBase,
       durationMs: Date.now() - startedAt,
       ok: false,
-      rawResponse: '',
+      rawResponse,
       completion: '',
-      responseChars: 0,
-      errorMessage: error instanceof Error ? error.message : String(error)
+      responseChars: rawResponse.length,
+      errorMessage
     })
     return {
       ok: false,
-      message: error instanceof Error ? error.message : String(error)
+      message: errorMessage
     }
   }
 }

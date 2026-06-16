@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { imageSize } from 'image-size'
 import PptxGenJS from 'pptxgenjs'
 import {
   coursewareProjectSchema,
@@ -165,6 +166,68 @@ function addBulletContent(
   )
 }
 
+function addTeachingContent(
+  pptx: PptxGenJS,
+  slide: PptxGenJS.Slide,
+  bullets: string[]
+): void {
+  const items = (bullets.length ? bullets : ['本页内容待教师补充']).slice(0, 6)
+  const columns = items.length <= 3 ? 1 : 2
+  const rows = Math.ceil(items.length / columns)
+  const gapX = 0.35
+  const gapY = 0.28
+  const cardWidth = columns === 1 ? 11.65 : (11.65 - gapX) / 2
+  const cardHeight = Math.min(1.42, (5.25 - gapY * Math.max(0, rows - 1)) / rows)
+
+  items.forEach((text, index) => {
+    const column = columns === 1 ? 0 : index % 2
+    const row = columns === 1 ? index : Math.floor(index / 2)
+    const x = 0.84 + column * (cardWidth + gapX)
+    const y = 1.38 + row * (cardHeight + gapY)
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x,
+      y,
+      w: cardWidth,
+      h: cardHeight,
+      rectRadius: 0.05,
+      line: { color: column === 0 ? 'B7D7D8' : 'C7D8E3', width: 1 },
+      fill: { color: column === 0 ? 'F2F9F8' : 'F3F7FA' }
+    })
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: x + 0.22,
+      y: y + 0.25,
+      w: 0.46,
+      h: 0.46,
+      line: { color: COLORS.teal, transparency: 100 },
+      fill: { color: COLORS.teal }
+    })
+    slide.addText(String(index + 1), {
+      x: x + 0.22,
+      y: y + 0.29,
+      w: 0.46,
+      h: 0.28,
+      fontFace: 'Arial',
+      fontSize: 11,
+      bold: true,
+      color: COLORS.white,
+      align: 'center',
+      margin: 0
+    })
+    slide.addText(text, {
+      x: x + 0.82,
+      y: y + 0.16,
+      w: cardWidth - 1.05,
+      h: cardHeight - 0.32,
+      fontFace: 'Microsoft YaHei',
+      fontSize: columns === 1 ? 18 : 16,
+      color: COLORS.ink,
+      valign: 'middle',
+      margin: 0.04,
+      fit: 'shrink'
+    })
+  })
+}
+
 function addMechanismVisual(pptx: PptxGenJS, slide: PptxGenJS.Slide, spec: SlideSpec): void {
   const nodes = spec.visual?.nodes?.slice(0, 5) ?? []
   if (!nodes.length) {
@@ -239,9 +302,9 @@ function addInteractionSlide(pptx: PptxGenJS, slide: PptxGenJS.Slide, spec: Slid
   })
   slide.addText(spec.interaction?.prompt ?? spec.bullets[0] ?? '请围绕本节主线进行讨论。', {
     x: 1.45,
-    y: 2.55,
+    y: 2.45,
     w: 10.35,
-    h: 1.75,
+    h: 2.05,
     fontFace: 'Microsoft YaHei',
     fontSize: 25,
     bold: true,
@@ -251,17 +314,19 @@ function addInteractionSlide(pptx: PptxGenJS, slide: PptxGenJS.Slide, spec: Slid
     margin: 0.08,
     fit: 'shrink'
   })
-  slide.addText('建议：独立思考 1 分钟，再进行同伴讨论。答案仅写入讲者备注和 Word 讲稿。', {
-    x: 1.45,
-    y: 5.45,
-    w: 10.35,
-    h: 0.5,
-    fontFace: 'Microsoft YaHei',
-    fontSize: 14,
-    color: COLORS.muted,
-    align: 'center',
-    margin: 0
-  })
+}
+
+function embeddedImageRatio(dataUrl: string): number | null {
+  const match = dataUrl.match(/^data:[^;,]+;base64,(.+)$/)
+  if (!match) return null
+  try {
+    const dimensions = imageSize(Buffer.from(match[1], 'base64'))
+    return dimensions.width && dimensions.height
+      ? dimensions.width / dimensions.height
+      : null
+  } catch {
+    return null
+  }
 }
 
 function addSourceFigure(
@@ -273,7 +338,10 @@ function addSourceFigure(
     item.id === spec.visual?.figureId && item.status === 'approved'
   )
   if (!figure?.imageDataUrl) return null
-  const ratio = figure.width && figure.height
+  const actualRatio = embeddedImageRatio(figure.imageDataUrl)
+  const ratio = actualRatio
+    ? actualRatio
+    : figure.width && figure.height
     ? figure.width / figure.height
     : figure.crop
       ? figure.crop.width / figure.crop.height
@@ -392,7 +460,21 @@ function buildPresentation(project: CoursewareProject): PptxGenJS {
       addSlideHeader(pptx, slide, spec.title, index + 1, project.slides.length)
       if (spec.kind === 'interaction') {
         addInteractionSlide(pptx, slide, spec)
-      } else if (spec.kind === 'mechanism' || spec.visual?.type === 'flow') {
+      } else if (spec.visual?.type === 'source-figure') {
+        const bulletBox = addSourceFigure(slide, project, spec)
+        if (bulletBox) {
+          addBulletContent(slide, spec.bullets, {
+            ...bulletBox,
+            fontSize: bulletBox.h < 2 ? 14 : 18
+          })
+        } else {
+          addTeachingContent(pptx, slide, spec.bullets)
+        }
+      } else if (
+        spec.kind === 'mechanism' ||
+        spec.visual?.type === 'flow' ||
+        spec.visual?.type === 'comparison'
+      ) {
         addMechanismVisual(pptx, slide, spec)
       } else if (spec.kind === 'case') {
         slide.addShape(pptx.ShapeType.roundRect, {
@@ -417,18 +499,8 @@ function buildPresentation(project: CoursewareProject): PptxGenJS {
           margin: 0
         })
         addBulletContent(slide, spec.bullets, { x: 4.25, y: 1.45, w: 8.05, h: 4.9 })
-      } else if (spec.visual?.type === 'source-figure') {
-        const bulletBox = addSourceFigure(slide, project, spec)
-        if (bulletBox) {
-          addBulletContent(slide, spec.bullets, {
-            ...bulletBox,
-            fontSize: bulletBox.h < 2 ? 14 : 18
-          })
-        } else {
-          addBulletContent(slide, spec.bullets, { x: 0.85, y: 1.4, w: 11.7, h: 5.2 })
-        }
       } else {
-        addBulletContent(slide, spec.bullets, { x: 0.85, y: 1.4, w: 11.7, h: 5.2 })
+        addTeachingContent(pptx, slide, spec.bullets)
       }
     }
     slide.addNotes(slideNotes(spec))

@@ -12,6 +12,16 @@ export type BuiltinSkillSyncResult = {
   available: boolean
 }
 
+const BUILTIN_SKILL_SYNC_CACHE_TTL_MS = 30_000
+
+let lastDefaultSync:
+  | {
+    key: string
+    expiresAt: number
+    result: BuiltinSkillSyncResult
+  }
+  | null = null
+
 export function builtinSkillRootForDataDir(dataDir: string): string {
   return join(dataDir, 'skills', 'builtin')
 }
@@ -28,8 +38,17 @@ export async function syncBuiltinSkills(options: {
 }): Promise<BuiltinSkillSyncResult> {
   const sourceRoot = options.sourceRoot ?? resolveBundledSkillSourceRoot()
   const root = builtinSkillRootForDataDir(options.dataDir)
+  const useDefaultSource = !options.sourceRoot
+  const cacheKey = `${root}\0${sourceRoot}`
+  if (
+    useDefaultSource &&
+    lastDefaultSync?.key === cacheKey &&
+    lastDefaultSync.expiresAt > Date.now()
+  ) {
+    return lastDefaultSync.result
+  }
   if (!existsSync(sourceRoot)) {
-    return {
+    const result = {
       root,
       sourceRoot,
       installed: 0,
@@ -37,6 +56,14 @@ export async function syncBuiltinSkills(options: {
       unchanged: 0,
       available: false
     }
+    if (useDefaultSource) {
+      lastDefaultSync = {
+        key: cacheKey,
+        expiresAt: Date.now() + BUILTIN_SKILL_SYNC_CACHE_TTL_MS,
+        result
+      }
+    }
+    return result
   }
 
   await mkdir(root, { recursive: true })
@@ -68,7 +95,7 @@ export async function syncBuiltinSkills(options: {
     })
   }
 
-  return {
+  const result = {
     root,
     sourceRoot,
     installed,
@@ -76,6 +103,14 @@ export async function syncBuiltinSkills(options: {
     unchanged,
     available: true
   }
+  if (useDefaultSource) {
+    lastDefaultSync = {
+      key: cacheKey,
+      expiresAt: Date.now() + BUILTIN_SKILL_SYNC_CACHE_TTL_MS,
+      result
+    }
+  }
+  return result
 }
 
 async function readManifest(root: string): Promise<{ version: string } | null> {

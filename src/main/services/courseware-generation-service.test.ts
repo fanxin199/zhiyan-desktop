@@ -8,6 +8,8 @@ import {
   type AppSettingsV1
 } from '../../shared/app-settings'
 import {
+  COURSEWARE_SLIDE_BATCH_SIZE,
+  COURSEWARE_SLIDE_BATCH_TIMEOUT_MS,
   COURSEWARE_TIMEOUT_MS,
   generateCoursewareBlueprint,
   generateCoursewareSlides
@@ -40,11 +42,11 @@ function settings(): AppSettingsV1 {
   }
 }
 
-function response(content: string): Response {
+function response(content: string, status = 200): Response {
   return new Response(JSON.stringify({
     choices: [{ message: { content } }]
   }), {
-    status: 200,
+    status,
     headers: { 'Content-Type': 'application/json' }
   })
 }
@@ -127,6 +129,54 @@ describe('generateCoursewareBlueprint', () => {
       repaired: true,
       blueprint: {
         title: 'T 细胞活化'
+      }
+    })
+  })
+
+  it('retries transient provider failures before returning a blueprint', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response('temporary overload', { status: 502 }))
+      .mockResolvedValueOnce(response(JSON.stringify({
+        title: 'B cell responses',
+        audience: 'undergraduate',
+        durationMinutes: 90,
+        teachingGoal: 'Explain humoral immune response logic.',
+        sections: [{
+          id: 'section-1',
+          title: 'B cell activation',
+          objective: 'Connect antigen recognition to antibody production.',
+          summary: 'B cells integrate BCR signaling, helper T cell support, and cytokines.',
+          slideCount: 6,
+          emphasis: ['BCR', 'Tfh help'],
+          interactionPrompt: 'Why does T cell help improve antibody quality?',
+          visualSuggestion: 'Left-to-right activation pathway'
+        }]
+      })))
+
+    const result = await generateCoursewareBlueprint(
+      settings(),
+      {
+        request: {
+          sourcePath: 'C:\\books\\immunology.pdf',
+          pageStart: 10,
+          pageEnd: 20,
+          topic: 'B cell responses',
+          durationMinutes: 90,
+          audience: 'undergraduate',
+          focus: '',
+          includeRecentLiterature: false,
+          maxLiteratureResults: 6
+        },
+        sourceText: 'Textbook content'
+      },
+      fetcher
+    )
+
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(result).toMatchObject({
+      ok: true,
+      blueprint: {
+        title: 'B cell responses'
       }
     })
   })
@@ -259,7 +309,7 @@ describe('generateCoursewareSlides', () => {
     })
   })
 
-  it('caps a 59-slide blueprint at 35 pages and keeps every request to five pages', async () => {
+  it('caps a 59-slide blueprint at 35 pages and keeps each detailed-content request small', async () => {
     const batchSizes: number[] = []
     const fetcher = vi.fn().mockImplementation(async (_url, init) => {
       const body = JSON.parse(String(init?.body)) as {
@@ -285,8 +335,9 @@ describe('generateCoursewareSlides', () => {
       fetcher
     )
 
-    expect(fetcher).toHaveBeenCalledTimes(7)
-    expect(Math.max(...batchSizes)).toBeLessThanOrEqual(5)
+    expect(COURSEWARE_SLIDE_BATCH_SIZE).toBe(3)
+    expect(fetcher).toHaveBeenCalledTimes(12)
+    expect(Math.max(...batchSizes)).toBeLessThanOrEqual(3)
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.value).toHaveLength(35)
@@ -294,7 +345,7 @@ describe('generateCoursewareSlides', () => {
     }
   })
 
-  it('keeps a complete editable deck when every model batch times out', async () => {
+  it('does not report a placeholder deck as a successful teaching deck when every batch times out', async () => {
     const fetcher = vi.fn().mockRejectedValue(
       new DOMException('The operation was aborted due to timeout', 'TimeoutError')
     )
@@ -305,12 +356,47 @@ describe('generateCoursewareSlides', () => {
       fetcher
     )
 
-    expect(result.ok).toBe(true)
-    if (result.ok) {
-      expect(result.repaired).toBe(true)
-      expect(result.value).toHaveLength(12)
-      expect(new Set(result.value.map((item) => item.id)).size).toBe(12)
+    expect(COURSEWARE_SLIDE_BATCH_TIMEOUT_MS).toBeGreaterThanOrEqual(90_000)
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'PROVIDER_ERROR'
+    })
+    if (!result.ok) expect(result.message).toContain('未生成可直接授课的课件')
+  })
+
+  it('asks the model for self-contained classroom-ready slide content instead of an outline', async () => {
+    let requestBody = ''
+    const fetcher = vi.fn().mockImplementation(async (_url, init) => {
+      requestBody = String(init?.body)
+      const body = JSON.parse(requestBody) as {
+        messages: Array<{ content: string }>
+        max_tokens: number
+      }
+      const prompt = body.messages.at(-1)?.content ?? ''
+      const tasks = JSON.parse(
+        prompt.match(/PAGE_TASKS_JSON=(.+)/)?.[1] ?? '[]'
+      ) as Array<{ id: string; sectionId: string; title: string; kind: string }>
+      return response(JSON.stringify({
+        slides: tasks.map((task) => ({
+          ...slide(task.id, task.sectionId),
+          title: task.title,
+          kind: task.kind
+        }))
+      }))
+    })
+
+    await generateCoursewareSlides(settings(), slideInput([3]), fetcher)
+
+    const body = JSON.parse(requestBody) as {
+      messages: Array<{ role: string; content: string }>
+      max_tokens: number
     }
+    const systemPrompt = body.messages.find((message) => message.role === 'system')?.content ?? ''
+    expect(systemPrompt).toContain('可直接投屏授课')
+    expect(systemPrompt).toContain('不是教学大纲')
+    expect(systemPrompt).toContain('禁止元话语')
+    expect(systemPrompt).toContain('完整陈述')
+    expect(body.max_tokens).toBeGreaterThanOrEqual(6_000)
   })
 
   it('limits concurrent model batches to three', async () => {
@@ -377,7 +463,7 @@ describe('generateCoursewareSlides', () => {
     expect(new Set(excerpts).size).toBeGreaterThan(1)
   })
 
-  it('reports a complete editable draft before model batches finish', async () => {
+  it('reports a complete placeholder deck while model batches are still running', async () => {
     const progress: Array<{
       completedBatches: number
       totalBatches: number
@@ -408,12 +494,12 @@ describe('generateCoursewareSlides', () => {
 
     expect(progress[0]).toMatchObject({
       completedBatches: 0,
-      totalBatches: 3
+      totalBatches: 4
     })
     expect(progress[0]?.slides).toHaveLength(12)
     expect(progress.at(-1)).toMatchObject({
-      completedBatches: 3,
-      totalBatches: 3
+      completedBatches: 4,
+      totalBatches: 4
     })
   })
 
@@ -433,6 +519,8 @@ describe('generateCoursewareSlides', () => {
       expect(result.value).toHaveLength(3)
       expect(new Set(result.value.map((item) => item.title)).size).toBe(3)
       expect(new Set(result.value.map((item) => item.bullets.join('\n'))).size).toBe(3)
+      expect(result.value.flatMap((item) => item.bullets).join('\n')).not.toContain('本页聚焦')
+      expect(result.value.flatMap((item) => item.bullets).join('\n')).not.toContain('教学目标')
     }
   })
 
@@ -499,7 +587,7 @@ describe('generateCoursewareSlides', () => {
       fetcher
     )
 
-    expect(fetcher).toHaveBeenCalledTimes(5)
+    expect(fetcher).toHaveBeenCalledTimes(8)
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(new Set(result.value.map((item) => item.bullets.join('\n'))).size).toBe(24)

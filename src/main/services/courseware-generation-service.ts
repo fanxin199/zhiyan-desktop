@@ -17,11 +17,16 @@ import {
   type SlideSpec
 } from '../../shared/courseware'
 import { upstreamOpenAiChatCompletionsUrl } from '../../shared/openai-compat-url'
+import {
+  isRetryableHttpStatus,
+  RetryableHttpResponseError,
+  withProviderRetry
+} from './provider-retry'
 
 export const COURSEWARE_TIMEOUT_MS = 300_000
-export const COURSEWARE_SLIDE_BATCH_TIMEOUT_MS = 30_000
-export const COURSEWARE_SLIDE_BATCH_SIZE = 5
-export const COURSEWARE_SLIDE_MAX_CONCURRENCY = 3
+export const COURSEWARE_SLIDE_BATCH_TIMEOUT_MS = 120_000
+export const COURSEWARE_SLIDE_BATCH_SIZE = 3
+export const COURSEWARE_SLIDE_MAX_CONCURRENCY = 2
 const MAX_SOURCE_TEXT_CHARS = 180_000
 const MAX_SLIDE_SOURCE_TEXT_CHARS = 12_000
 
@@ -123,23 +128,29 @@ async function callModel(
   }
 
   try {
-    const response = await fetcher(upstreamOpenAiChatCompletionsUrl(runtime.baseUrl), {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${runtime.apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: runtime.model,
-        messages,
-        temperature: 0.2,
-        max_tokens: options.maxTokens ?? 12_000,
-        response_format: { type: 'json_object' }
-      }),
-      signal: AbortSignal.timeout(timeoutMs)
+    const { response, text } = await withProviderRetry(async () => {
+      const response = await fetcher(upstreamOpenAiChatCompletionsUrl(runtime.baseUrl), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${runtime.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: runtime.model,
+          messages,
+          temperature: 0.2,
+          max_tokens: options.maxTokens ?? 12_000,
+          response_format: { type: 'json_object' }
+        }),
+        signal: AbortSignal.timeout(timeoutMs)
+      })
+      const text = await response.text()
+      if (!response.ok && isRetryableHttpStatus(response.status)) {
+        throw new RetryableHttpResponseError(response.status, text)
+      }
+      return { response, text }
     })
-    const text = await response.text()
     if (!response.ok) {
       return {
         ok: false,
@@ -158,8 +169,10 @@ async function callModel(
       message: isTimeout
         ? timeoutMs === COURSEWARE_TIMEOUT_MS
           ? '模型生成超过 5 分钟，请缩小教材页码范围或减少预计课件页数后重试。'
-          : '课件单批生成超过 30 秒，已保留该批次的可编辑基础稿。'
-        : error instanceof Error ? error.message : String(error)
+          : '课件单批生成超过 2 分钟，未完成该批次的授课版内容。'
+        : error instanceof RetryableHttpResponseError
+          ? `模型请求失败（${error.status}）：${error.bodyText.slice(0, 300)}`
+          : error instanceof Error ? error.message : String(error)
     }
   }
 }
@@ -392,10 +405,9 @@ function createFallbackSlide(task: SlideTask): SlideSpec {
   ]
   const isInteraction = task.kind === 'interaction' && task.section.interactionPrompt
   const bullets = [
-    `本页核心：${task.purpose}`,
-    `教学目标：${task.section.objective}`,
-    emphasis ? `重点术语：${emphasis}` : `内容主线：${task.section.summary}`,
-    `与前后页关系：本节第 ${task.ordinal}/${task.section.slideCount} 页`
+    task.section.summary,
+    emphasis ? `${emphasis}是理解“${task.section.title}”的关键环节。` : task.section.objective,
+    `${task.title}：${task.section.summary}`
   ].map((bullet) => bullet.slice(0, 1_000))
 
   return {
@@ -405,10 +417,9 @@ function createFallbackSlide(task: SlideTask): SlideSpec {
     title: task.title,
     bullets,
     speakerNotes: [
-      `本页讲授目的：${task.purpose}`,
-      `本节目标：${task.section.objective}`,
-      `讲授主线：${task.section.summary}`,
-      `请围绕“${task.title}”展开，避免重复前后页面内容。`
+      `围绕“${task.title}”讲清本页核心概念，并与本节主线建立联系。`,
+      task.section.summary,
+      task.section.objective
     ].join('\n'),
     ...(isInteraction
       ? {
@@ -504,10 +515,14 @@ async function generateSlideBatch(
         content: [
           '你是医学免疫学课件编写专家。',
           audienceInstruction(input.request.audience),
+          '交付物必须是教师可直接投屏授课的正式课件，不是教学大纲、写作建议或备课提示。',
           '严格按逐页任务清单生成课件，每一页必须解决不同的教学问题。',
           `必须恰好生成 ${batch.tasks.length} 页，并严格使用任务清单中的 id、sectionId、kind 和 title。`,
           '禁止复制上一页的标题、正文、讲稿或图示；相邻页面必须有明确的内容推进。',
-          '每页文字低密度，bullets 最多 5 条；speakerNotes 必须足够支持教师讲授。',
+          'bullets 是学生在教室里实际看到的正文，不是“本页重点”“建议讲解”“可举例”等指导语。',
+          '每页使用 3-5 条完整陈述，每条应直接讲清事实、机制、因果、比较或例子；单条通常 25-90 个汉字，不能只堆术语。',
+          '禁止元话语：不得出现“本页将介绍”“教师应强调”“教学目标”“建议补充”“可从以下方面”等提纲式表达。',
+          'speakerNotes 提供逐页讲授逻辑、过渡、易错点和提问方式，但关键知识不能只藏在备注中。',
           '机制页优先使用可编辑 flow/comparison 图，互动页必须给出问题与参考答案。',
           '只能引用提供的 evidence id，不能编造 PMID、DOI 或论文。',
           '只返回一个 JSON 对象，顶层字段固定为 slides。'
@@ -543,7 +558,7 @@ async function generateSlideBatch(
     fetcher,
     {
       timeoutMs: COURSEWARE_SLIDE_BATCH_TIMEOUT_MS,
-      maxTokens: 3_000
+      maxTokens: 7_000
     }
   )
   if (!response.ok) return response
@@ -623,6 +638,13 @@ export async function generateCoursewareSlides(
     (result) => !result.ok && result.code === 'MISSING_API_KEY'
   )
   if (missingApiKey && !missingApiKey.ok) return missingApiKey
+  if (results.every((result) => !result.ok)) {
+    return {
+      ok: false,
+      code: 'PROVIDER_ERROR',
+      message: '所有模型批次均未完成，未生成可直接授课的课件。请检查模型服务后重新生成。'
+    }
+  }
 
   const taskById = new Map(tasks.map((task) => [task.id, task]))
   const signatures = new Set<string>()

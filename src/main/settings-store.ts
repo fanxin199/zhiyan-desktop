@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
+import { safeStorage } from 'electron'
 import {
   applyKunRuntimePatch,
   kunSettingsEnvelope,
@@ -27,6 +28,17 @@ import {
 } from '../shared/app-settings'
 
 export type { AppSettingsV1 }
+
+type EncryptedSettingsSecretsV1 = {
+  providerApiKey?: string
+  providerProfileApiKeys?: Record<string, string>
+  kunApiKey?: string
+  writeInlineCompletionApiKey?: string
+}
+
+type SettingsDiskSnapshot = Partial<AppSettingsV1> & Record<string, any> & {
+  encryptedSecrets?: EncryptedSettingsSecretsV1
+}
 
 const DEFAULT_WORKSPACE_ROOT = join(homedir(), '.zhiyan', 'default_workspace')
 const DEFAULT_CLAW_CHANNELS_ROOT = join(homedir(), '.zhiyan', 'claw')
@@ -139,8 +151,99 @@ function normalizeStoredSettings(settings: AppSettingsV1): AppSettingsV1 {
   }
 }
 
+function canUseSafeStorage(): boolean {
+  try {
+    return safeStorage.isEncryptionAvailable()
+  } catch {
+    return false
+  }
+}
+
+function encryptSecret(value: string): string {
+  return safeStorage.encryptString(value).toString('base64')
+}
+
+function decryptSecret(value: string): string {
+  return safeStorage.decryptString(Buffer.from(value, 'base64'))
+}
+
+function cloneSettingsForDisk(settings: AppSettingsV1): SettingsDiskSnapshot {
+  return JSON.parse(JSON.stringify(settings)) as SettingsDiskSnapshot
+}
+
+function redactEncryptedSettingsSecrets(settings: AppSettingsV1): SettingsDiskSnapshot {
+  if (!canUseSafeStorage()) return settings
+
+  const disk = cloneSettingsForDisk(settings)
+  const encryptedSecrets: EncryptedSettingsSecretsV1 = {}
+
+  const providerApiKey = disk.provider?.apiKey?.trim() ?? ''
+  if (providerApiKey) {
+    encryptedSecrets.providerApiKey = encryptSecret(providerApiKey)
+    disk.provider!.apiKey = ''
+  }
+
+  for (const provider of disk.provider?.providers ?? []) {
+    const apiKey = provider.apiKey?.trim() ?? ''
+    if (!apiKey) continue
+    encryptedSecrets.providerProfileApiKeys ??= {}
+    encryptedSecrets.providerProfileApiKeys[provider.id] = encryptSecret(apiKey)
+    provider.apiKey = ''
+  }
+
+  const kunApiKey = disk.agents?.kun?.apiKey?.trim() ?? ''
+  if (kunApiKey) {
+    encryptedSecrets.kunApiKey = encryptSecret(kunApiKey)
+    disk.agents!.kun!.apiKey = ''
+  }
+
+  const inlineApiKey = disk.write?.inlineCompletion?.apiKey?.trim() ?? ''
+  if (inlineApiKey) {
+    encryptedSecrets.writeInlineCompletionApiKey = encryptSecret(inlineApiKey)
+    disk.write!.inlineCompletion.apiKey = ''
+  }
+
+  if (Object.keys(encryptedSecrets).length > 0) {
+    disk.encryptedSecrets = encryptedSecrets
+  }
+  return disk
+}
+
+function hydrateEncryptedSettingsSecrets(parsed: SettingsDiskSnapshot): Partial<AppSettingsV1> {
+  const next = JSON.parse(JSON.stringify(parsed)) as Record<string, any>
+  const encryptedSecrets = next.encryptedSecrets
+  delete next.encryptedSecrets
+  if (!encryptedSecrets || !canUseSafeStorage()) return next as Partial<AppSettingsV1>
+
+  try {
+    if (encryptedSecrets.providerApiKey) {
+      next.provider ??= {}
+      next.provider.apiKey = decryptSecret(encryptedSecrets.providerApiKey)
+    }
+    if (encryptedSecrets.providerProfileApiKeys && next.provider?.providers) {
+      next.provider.providers = next.provider.providers.map((provider: Record<string, any>) => {
+        const encrypted = encryptedSecrets.providerProfileApiKeys?.[provider.id]
+        return encrypted ? { ...provider, apiKey: decryptSecret(encrypted) } : provider
+      })
+    }
+    if (encryptedSecrets.kunApiKey) {
+      next.agents ??= {}
+      next.agents.kun ??= {}
+      next.agents.kun.apiKey = decryptSecret(encryptedSecrets.kunApiKey)
+    }
+    if (encryptedSecrets.writeInlineCompletionApiKey) {
+      next.write ??= {}
+      next.write.inlineCompletion ??= {}
+      next.write.inlineCompletion.apiKey = decryptSecret(encryptedSecrets.writeInlineCompletionApiKey)
+    }
+  } catch {
+    // Keep the rest of the settings readable if OS keychain decryption fails.
+  }
+  return next as Partial<AppSettingsV1>
+}
+
 function serializeSettingsForDisk(settings: AppSettingsV1): string {
-  return JSON.stringify(normalizeStoredSettings(settings), null, 2)
+  return JSON.stringify(redactEncryptedSettingsSecrets(normalizeStoredSettings(settings)), null, 2)
 }
 
 export async function ensureWorkspaceRootExists(workspaceRoot: string): Promise<string> {
@@ -276,7 +379,7 @@ export class JsonSettingsStore {
 
     let parsed: Partial<AppSettingsV1>
     try {
-      parsed = JSON.parse(raw) as Partial<AppSettingsV1>
+      parsed = hydrateEncryptedSettingsSecrets(JSON.parse(raw) as SettingsDiskSnapshot)
     } catch (error) {
       if (error instanceof SyntaxError) {
         const backupPath = await writeInvalidSettingsBackup(this.path, raw)

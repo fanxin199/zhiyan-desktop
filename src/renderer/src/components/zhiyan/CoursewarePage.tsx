@@ -60,7 +60,7 @@ const AUDIENCE_PRESETS: Array<{
   {
     id: 'undergraduate',
     label: '本科生',
-    description: '概念主线、机制链条、临床例子、低文字密度'
+    description: '可直接授课的完整内容、机制链条与临床例子'
   },
   {
     id: 'graduate',
@@ -326,6 +326,9 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         generationId
       })
       if (!result.ok) {
+        setSlides([])
+        setSlideGenerationProgress(null)
+        setStep('blueprint')
         setMessage(result.message)
         return
       }
@@ -338,7 +341,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
       }
       if ((result.degradedBatches ?? 0) > 0) {
         setWarning(
-          `${result.degradedBatches} 个模型批次未在时限内返回，已保留对应页面的可编辑基础稿；其他批次不受影响。`
+          `${result.degradedBatches} 个模型批次未完成授课版内容；对应页面目前只是占位稿，请重新生成或逐页重做后再导出。`
         )
       } else if (result.repaired) {
         setWarning('部分逐页内容已自动修复格式，请重点复核讲稿和引用。')
@@ -1054,10 +1057,10 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
           <div className="grid gap-5 xl:grid-cols-[230px_minmax(0,1fr)_320px]">
             {busy === 'slides' && slideGenerationProgress && (
               <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-[13px] text-ds-text xl:col-span-3">
-                已建立完整可编辑基础稿，AI 正在逐批完善内容：
+                AI 正在逐批生成可直接授课的页面内容。当前显示的是进度占位稿，完成前请勿导出：
                 {slideGenerationProgress.completedBatches}/{slideGenerationProgress.totalBatches} 批完成
                 {slideGenerationProgress.degradedBatches > 0
-                  ? `，${slideGenerationProgress.degradedBatches} 批已保留基础稿`
+                  ? `，${slideGenerationProgress.degradedBatches} 批未完成`
                   : ''}
               </div>
             )}
@@ -1101,7 +1104,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   />
                 </label>
                 <label className="mt-3 block">
-                  <span className={labelClass}>页面要点（每行一条）</span>
+                  <span className={labelClass}>课堂投屏正文（每行一个完整知识陈述）</span>
                   <ResizableTextArea
                     value={activeSlide.bullets.join('\n')}
                     onChange={(event) => updateActiveSlide({

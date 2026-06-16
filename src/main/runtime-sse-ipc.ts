@@ -15,6 +15,7 @@ type SseControllerState = {
 const SSE_RECONNECT_BASE_MS = 750
 const SSE_RECONNECT_MAX_MS = 5_000
 const SSE_START_TIMEOUT_MS = 15_000
+const MAX_SSE_BUFFER_CHARS = 10 * 1024 * 1024
 
 
 const sseControllers = new Map<string, SseControllerState>()
@@ -81,6 +82,14 @@ function takeSseBlock(buffer: string): { block: string; rest: string } | null {
     block: buffer.slice(0, lf),
     rest: buffer.slice(lf + 2)
   }
+}
+
+function appendSseChunkWithLimit(buffer: string, chunk: string): string {
+  const next = buffer + chunk
+  if (next.length > MAX_SSE_BUFFER_CHARS) {
+    throw new Error(`sse buffer exceeded ${MAX_SSE_BUFFER_CHARS} characters`)
+  }
+  return next
 }
 
 function coerceSsePayload(parsed: { data: unknown; event?: string; id?: string }): Record<string, unknown> {
@@ -194,7 +203,7 @@ export function registerRuntimeSseIpc(options: {
             while (true) {
               const { done, value } = await reader.read()
               if (done) break
-              buffer += dec.decode(value, { stream: true })
+              buffer = appendSseChunkWithLimit(buffer, dec.decode(value, { stream: true }))
               let next: { block: string; rest: string } | null
               while ((next = takeSseBlock(buffer)) !== null) {
                 const block = next.block
@@ -209,7 +218,7 @@ export function registerRuntimeSseIpc(options: {
                 }
               }
             }
-            buffer += dec.decode()
+            buffer = appendSseChunkWithLimit(buffer, dec.decode())
             const trailing = buffer.trim()
             if (trailing) {
               const parsed = parseSseData(trailing)
@@ -224,7 +233,7 @@ export function registerRuntimeSseIpc(options: {
           } catch (e) {
             if (state.stoppedByClient || ac.signal.aborted) return
             const msg = e instanceof Error ? e.message : String(e)
-            if (/sse start timeout/i.test(msg) || /fetch failed/i.test(msg) || /network/i.test(msg)) {
+            if (/sse start timeout/i.test(msg) || /sse buffer exceeded/i.test(msg) || /fetch failed/i.test(msg) || /network/i.test(msg)) {
               await sleepWithAbort(reconnectDelayMs, ac.signal)
               reconnectDelayMs = Math.min(reconnectDelayMs * 2, SSE_RECONNECT_MAX_MS)
               continue
@@ -254,4 +263,9 @@ export function registerRuntimeSseIpc(options: {
     }
     return true
   })
+}
+
+export const runtimeSseIpcTestInternals = {
+  appendSseChunkWithLimit,
+  MAX_SSE_BUFFER_CHARS
 }

@@ -308,6 +308,7 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
   const [extractedContent, setExtractedContent] = useState<PdfExtractResult | null>(null)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -326,9 +327,10 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
   const handlePickFile = async () => {
     const dsGui = (window as any).dsGui
     if (!dsGui?.pickFile) {
-      alert('当前环境不支持文件选择对话框')
+      setFormError('当前环境不支持文件选择对话框')
       return
     }
+    setFormError(null)
     const result = await dsGui.pickFile({
       filters: [{ name: 'PDF / Word', extensions: ['pdf', 'doc', 'docx'] }]
     })
@@ -398,6 +400,7 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(null)
 
     let sourceDetail = ''
     let targetDocxPath = ''
@@ -406,11 +409,11 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
 
     if (sourceType === 'file') {
       if (!selectedFile) {
-        alert('请选择本地章节文件！')
+        setFormError('请选择本地章节文件！')
         return
       }
       if (selectedFile.name.toLowerCase().endsWith('.pdf') && !extractedContent?.text?.trim()) {
-        alert('PDF 文本提取尚未完成或未提取到内容，请等待提取完成后再提交。')
+        setFormError('PDF 文本提取尚未完成或未提取到内容，请等待提取完成后再提交。')
         return
       }
       sourceDetail = '本地文件路径：' + selectedFile.path
@@ -421,7 +424,7 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
         : cleanTopic + '教案.docx'
     } else {
       if (!textSource.trim()) {
-        alert('请填写章节大纲或核心内容描述！')
+        setFormError('请填写章节大纲或核心内容描述！')
         return
       }
       sourceDetail = textSource.trim()
@@ -550,6 +553,13 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {formError ? (
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[13px] leading-relaxed text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
+              <span>{formError}</span>
+            </div>
+          ) : null}
+
           {/* Section 1: Basic Info */}
           <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5 space-y-4">
             <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">

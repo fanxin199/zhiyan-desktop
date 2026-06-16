@@ -11,6 +11,8 @@ import type {
 type PdfTextItem = {
   str?: string
   transform?: number[]
+  width?: number
+  height?: number
 }
 
 type PdfDocumentLike = {
@@ -39,6 +41,7 @@ type PdfJsDocumentOptions = {
 
 const require = createRequire(import.meta.url)
 const MAX_EXTRACTED_TEXT_CHARS = 450_000
+const PDF_PAGE_EXTRACTION_CONCURRENCY = 4
 
 function directoryWithSeparator(path: string): string {
   return path.endsWith(sep) ? path : `${path}${sep}`
@@ -99,6 +102,47 @@ function boundedExtractedText(text: string): string {
   ].join('')
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor
+      cursor += 1
+      results[index] = await worker(items[index], index)
+    }
+  })
+  await Promise.all(workers)
+  return results
+}
+
+async function extractPdfPage(
+  pdf: PdfDocumentLike,
+  pageNumber: number
+): Promise<{ markerText: string; text: string; searchable: boolean; assets: SourceVisualAsset[] }> {
+  const page = await pdf.getPage(pageNumber)
+  const textContent = await page.getTextContent()
+  const text = pageText(textContent.items)
+  const assets = page.getViewport && page.getOperatorList
+    ? pageVisualAssets(
+        pageNumber,
+        page.getViewport({ scale: 1 }),
+        await page.getOperatorList(),
+        textContent.items
+      )
+    : []
+  return {
+    markerText: `--- 第 ${pageNumber} 页 / 共 ${pdf.numPages} 页 ---\n\n${text}`,
+    text,
+    searchable: Boolean(text),
+    assets
+  }
+}
+
 type Matrix = [number, number, number, number, number, number]
 
 function multiplyMatrix(left: Matrix, right: Matrix): Matrix {
@@ -119,14 +163,78 @@ function transformedPoint(matrix: Matrix, x: number, y: number): [number, number
   ]
 }
 
-function captionFromItems(items: PdfTextItem[]): string | undefined {
-  return items
-    .map((item) => item.str?.trim() ?? '')
-    .find((text) => /^(figure|fig\.?|图)\s*\d+/i.test(text))
-}
-
 function normalizedCoordinate(value: number): number {
   return Number(Math.max(0, Math.min(1, value)).toFixed(6))
+}
+
+type NormalizedBounds = {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
+
+function axisGap(firstStart: number, firstEnd: number, secondStart: number, secondEnd: number): number {
+  if (firstEnd < secondStart) return secondStart - firstEnd
+  if (secondEnd < firstStart) return firstStart - secondEnd
+  return 0
+}
+
+function textBounds(
+  item: PdfTextItem,
+  viewport: { width: number; height: number }
+): NormalizedBounds | null {
+  const text = item.str?.trim()
+  const transform = item.transform
+  if (!text || !transform || transform.length < 6) return null
+  const fontHeight = Math.max(
+    1,
+    item.height ?? Math.hypot(transform[2] ?? 0, transform[3] ?? 0)
+  )
+  const width = Math.max(
+    fontHeight,
+    item.width ?? fontHeight * Math.max(1, text.length) * 0.55
+  )
+  const x = transform[4] ?? 0
+  const baseline = transform[5] ?? 0
+  return {
+    left: x / viewport.width,
+    top: 1 - (baseline + fontHeight) / viewport.height,
+    right: (x + width) / viewport.width,
+    bottom: 1 - baseline / viewport.height
+  }
+}
+
+function cropWithNearbyText(
+  image: NormalizedBounds,
+  items: PdfTextItem[],
+  viewport: { width: number; height: number }
+): SourceVisualAsset['crop'] {
+  const proximity = 0.08
+  const bounds = { ...image }
+  for (const item of items) {
+    const text = textBounds(item, viewport)
+    if (!text) continue
+    const horizontalGap = axisGap(image.left, image.right, text.left, text.right)
+    const verticalGap = axisGap(image.top, image.bottom, text.top, text.bottom)
+    if (horizontalGap > proximity || verticalGap > proximity) continue
+    bounds.left = Math.min(bounds.left, text.left)
+    bounds.top = Math.min(bounds.top, text.top)
+    bounds.right = Math.max(bounds.right, text.right)
+    bounds.bottom = Math.max(bounds.bottom, text.bottom)
+  }
+
+  const padding = 0.015
+  const left = Math.max(0, bounds.left - padding)
+  const top = Math.max(0, bounds.top - padding)
+  const right = Math.min(1, bounds.right + padding)
+  const bottom = Math.min(1, bounds.bottom + padding)
+  return {
+    x: normalizedCoordinate(left),
+    y: normalizedCoordinate(top),
+    width: Math.max(0.0001, normalizedCoordinate(right - left)),
+    height: Math.max(0.0001, normalizedCoordinate(bottom - top))
+  }
 }
 
 function pageVisualAssets(
@@ -175,13 +283,12 @@ function pageVisualAssets(
     if (width < 0.1 || height < 0.1 || area < 0.04) continue
 
     imageIndex += 1
-    const crop = {
-      x: normalizedCoordinate(left / viewport.width),
-      y: normalizedCoordinate(1 - top / viewport.height),
-      width: Math.max(0.0001, normalizedCoordinate(width)),
-      height: Math.max(0.0001, normalizedCoordinate(height))
-    }
-    const caption = captionFromItems(items)
+    const crop = cropWithNearbyText({
+      left: left / viewport.width,
+      top: 1 - top / viewport.height,
+      right: right / viewport.width,
+      bottom: 1 - bottom / viewport.height
+    }, items, viewport)
     assets.push({
       id: `pdf-page-${pageNumber}-figure-${imageIndex}`,
       sourceKind: 'pdf',
@@ -190,9 +297,8 @@ function pageVisualAssets(
       mediaType: 'image/png',
       role: 'figure',
       status: 'approved',
-      confidence: caption ? 0.86 : 0.72,
+      confidence: 0.82,
       occurrences: [pageNumber],
-      ...(caption ? { caption } : {}),
       nearbyText: pageText(items),
       crop
     })
@@ -210,21 +316,19 @@ export async function analyzePdfCoursewareSource(
     const pages: string[] = []
     const assets: SourceVisualAsset[] = []
     let searchable = false
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-      const page = await pdf.getPage(pageNumber)
-      const textContent = await page.getTextContent()
-      const text = pageText(textContent.items)
-      if (text) searchable = true
-      pages.push(`--- 第 ${pageNumber} 页 / 共 ${pdf.numPages} 页 ---\n\n${text}`)
-      if (page.getViewport && page.getOperatorList) {
-        assets.push(...pageVisualAssets(
-          pageNumber,
-          page.getViewport({ scale: 1 }),
-          await page.getOperatorList(),
-          textContent.items
-        ))
-      }
-    }
+    const pageNumbers = Array.from({ length: pdf.numPages }, (_, index) => index + 1)
+    const extractedPages = await mapWithConcurrency(
+      pageNumbers,
+      PDF_PAGE_EXTRACTION_CONCURRENCY,
+      (pageNumber) => extractPdfPage(pdf as PdfDocumentLike, pageNumber)
+    )
+    pages.push(...extractedPages.map((page) => page.markerText))
+    assets.push(...extractedPages.flatMap((page) => page.assets))
+    searchable = extractedPages.some((page) => page.searchable)
+    const numberedAssets = assets.slice(0, 100).map((asset, index) => ({
+      ...asset,
+      caption: `图 ${index + 1}`
+    }))
     return {
       ok: true,
       document: {
@@ -234,7 +338,7 @@ export async function analyzePdfCoursewareSource(
         searchable
       },
       text: boundedExtractedText(pages.join('\n\n').trim()),
-      assets: assets.slice(0, 100)
+      assets: numberedAssets
     }
   } catch (error) {
     return {
@@ -311,12 +415,17 @@ export async function extractPdfRange(
 
     const pages: string[] = []
     let textPages = 0
-    for (let pageNumber = pageStart; pageNumber <= pageEnd; pageNumber += 1) {
-      const page = await pdf.getPage(pageNumber)
-      const text = pageText((await page.getTextContent()).items)
-      if (text) textPages += 1
-      pages.push(`--- 第 ${pageNumber} 页 / 共 ${pdf.numPages} 页 ---\n\n${text}`)
-    }
+    const pageNumbers = Array.from(
+      { length: pageEnd - pageStart + 1 },
+      (_, index) => pageStart + index
+    )
+    const extractedPages = await mapWithConcurrency(
+      pageNumbers,
+      PDF_PAGE_EXTRACTION_CONCURRENCY,
+      (pageNumber) => extractPdfPage(pdf as PdfDocumentLike, pageNumber)
+    )
+    pages.push(...extractedPages.map((page) => page.markerText))
+    textPages = extractedPages.filter((page) => page.searchable).length
 
     if (textPages === 0) {
       return {

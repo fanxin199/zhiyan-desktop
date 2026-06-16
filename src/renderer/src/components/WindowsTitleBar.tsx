@@ -173,6 +173,7 @@ export function WindowsTitleBar({ platform, actions }: Props): ReactElement | nu
   const openSettings = useChatStore((s) => s.openSettings)
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
   const [isMaximized, setIsMaximized] = useState(false)
+  const [aboutMessage, setAboutMessage] = useState<string | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
 
   const defaultActions = useMemo<WindowsTitleBarActions>(() => ({
@@ -189,9 +190,7 @@ export function WindowsTitleBar({ platform, actions }: Props): ReactElement | nu
       const message = t('windowsMenuAboutMessage', {
         version: version || t('windowsMenuUnknownVersion')
       })
-      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-        window.alert(message)
-      }
+      setAboutMessage(message)
     }
   }), [chooseWorkspace, createThread, openSettings, t])
 
@@ -259,6 +258,7 @@ export function WindowsTitleBar({ platform, actions }: Props): ReactElement | nu
 
   const runMenuAction = (item: Exclude<WindowsTitleBarMenuItem, { kind: 'separator' }>): void => {
     setActiveMenuId(null)
+    setAboutMessage(null)
     void item.onSelect()
   }
 
@@ -309,6 +309,15 @@ export function WindowsTitleBar({ platform, actions }: Props): ReactElement | nu
           })}
         </nav>
       </div>
+      {aboutMessage ? (
+        <button
+          type="button"
+          className="ds-windows-about-notice ds-no-drag"
+          onClick={() => setAboutMessage(null)}
+        >
+          {aboutMessage}
+        </button>
+      ) : null}
       <div className="ds-window-controls ds-no-drag">
         <button
           type="button"

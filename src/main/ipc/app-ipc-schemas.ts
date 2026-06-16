@@ -55,6 +55,8 @@ const MAX_CHANNEL_TEXT_LENGTH = 100_000
 const MAX_SKILL_FILE_BYTES = 1_000_000
 const MAX_CONFIG_FILE_BYTES = 2_000_000
 const MAX_EDITOR_COMPLETION_TEXT = 200_000
+const MAX_FILE_PICK_FILTERS = 16
+const MAX_FILE_PICK_EXTENSIONS = 32
 
 const SAFE_OPEN_EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
 
@@ -76,6 +78,23 @@ export function isSafeOpenExternalUrl(value: string): boolean {
 }
 
 export const defaultPathSchema = optionalTrimmedString(MAX_PATH_LENGTH)
+
+const fileExtensionSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(32)
+  .regex(/^[A-Za-z0-9*][A-Za-z0-9+._*-]*$/, 'Invalid file extension.')
+
+export const filePickPayloadSchema = z
+  .object({
+    defaultPath: defaultPathSchema,
+    filters: z.array(z.object({
+      name: trimmedString(100),
+      extensions: z.array(fileExtensionSchema).min(1).max(MAX_FILE_PICK_EXTENSIONS)
+    }).strict()).max(MAX_FILE_PICK_FILTERS).optional()
+  })
+  .strict()
 
 interface EndpointTemplate {
   /** Compiled path matcher. */

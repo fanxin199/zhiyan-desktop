@@ -2,7 +2,7 @@ import { app, dialog, ipcMain, shell, type BrowserWindow, type WebContents } fro
 import { watch, type FSWatcher } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { dirname, join } from 'node:path'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import {
   getKunRuntimeSettings,
@@ -29,6 +29,7 @@ import {
   deepseekConfigContentSchema,
   desktopCommandSchema,
   defaultPathSchema,
+  filePickPayloadSchema,
   gitBranchPayloadSchema,
   guiUpdateChannelSchema,
   logErrorPayloadSchema,
@@ -96,6 +97,8 @@ import { loadCoursewareProject } from '../services/courseware-project-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 
 type GuiUpdaterModule = typeof import('../gui-updater')
+
+const MAX_BINARY_READ_BYTES = 100 * 1024 * 1024
 
 type WorkspaceFileWatchRecord = {
   watcher: FSWatcher
@@ -211,7 +214,23 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     resolveLogDirectory,
     logError
   } = options
+  const authorizedBinaryReadPaths = new Set<string>()
   const workspaceFileWatchers = new Map<string, WorkspaceFileWatchRecord>()
+
+  const normalizeAuthorizedPath = (path: string): string =>
+    process.platform === 'win32' ? path.toLowerCase() : path
+
+  const authorizeBinaryReadPath = async (path: string): Promise<void> => {
+    authorizedBinaryReadPaths.add(normalizeAuthorizedPath(await realpath(path)))
+  }
+
+  const isBinaryReadPathAuthorized = async (path: string): Promise<boolean> => {
+    try {
+      return authorizedBinaryReadPaths.has(normalizeAuthorizedPath(await realpath(path)))
+    } catch {
+      return false
+    }
+  }
 
   const disposeWorkspaceFileWatch = (watchId: string): boolean => {
     const record = workspaceFileWatchers.get(watchId)
@@ -331,22 +350,22 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   })
 
   ipcMain.handle('file:pick-file', async (_, payload: unknown): Promise<WorkspacePickResult> => {
-    const defaults = typeof payload === 'object' && payload !== null ? payload as Record<string, unknown> : {}
-    const defaultPath = typeof defaults.defaultPath === 'string' ? defaults.defaultPath : undefined
-    const filters = Array.isArray(defaults.filters) ? defaults.filters as Electron.FileFilter[] : undefined
+    const request = parseIpcPayload('file:pick-file', filePickPayloadSchema, payload ?? {})
     const options: Electron.OpenDialogOptions = {
       title: 'Select file',
-      defaultPath,
-      filters,
+      defaultPath: request.defaultPath,
+      filters: request.filters,
       properties: ['openFile', 'dontAddToRecent']
     }
     const mainWindow = getMainWindow()
     const result = mainWindow
       ? await dialog.showOpenDialog(mainWindow, options)
       : await dialog.showOpenDialog(options)
+    const path = result.canceled ? null : (result.filePaths[0] ?? null)
+    if (path) await authorizeBinaryReadPath(path)
     return {
       canceled: result.canceled,
-      path: result.canceled ? null : (result.filePaths[0] ?? null)
+      path
     }
   })
 
@@ -355,6 +374,16 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       return { ok: false, message: 'File path is required.' }
     }
     try {
+      if (!await isBinaryReadPathAuthorized(filePath)) {
+        return { ok: false, message: 'File must be selected through the file picker before it can be read.' }
+      }
+      const info = await stat(filePath)
+      if (!info.isFile()) {
+        return { ok: false, message: 'Path is not a file.' }
+      }
+      if (info.size > MAX_BINARY_READ_BYTES) {
+        return { ok: false, message: 'File is too large to read.' }
+      }
       const buf = await readFile(filePath)
       return { ok: true, data: buf.toString('base64'), size: buf.length }
     } catch (error) {

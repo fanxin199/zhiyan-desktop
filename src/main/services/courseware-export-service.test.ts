@@ -81,6 +81,15 @@ function project(): CoursewareProject {
   }
 }
 
+function pngHeader(width: number, height: number): string {
+  const buffer = Buffer.alloc(24)
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(buffer)
+  buffer.write('IHDR', 12, 'ascii')
+  buffer.writeUInt32BE(width, 16)
+  buffer.writeUInt32BE(height, 20)
+  return `data:image/png;base64,${buffer.toString('base64')}`
+}
+
 describe('exportCoursewarePackage', () => {
   it('writes editable PPTX, speaker notes, Word notes and a reloadable project file', async () => {
     const outputDirectory = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-'))
@@ -98,6 +107,9 @@ describe('exportCoursewarePackage', () => {
     expect(Object.keys(pptxZip.files).some((name) => name.startsWith('ppt/notesSlides/notesSlide'))).toBe(true)
     const notesXml = await pptxZip.file('ppt/notesSlides/notesSlide1.xml')?.async('string')
     expect(notesXml).toContain('本页先解释三类信号分别解决什么问题')
+    const interactionXml = await pptxZip.file('ppt/slides/slide2.xml')?.async('string') ?? ''
+    expect(interactionXml).not.toContain('建议：独立思考')
+    expect(interactionXml).not.toContain('答案仅写入讲者备注')
 
     const docxZip = await JSZip.loadAsync(await readFile(result.docxPath))
     const documentXml = await docxZip.file('word/document.xml')?.async('string')
@@ -107,5 +119,75 @@ describe('exportCoursewarePackage', () => {
     const savedProject = await loadCoursewareProject(result.projectPath)
     expect(savedProject.slides).toHaveLength(2)
     expect(savedProject.blueprint.title).toBe('T 细胞活化')
+  })
+
+  it('embeds a source figure on a mechanism slide and preserves its real aspect ratio', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-'))
+    tempDirs.push(outputDirectory)
+    const source = project()
+    source.slides[0] = {
+      ...source.slides[0],
+      visual: {
+        type: 'source-figure',
+        title: '完整机制图',
+        figureId: 'wide-figure'
+      }
+    }
+    source.sourceVisuals = [{
+      id: 'wide-figure',
+      sourceKind: 'pdf',
+      sourceIndex: 12,
+      mediaType: 'image/png',
+      role: 'figure',
+      status: 'approved',
+      confidence: 1,
+      occurrences: [12],
+      crop: { x: 0.2, y: 0.2, width: 0.2, height: 0.8 },
+      imageDataUrl: pngHeader(1600, 800)
+    }]
+
+    const result = await exportCoursewarePackage({
+      project: source,
+      outputDirectory
+    })
+
+    expect(result.ok, result.ok ? undefined : result.message).toBe(true)
+    if (!result.ok) return
+    const pptxZip = await JSZip.loadAsync(await readFile(result.pptxPath))
+    const slideXml = await pptxZip.file('ppt/slides/slide1.xml')?.async('string') ?? ''
+    const picture = slideXml.match(/<p:pic>[\s\S]*?<\/p:pic>/)?.[0] ?? ''
+    expect(picture).toContain('<a:blip')
+    const extent = picture.match(/<a:ext cx="(\d+)" cy="(\d+)"\/>/)
+    expect(extent).not.toBeNull()
+    const ratio = Number(extent?.[1]) / Number(extent?.[2])
+    expect(ratio).toBeCloseTo(2, 1)
+  })
+
+  it('renders ordinary teaching content as readable visual cards instead of a plain bullet dump', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-'))
+    tempDirs.push(outputDirectory)
+    const source = project()
+    source.slides[0] = {
+      ...source.slides[0],
+      kind: 'content',
+      visual: { type: 'none' },
+      bullets: [
+        'BCR 识别天然构象抗原，决定 B 细胞应答的抗原特异性。',
+        '抗原内化后经 MHC II 呈递，使 B 细胞获得 T 细胞帮助。',
+        'CD40 与细胞因子信号共同驱动增殖、类别转换和亲和力成熟。',
+        '最终形成抗体分泌细胞与记忆 B 细胞，建立即时与长期保护。'
+      ]
+    }
+
+    const result = await exportCoursewarePackage({
+      project: source,
+      outputDirectory
+    })
+
+    expect(result.ok, result.ok ? undefined : result.message).toBe(true)
+    if (!result.ok) return
+    const pptxZip = await JSZip.loadAsync(await readFile(result.pptxPath))
+    const slideXml = await pptxZip.file('ppt/slides/slide1.xml')?.async('string') ?? ''
+    expect(slideXml.match(/prst="roundRect"/g)?.length ?? 0).toBeGreaterThanOrEqual(4)
   })
 })

@@ -8,7 +8,7 @@ import {
 } from './courseware-pdf-service'
 
 describe('extractPdfRange', () => {
-  it('detects a large embedded figure and links its caption', async () => {
+  it('expands an embedded image crop to include nearby PDF text annotations', async () => {
     const result = await analyzePdfCoursewareSource(
       'C:\\books\\immunology.pdf',
       {
@@ -26,7 +26,12 @@ describe('extractPdfRange', () => {
             }),
             getTextContent: async () => ({
               items: [
-                { str: 'Figure 2. B cell activation pathway', transform: [1, 0, 0, 1, 120, 220] }
+                {
+                  str: 'Figure 2. B cell activation pathway',
+                  transform: [18, 0, 0, 18, 120, 210],
+                  width: 320,
+                  height: 18
+                }
               ]
             })
           }),
@@ -48,14 +53,57 @@ describe('extractPdfRange', () => {
       sourceIndex: 1,
       role: 'figure',
       status: 'approved',
-      caption: 'Figure 2. B cell activation pathway',
-      crop: {
-        x: 0.1,
-        y: 0.175,
-        width: 0.7,
-        height: 0.5
-      }
+      caption: '图 1'
     })
+    const crop = result.assets[0].crop
+    expect(crop).toBeDefined()
+    expect((crop?.y ?? 0) + (crop?.height ?? 0)).toBeGreaterThan(0.73)
+  })
+
+  it('numbers extracted PDF figures sequentially across pages instead of reusing page captions', async () => {
+    const result = await analyzePdfCoursewareSource(
+      'C:\\books\\immunology.pdf',
+      {
+        readPdf: async () => new Uint8Array([1, 2, 3]),
+        openPdf: async () => ({
+          numPages: 2,
+          getPage: async (pageNumber: number) => ({
+            getViewport: () => ({ width: 1000, height: 800 }),
+            getOperatorList: async () => pageNumber === 1
+              ? {
+                  fnArray: [12, 85, 11, 12, 85],
+                  argsArray: [
+                    [300, 0, 0, 300, 80, 350],
+                    ['img-1'],
+                    [],
+                    [300, 0, 0, 300, 580, 350],
+                    ['img-2']
+                  ]
+                }
+              : {
+                  fnArray: [12, 85],
+                  argsArray: [
+                    [600, 0, 0, 350, 200, 250],
+                    ['img-3']
+                  ]
+                },
+            getTextContent: async () => ({
+              items: [{
+                str: '图 1 免疫系统示意图',
+                transform: [18, 0, 0, 18, 100, 200],
+                width: 240,
+                height: 18
+              }]
+            })
+          }),
+          destroy: async () => undefined
+        })
+      }
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.assets.map((asset) => asset.caption)).toEqual(['图 1', '图 2', '图 3'])
   })
 
   it('reads the PDF page count without asking the user for a range', async () => {
