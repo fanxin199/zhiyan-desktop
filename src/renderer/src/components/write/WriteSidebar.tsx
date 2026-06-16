@@ -7,6 +7,7 @@ import {
   Folder,
   FolderOpen,
   FolderPlus,
+  Home,
   Plus,
   RefreshCw,
   Settings,
@@ -33,6 +34,7 @@ import {
 import { WriteFileTree } from './WriteFileTree'
 
 type Props = {
+  onOpenDashboard: () => void
   onOpenSettings: (section?: SettingsRouteSection) => void
   onToggleSidebar: () => void
 }
@@ -46,6 +48,7 @@ type EntryDialog =
 type Translate = (key: string, opts?: Record<string, unknown>) => string
 
 export function WriteSidebar({
+  onOpenDashboard,
   onOpenSettings,
   onToggleSidebar
 }: Props): ReactElement {
@@ -227,6 +230,11 @@ export function WriteSidebar({
       }
     >
       <div className="ds-no-drag flex flex-col px-0.5">
+        <SidebarCommandRow
+          icon={<Home className="h-4 w-4" strokeWidth={1.75} />}
+          label="工作台"
+          onClick={onOpenDashboard}
+        />
         <SidebarCommandRow
           icon={<FilePlus2 className="h-4 w-4" strokeWidth={1.9} />}
           label={t('writeCreateFile')}

@@ -431,6 +431,8 @@ export function Workbench(): ReactElement {
     'bioinformatics',
     'file-manager'
   ]
+  const needsStageSidebarRestore =
+    leftSidebarCollapsed && (moduleRoutes.includes(route) || route === 'plugins')
 
   return (
     <div className="ds-workbench-shell ds-drag flex h-full min-h-0 w-full min-w-0 bg-ds-main">
@@ -438,6 +440,7 @@ export function Workbench(): ReactElement {
         <div className="min-h-0 w-[264px] shrink-0 border-r border-ds-border-muted">
           {route === 'write' ? (
             <WriteSidebar
+              onOpenDashboard={openDashboard}
               onOpenSettings={(section) => openSettings(section)}
               onToggleSidebar={() => setLeftSidebarCollapsed(true)}
             />
@@ -462,6 +465,16 @@ export function Workbench(): ReactElement {
       ) : null}
 
       <main className="ds-stage-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        {needsStageSidebarRestore ? (
+          <div className="pointer-events-none absolute left-3 top-3 z-40">
+            <SidebarTitlebarToggleButton
+              onClick={() => setLeftSidebarCollapsed(false)}
+              title={t('sidebarExpand')}
+              ariaLabel={t('sidebarExpand')}
+              className="pointer-events-auto border border-ds-border-muted bg-ds-card/90 shadow-sm backdrop-blur"
+            />
+          </div>
+        ) : null}
         {route === 'dashboard' ? (
           <ZhiYanDashboard
             onOpenSyllabus={openSyllabus}
