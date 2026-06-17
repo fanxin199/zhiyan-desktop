@@ -348,12 +348,52 @@ export type CoursewareExportRequest = {
   outputDirectory?: string
 }
 
+export type CoursewareVisualQaSeverity = 'info' | 'warning' | 'error'
+
+export type CoursewareVisualQaIssueCode =
+  | 'image-out-of-bounds'
+  | 'image-aspect-ratio-mismatch'
+  | 'image-text-overlap'
+  | 'text-box-too-small'
+
+export type CoursewareVisualQaBox = {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export type CoursewareVisualQaIssue = {
+  severity: CoursewareVisualQaSeverity
+  code: CoursewareVisualQaIssueCode
+  slideIndex: number
+  slideId: string
+  slideTitle: string
+  pageType: 'source-figure' | 'teaching'
+  message: string
+  box?: CoursewareVisualQaBox
+  relatedBox?: CoursewareVisualQaBox
+  details?: Record<string, number | string | boolean | null>
+}
+
+export type CoursewareVisualQaReport = {
+  checkedAt: string
+  slideCount: number
+  checkedSlideCount: number
+  issueCount: number
+  warningCount: number
+  errorCount: number
+  issues: CoursewareVisualQaIssue[]
+}
+
 export type CoursewareExportResult =
   | {
       ok: true
       pptxPath: string
       docxPath: string
       projectPath: string
+      qaReportPath: string
+      qaReport: CoursewareVisualQaReport
       exportedAt: string
     }
   | {

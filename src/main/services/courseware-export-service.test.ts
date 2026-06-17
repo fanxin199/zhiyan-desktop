@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import JSZip from 'jszip'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { CoursewareProject } from '../../shared/courseware'
-import { exportCoursewarePackage } from './courseware-export-service'
+import { analyzeCoursewareVisualQa, exportCoursewarePackage } from './courseware-export-service'
 import { loadCoursewareProject } from './courseware-project-service'
 
 const tempDirs: string[] = []
@@ -161,6 +161,13 @@ describe('exportCoursewarePackage', () => {
     expect(extent).not.toBeNull()
     const ratio = Number(extent?.[1]) / Number(extent?.[2])
     expect(ratio).toBeCloseTo(2, 1)
+    expect(result.qaReportPath).toMatch(/\.json$/)
+    expect(result.qaReport.checkedSlideCount).toBeGreaterThanOrEqual(1)
+    expect(result.qaReport.issues.some((issue) =>
+      issue.code === 'image-aspect-ratio-mismatch'
+    )).toBe(false)
+    const qaReport = JSON.parse(await readFile(result.qaReportPath, 'utf8'))
+    expect(qaReport.issueCount).toBe(result.qaReport.issueCount)
   })
 
   it('renders ordinary teaching content as readable visual cards instead of a plain bullet dump', async () => {
@@ -189,5 +196,68 @@ describe('exportCoursewarePackage', () => {
     const pptxZip = await JSZip.loadAsync(await readFile(result.pptxPath))
     const slideXml = await pptxZip.file('ppt/slides/slide1.xml')?.async('string') ?? ''
     expect(slideXml.match(/prst="roundRect"/g)?.length ?? 0).toBeGreaterThanOrEqual(4)
+  })
+
+  it('writes a visual QA report that flags unreadable ordinary teaching cards', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-'))
+    tempDirs.push(outputDirectory)
+    const source = project()
+    source.slides[0] = {
+      ...source.slides[0],
+      kind: 'content',
+      visual: { type: 'none' },
+      bullets: Array.from({ length: 6 }, (_, index) =>
+        `第 ${index + 1} 点：${'这是一段故意拉长的课堂投屏文本，用来模拟普通教学页卡片文本过密、文本框高度不足、自动缩小后难以阅读的情况；需要视觉质检在导出后提示教师删减或拆分页。'.repeat(3)}`
+      )
+    }
+
+    const result = await exportCoursewarePackage({
+      project: source,
+      outputDirectory
+    })
+
+    expect(result.ok, result.ok ? undefined : result.message).toBe(true)
+    if (!result.ok) return
+    expect(result.qaReport.issues.some((issue) =>
+      issue.pageType === 'teaching' && issue.code === 'text-box-too-small'
+    )).toBe(true)
+    const report = JSON.parse(await readFile(result.qaReportPath, 'utf8'))
+    expect(report.issues.some((issue: { code: string }) =>
+      issue.code === 'text-box-too-small'
+    )).toBe(true)
+  })
+
+  it('detects source figure clipping risk and image-text overlap in visual QA', () => {
+    const source = project()
+    const layout = [
+      {
+        type: 'image',
+        role: 'source-figure-image',
+        pageType: 'source-figure',
+        slideIndex: 1,
+        slideId: source.slides[0].id,
+        slideTitle: source.slides[0].title,
+        box: { x: 12.6, y: 1.2, w: 1.1, h: 1 },
+        actualRatio: 1.1
+      },
+      {
+        type: 'text',
+        role: 'source-bullets',
+        pageType: 'source-figure',
+        slideIndex: 1,
+        slideId: source.slides[0].id,
+        slideTitle: source.slides[0].title,
+        box: { x: 12.7, y: 1.3, w: 0.8, h: 0.6 },
+        text: 'overlapping text',
+        fontSize: 14,
+        minReadableFontSize: 11,
+        margin: 0
+      }
+    ] as Parameters<typeof analyzeCoursewareVisualQa>[1]
+
+    const report = analyzeCoursewareVisualQa(source, layout, '2026-06-17T00:00:00.000Z')
+
+    expect(report.issues.some((issue) => issue.code === 'image-out-of-bounds')).toBe(true)
+    expect(report.issues.some((issue) => issue.code === 'image-text-overlap')).toBe(true)
   })
 })

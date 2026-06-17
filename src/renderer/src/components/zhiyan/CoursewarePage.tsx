@@ -448,7 +448,12 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         if (!result.canceled) setMessage(result.message ?? '课件包导出失败。')
         return
       }
-      setExportPaths([result.pptxPath, result.docxPath, result.projectPath])
+      setExportPaths([result.pptxPath, result.docxPath, result.projectPath, result.qaReportPath])
+      if (result.qaReport.issueCount > 0) {
+        setWarning(
+          `导出已完成；视觉质检发现 ${result.qaReport.issueCount} 个问题（${result.qaReport.errorCount} 个错误，${result.qaReport.warningCount} 个警告），请查看质检报告。`
+        )
+      }
     } catch (error) {
       setMessage(errorMessage(error))
     } finally {

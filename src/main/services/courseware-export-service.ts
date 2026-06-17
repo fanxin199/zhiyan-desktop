@@ -8,6 +8,9 @@ import {
   type CoursewareExportRequest,
   type CoursewareExportResult,
   type CoursewareProject,
+  type CoursewareVisualQaBox,
+  type CoursewareVisualQaIssue,
+  type CoursewareVisualQaReport,
   type EvidenceRef,
   type SlideSpec
 } from '../../shared/courseware'
@@ -42,6 +45,44 @@ const COLORS = {
   paleAccent: 'FFF4DF'
 } as const
 
+const SLIDE_BOUNDS: CoursewareVisualQaBox = { x: 0, y: 0, w: 13.333, h: 7.5 }
+
+type QaPageType = CoursewareVisualQaIssue['pageType']
+
+type QaElementRole =
+  | 'source-figure-image'
+  | 'source-caption'
+  | 'source-bullets'
+  | 'teaching-card-text'
+
+type QaLayoutElement = {
+  type: 'image' | 'text'
+  role: QaElementRole
+  pageType: QaPageType
+  slideIndex: number
+  slideId: string
+  slideTitle: string
+  box: CoursewareVisualQaBox
+  text?: string
+  fontSize?: number
+  minReadableFontSize?: number
+  margin?: number
+  actualRatio?: number | null
+}
+
+type CoursewareBuildResult = {
+  pptx: PptxGenJS
+  qaElements: QaLayoutElement[]
+}
+
+type QaSlideContext = {
+  elements: QaLayoutElement[]
+  slideIndex: number
+  slideId: string
+  slideTitle: string
+  pageType: QaPageType
+}
+
 function safeFileName(value: string): string {
   const withoutControlCharacters = Array.from(value, (character) =>
     character.charCodeAt(0) < 32 ? '-' : character
@@ -61,6 +102,172 @@ function escapeHtml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
+}
+
+function boxArea(box: CoursewareVisualQaBox): number {
+  return Math.max(0, box.w) * Math.max(0, box.h)
+}
+
+function boxIntersection(
+  left: CoursewareVisualQaBox,
+  right: CoursewareVisualQaBox
+): CoursewareVisualQaBox | null {
+  const x = Math.max(left.x, right.x)
+  const y = Math.max(left.y, right.y)
+  const maxX = Math.min(left.x + left.w, right.x + right.w)
+  const maxY = Math.min(left.y + left.h, right.y + right.h)
+  if (maxX <= x || maxY <= y) return null
+  return { x, y, w: maxX - x, h: maxY - y }
+}
+
+function isBoxInsideSlide(box: CoursewareVisualQaBox): boolean {
+  const tolerance = 0.01
+  return (
+    box.x >= SLIDE_BOUNDS.x - tolerance &&
+    box.y >= SLIDE_BOUNDS.y - tolerance &&
+    box.x + box.w <= SLIDE_BOUNDS.w + tolerance &&
+    box.y + box.h <= SLIDE_BOUNDS.h + tolerance
+  )
+}
+
+function weightedTextLength(text: string): number {
+  return Array.from(text).reduce((sum, character) => {
+    if (/\s/.test(character)) return sum + 0.3
+    if (/[\u3400-\u9fff]/u.test(character)) return sum + 1
+    if (/[A-Za-z0-9]/.test(character)) return sum + 0.56
+    if (/[,.;:，。；：、()（）[\]{}]/.test(character)) return sum + 0.36
+    return sum + 0.8
+  }, 0)
+}
+
+function estimateTextFit(element: QaLayoutElement): {
+  requiredLines: number
+  capacityLines: number
+  estimatedFontSize: number
+} | null {
+  if (element.type !== 'text' || !element.text?.trim() || !element.fontSize) return null
+  const margin = element.margin ?? 0
+  const usableWidth = Math.max(0.2, element.box.w - margin * 2)
+  const usableHeight = Math.max(0.12, element.box.h - margin * 2)
+  const charsPerLine = Math.max(1, (usableWidth * 72) / element.fontSize)
+  const requiredLines = element.text
+    .split(/\n+/)
+    .map((line) => Math.max(1, Math.ceil(weightedTextLength(line) / charsPerLine)))
+    .reduce((sum, count) => sum + count, 0)
+  const capacityLines = Math.max(0.5, (usableHeight * 72) / (element.fontSize * 1.25))
+  const estimatedFontSize = element.fontSize * Math.min(1, capacityLines / requiredLines)
+  return { requiredLines, capacityLines, estimatedFontSize }
+}
+
+function makeQaIssue(
+  element: QaLayoutElement,
+  issue: Omit<CoursewareVisualQaIssue, 'slideIndex' | 'slideId' | 'slideTitle' | 'pageType'>
+): CoursewareVisualQaIssue {
+  return {
+    slideIndex: element.slideIndex,
+    slideId: element.slideId,
+    slideTitle: element.slideTitle,
+    pageType: element.pageType,
+    ...issue
+  }
+}
+
+export function analyzeCoursewareVisualQa(
+  project: CoursewareProject,
+  elements: QaLayoutElement[],
+  checkedAt = new Date().toISOString()
+): CoursewareVisualQaReport {
+  const issues: CoursewareVisualQaIssue[] = []
+  const checkedSlideIds = new Set(elements.map((element) => element.slideId))
+
+  for (const image of elements.filter((element) => element.type === 'image')) {
+    if (!isBoxInsideSlide(image.box)) {
+      issues.push(makeQaIssue(image, {
+        severity: 'error',
+        code: 'image-out-of-bounds',
+        message: '图片放置框超出幻灯片边界，导出后可能出现裁切。',
+        box: image.box
+      }))
+    }
+    if (image.actualRatio) {
+      const renderedRatio = image.box.w / image.box.h
+      const ratioDelta = Math.abs(renderedRatio - image.actualRatio) / image.actualRatio
+      if (ratioDelta > 0.03) {
+        issues.push(makeQaIssue(image, {
+          severity: 'warning',
+          code: 'image-aspect-ratio-mismatch',
+          message: '图片显示比例与原图比例不一致，可能发生拉伸或裁切。',
+          box: image.box,
+          details: {
+            actualRatio: Number(image.actualRatio.toFixed(3)),
+            renderedRatio: Number(renderedRatio.toFixed(3)),
+            ratioDelta: Number(ratioDelta.toFixed(3))
+          }
+        }))
+      }
+    }
+  }
+
+  const sourceImages = elements.filter((element) =>
+    element.type === 'image' && element.pageType === 'source-figure'
+  )
+  const sourceTexts = elements.filter((element) =>
+    element.type === 'text' && element.pageType === 'source-figure'
+  )
+  for (const image of sourceImages) {
+    for (const text of sourceTexts.filter((item) => item.slideId === image.slideId)) {
+      const intersection = boxIntersection(image.box, text.box)
+      if (!intersection) continue
+      const overlapArea = boxArea(intersection)
+      const textOverlapRatio = overlapArea / Math.max(0.001, boxArea(text.box))
+      if (overlapArea > 0.025 && textOverlapRatio > 0.04) {
+        issues.push(makeQaIssue(text, {
+          severity: 'warning',
+          code: 'image-text-overlap',
+          message: '图片与文本框发生重叠，投屏时可能遮挡正文或图注。',
+          box: text.box,
+          relatedBox: image.box,
+          details: {
+            overlapArea: Number(overlapArea.toFixed(3)),
+            textOverlapRatio: Number(textOverlapRatio.toFixed(3))
+          }
+        }))
+      }
+    }
+  }
+
+  for (const text of elements.filter((element) => element.type === 'text')) {
+    const fit = estimateTextFit(text)
+    if (!fit) continue
+    const minReadableFontSize = text.minReadableFontSize ?? 11
+    if (fit.estimatedFontSize < minReadableFontSize && fit.requiredLines > fit.capacityLines * 1.08) {
+      issues.push(makeQaIssue(text, {
+        severity: fit.estimatedFontSize < 9 ? 'error' : 'warning',
+        code: 'text-box-too-small',
+        message: '文本框容量不足，PowerPoint 自动缩小后可能低于课堂投屏可读字号。',
+        box: text.box,
+        details: {
+          configuredFontSize: text.fontSize ?? null,
+          estimatedFontSize: Number(fit.estimatedFontSize.toFixed(1)),
+          requiredLines: Number(fit.requiredLines.toFixed(1)),
+          capacityLines: Number(fit.capacityLines.toFixed(1)),
+          minReadableFontSize
+        }
+      }))
+    }
+  }
+
+  const warningCount = issues.filter((issue) => issue.severity === 'warning').length
+  const errorCount = issues.filter((issue) => issue.severity === 'error').length
+  return {
+    checkedAt,
+    slideCount: project.slides.length,
+    checkedSlideCount: checkedSlideIds.size,
+    issueCount: issues.length,
+    warningCount,
+    errorCount,
+    issues
+  }
 }
 
 function evidenceLabel(evidence: EvidenceRef): string {
@@ -141,9 +348,11 @@ function addSlideHeader(
 function addBulletContent(
   slide: PptxGenJS.Slide,
   bullets: string[],
-  options: { x: number; y: number; w: number; h: number; fontSize?: number }
+  options: { x: number; y: number; w: number; h: number; fontSize?: number },
+  qa?: QaSlideContext & { role: QaElementRole; minReadableFontSize?: number }
 ): void {
   const items = bullets.length ? bullets : ['本页内容待教师补充']
+  const fontSize = options.fontSize ?? 19
   slide.addText(
     items.map((text) => ({
       text,
@@ -156,7 +365,7 @@ function addBulletContent(
     {
       ...options,
       fontFace: 'Microsoft YaHei',
-      fontSize: options.fontSize ?? 19,
+      fontSize,
       color: COLORS.ink,
       valign: 'middle',
       margin: 0.12,
@@ -164,12 +373,28 @@ function addBulletContent(
       fit: 'shrink'
     }
   )
+  if (qa) {
+    qa.elements.push({
+      type: 'text',
+      role: qa.role,
+      pageType: qa.pageType,
+      slideIndex: qa.slideIndex,
+      slideId: qa.slideId,
+      slideTitle: qa.slideTitle,
+      box: { x: options.x, y: options.y, w: options.w, h: options.h },
+      text: items.join('\n'),
+      fontSize,
+      minReadableFontSize: qa.minReadableFontSize,
+      margin: 0.12
+    })
+  }
 }
 
 function addTeachingContent(
   pptx: PptxGenJS,
   slide: PptxGenJS.Slide,
-  bullets: string[]
+  bullets: string[],
+  qa?: QaSlideContext
 ): void {
   const items = (bullets.length ? bullets : ['本页内容待教师补充']).slice(0, 6)
   const columns = items.length <= 3 ? 1 : 2
@@ -213,18 +438,37 @@ function addTeachingContent(
       align: 'center',
       margin: 0
     })
-    slide.addText(text, {
+    const fontSize = columns === 1 ? 18 : 16
+    const textBox = {
       x: x + 0.82,
       y: y + 0.16,
       w: cardWidth - 1.05,
-      h: cardHeight - 0.32,
+      h: cardHeight - 0.32
+    }
+    slide.addText(text, {
+      ...textBox,
       fontFace: 'Microsoft YaHei',
-      fontSize: columns === 1 ? 18 : 16,
+      fontSize,
       color: COLORS.ink,
       valign: 'middle',
       margin: 0.04,
       fit: 'shrink'
     })
+    if (qa) {
+      qa.elements.push({
+        type: 'text',
+        role: 'teaching-card-text',
+        pageType: qa.pageType,
+        slideIndex: qa.slideIndex,
+        slideId: qa.slideId,
+        slideTitle: qa.slideTitle,
+        box: textBox,
+        text,
+        fontSize,
+        minReadableFontSize: 12,
+        margin: 0.04
+      })
+    }
   })
 }
 
@@ -332,7 +576,8 @@ function embeddedImageRatio(dataUrl: string): number | null {
 function addSourceFigure(
   slide: PptxGenJS.Slide,
   project: CoursewareProject,
-  spec: SlideSpec
+  spec: SlideSpec,
+  qa?: QaSlideContext
 ): { x: number; y: number; w: number; h: number } | null {
   const figure = project.sourceVisuals.find((item) =>
     item.id === spec.visual?.figureId && item.status === 'approved'
@@ -365,6 +610,18 @@ function addSourceFigure(
         h: target.h
       }
   slide.addImage({ data: figure.imageDataUrl, ...image, transparency: 0 })
+  if (qa) {
+    qa.elements.push({
+      type: 'image',
+      role: 'source-figure-image',
+      pageType: qa.pageType,
+      slideIndex: qa.slideIndex,
+      slideId: qa.slideId,
+      slideTitle: qa.slideTitle,
+      box: image,
+      actualRatio
+    })
+  }
   const sourceLabel = figure.sourceKind === 'pptx'
     ? `原PPT第 ${figure.sourceIndex} 页`
     : `教材第 ${figure.sourceIndex} 页`
@@ -383,13 +640,29 @@ function addSourceFigure(
       fit: 'shrink'
     }
   )
+  if (qa) {
+    qa.elements.push({
+      type: 'text',
+      role: 'source-caption',
+      pageType: qa.pageType,
+      slideIndex: qa.slideIndex,
+      slideId: qa.slideId,
+      slideTitle: qa.slideTitle,
+      box: { x: target.x, y: wide ? 5.16 : 6.4, w: target.w, h: 0.38 },
+      text: figure.caption ?? 'source figure',
+      fontSize: 10,
+      minReadableFontSize: 8,
+      margin: 0
+    })
+  }
   return wide
     ? { x: 0.95, y: 5.55, w: 11.4, h: 1.15 }
     : { x: 0.75, y: 1.45, w: 5.75, h: 4.95 }
 }
 
-function buildPresentation(project: CoursewareProject): PptxGenJS {
+function buildPresentation(project: CoursewareProject): CoursewareBuildResult {
   const pptx = new PptxGenJS()
+  const qaElements: QaLayoutElement[] = []
   pptx.layout = 'LAYOUT_WIDE'
   pptx.author = '智研助手'
   pptx.company = '智研助手'
@@ -461,14 +734,31 @@ function buildPresentation(project: CoursewareProject): PptxGenJS {
       if (spec.kind === 'interaction') {
         addInteractionSlide(pptx, slide, spec)
       } else if (spec.visual?.type === 'source-figure') {
-        const bulletBox = addSourceFigure(slide, project, spec)
+        const qaContext: QaSlideContext = {
+          elements: qaElements,
+          slideIndex: index + 1,
+          slideId: spec.id,
+          slideTitle: spec.title,
+          pageType: 'source-figure'
+        }
+        const bulletBox = addSourceFigure(slide, project, spec, qaContext)
         if (bulletBox) {
           addBulletContent(slide, spec.bullets, {
             ...bulletBox,
             fontSize: bulletBox.h < 2 ? 14 : 18
+          }, {
+            ...qaContext,
+            role: 'source-bullets',
+            minReadableFontSize: 11
           })
         } else {
-          addTeachingContent(pptx, slide, spec.bullets)
+          addTeachingContent(pptx, slide, spec.bullets, {
+            elements: qaElements,
+            slideIndex: index + 1,
+            slideId: spec.id,
+            slideTitle: spec.title,
+            pageType: 'teaching'
+          })
         }
       } else if (
         spec.kind === 'mechanism' ||
@@ -500,13 +790,19 @@ function buildPresentation(project: CoursewareProject): PptxGenJS {
         })
         addBulletContent(slide, spec.bullets, { x: 4.25, y: 1.45, w: 8.05, h: 4.9 })
       } else {
-        addTeachingContent(pptx, slide, spec.bullets)
+        addTeachingContent(pptx, slide, spec.bullets, {
+          elements: qaElements,
+          slideIndex: index + 1,
+          slideId: spec.id,
+          slideTitle: spec.title,
+          pageType: 'teaching'
+        })
       }
     }
     slide.addNotes(slideNotes(spec))
   })
 
-  return pptx
+  return { pptx, qaElements }
 }
 
 function buildDocxHtml(project: CoursewareProject): string {
@@ -581,9 +877,13 @@ export async function exportCoursewarePackage(
     const pptxPath = join(outputDirectory, `${baseName}-课件.pptx`)
     const docxPath = join(outputDirectory, `${baseName}-逐页讲稿.docx`)
     const projectPath = join(outputDirectory, `${baseName}.zhiyan-courseware`)
+    const qaReportPath = join(outputDirectory, `${baseName}-视觉质检.json`)
+    const exportedAt = new Date().toISOString()
 
     const presentation = buildPresentation(project)
-    await presentation.writeFile({ fileName: pptxPath, compression: true })
+    await presentation.pptx.writeFile({ fileName: pptxPath, compression: true })
+    const qaReport = analyzeCoursewareVisualQa(project, presentation.qaElements, exportedAt)
+    await writeFile(qaReportPath, `${JSON.stringify(qaReport, null, 2)}\n`, 'utf8')
 
     const docx = await htmlToDocx(buildDocxHtml(project), null, {
       title: `${project.blueprint.title}逐页讲稿`,
@@ -600,7 +900,9 @@ export async function exportCoursewarePackage(
       pptxPath,
       docxPath,
       projectPath,
-      exportedAt: new Date().toISOString()
+      qaReportPath,
+      qaReport,
+      exportedAt
     }
   } catch (error) {
     return {
