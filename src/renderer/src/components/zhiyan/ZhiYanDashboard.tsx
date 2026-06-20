@@ -118,7 +118,7 @@ export function ZhiYanDashboard({
             <QuickActionCard
               icon={BookOpen}
               title="教材编写"
-              description="AI 辅助撰写教材章节或基金申请书"
+              description="AI 辅助撰写教材章节，保持教学主线和术语一致"
               gradient="bg-gradient-to-br from-teal-600 to-teal-800"
               onClick={onOpenTextbook}
             />
@@ -132,22 +132,22 @@ export function ZhiYanDashboard({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <QuickActionCard
               icon={PenTool}
-              title="论文润色"
-              description="学术论文语法修正、风格优化与中英互译"
+              title="文本写作"
+              description="自然基金、论文润色和长文档分段写作，先锁定项目主线"
               gradient="bg-gradient-to-br from-rose-600 to-rose-800"
               onClick={onOpenPaperPolish}
             />
             <QuickActionCard
               icon={Search}
-              title="文献检索"
-              description="PubMed / OpenAlex 一站式文献搜索与阅读"
+              title="文献阅读"
+              description="文献精读、关键图解读和组会汇报 PPT 制作"
               gradient="bg-gradient-to-br from-amber-600 to-amber-800"
               onClick={onOpenLiterature}
             />
             <QuickActionCard
               icon={Microscope}
-              title="生信分析"
-              description="差异表达、富集分析、数据可视化（即将开放）"
+              title="下游数据分析"
+              description="基于整理后数据生成 bulk 和单细胞可视化分析"
               gradient="bg-gradient-to-br from-emerald-600 to-emerald-800"
               onClick={onOpenBioinformatics}
             />
@@ -170,7 +170,7 @@ export function ZhiYanDashboard({
 
         <div>
           <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
-            通用工具
+            能力中心
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <QuickActionCard

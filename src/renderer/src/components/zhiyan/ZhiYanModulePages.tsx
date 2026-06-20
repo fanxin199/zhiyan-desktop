@@ -147,44 +147,44 @@ const PPT_CONFIG: ModuleConfig = {
 
 const PAPER_CONFIG: ModuleConfig = {
   icon: PenTool,
-  title: '论文润色',
-  subtitle: '学术论文语法修正、风格优化与中英文互译',
+  title: '科研文本写作',
+  subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
   gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
   features: [
-    { title: '语法修正', description: '检查并修正语法、拼写和标点错误' },
-    { title: '学术风格', description: '优化学术风格，提升论文质量' },
-    { title: '中英互译', description: '高质量学术论文中英文翻译' },
-    { title: '去 AI 痕迹', description: '检测并消除 AI 生成文本的特征' }
+    { title: '项目主线 Blueprint', description: '先固定科学问题、核心假说、研究目的和术语表，再开始写作' },
+    { title: '逐段写作', description: '每次只处理一个部分，自动承接上一节并限制下一节内容' },
+    { title: '断点续写', description: '用 STATUS 记录进度、已完成小节和下一步，避免跨对话写偏' },
+    { title: '证据边界', description: '区分用户数据、文献事实、机制推断和待验证假设' }
   ],
   quickPrompts: [
-    '帮我润色一篇投稿 Immunity 的英文论文',
-    '将我的中文论文翻译为英文，目标期刊是 Cell Reports',
-    '帮我修改论文的 Discussion 部分，加强逻辑衔接'
+    '请先帮我建立一个基金/论文写作 Blueprint：包括项目主线、科学问题、核心假说、研究目的、术语表和各章节写作边界。确认后再逐段写作。',
+    '帮我按上下文逐段优化这篇英文论文。每处理一个 Results 或 Discussion 小节前都要读取全文主线、上一节摘要和本节目的，完成后生成本节摘要卡片。',
+    '帮我把这段中文科研文本改写成英文论文表达。不要逐句翻译，先判断它在全文中的功能，再保持科学含义和作者语气进行改写。'
   ]
 }
 
 const LITERATURE_CONFIG: ModuleConfig = {
   icon: Search,
-  title: '文献检索与阅读',
-  subtitle: 'PubMed / OpenAlex 一站式文献搜索、阅读与综述生成',
+  title: '文献阅读',
+  subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
   gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
   features: [
-    { title: 'PubMed 检索', description: '关键词搜索，支持 MeSH 术语' },
-    { title: 'AI 摘要', description: '自动生成文献摘要和关键发现' },
-    { title: '文献综述', description: '一键生成系统性文献综述' },
-    { title: '笔记管理', description: '阅读笔记 and 标注管理' }
+    { title: '文献精读', description: '围绕科学问题、模型、方法、结果、图表和局限性拆解单篇论文' },
+    { title: '图表解读', description: '先读全文和图注，再逐图解释证据链，而不是只概括摘要' },
+    { title: '汇报 PPT', description: '将论文转化为研究生组会或课题组汇报的页面结构' },
+    { title: '证据核实', description: '联网核实 PMID、DOI、年份、期刊和临床试验信息' }
   ],
   quickPrompts: [
-    '搜索最近5年关于 CAR-T 细胞疗法在实体瘤中应用的综述文献',
-    '帮我检索 PD-1/PD-L1 免疫检查点抑制剂的最新临床试验结果',
-    '对这10篇文献生成一份系统性文献综述'
+    '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论、局限性和对我课题的启发来整理。',
+    '请把这篇文献做成研究生组会汇报 PPT 大纲，包含背景、科学问题、每个主图的讲解、创新点、局限性和讨论问题。',
+    '请围绕 B 细胞亚群、TLS 和肿瘤免疫治疗反应检索最新文献，区分综述、原始研究和临床队列证据，并列出 PMID/DOI。'
   ]
 }
 
 const REVIEW_CONFIG: ModuleConfig = {
   icon: Search,
   title: '综述撰写',
-  subtitle: '围绕科研问题完成文献框架、证据链整理和综述初稿',
+  subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
   gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
   features: [
     { title: '主题框架', description: '从研究问题生成综述章节结构与论证主线' },
@@ -193,9 +193,9 @@ const REVIEW_CONFIG: ModuleConfig = {
     { title: '争议梳理', description: '明确证据等级、替代解释和未解决问题' }
   ],
   quickPrompts: [
-    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述框架',
-    '围绕 TLS、浆细胞和免疫治疗反应整理一篇综述的大纲',
-    '帮我把这些文献组织成综述的 Results/Discussion 逻辑'
+    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述 Blueprint，先明确中心论点、章节逻辑和每节边界。',
+    '围绕 TLS、浆细胞和免疫治疗反应整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
+    '帮我把这些文献组织成综述的段落链条，每次只写一个小节，写完后生成摘要卡片和下一节承接点。'
   ]
 }
 
@@ -211,9 +211,9 @@ const GRANT_CONFIG: ModuleConfig = {
     { title: '风险替代', description: '补充技术风险、替代方案和可行性论证' }
   ],
   quickPrompts: [
-    '帮我撰写国自然面上项目立项依据，方向是肿瘤微环境中的 B 细胞亚群',
-    '根据我的研究假说设计 3 个研究内容和技术路线',
-    '帮我修改基金申请书的创新点，避免空泛表述'
+    '请先为我的国自然项目建立写作 Blueprint：题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。',
+    '在已确认 Blueprint 的基础上，只撰写立项依据部分。要求围绕研究主线展开，关键论点补充 PMID，写完后暂停等待我确认。',
+    '帮我修改基金申请书的创新点，要求先判断每个创新点是否与科学问题和研究内容对应，避免空泛表述。'
   ]
 }
 
@@ -237,12 +237,20 @@ const TEXTBOOK_CONFIG: ModuleConfig = {
 
 const BIOINFORMATICS_CONFIG: ModuleConfig = {
   icon: Microscope,
-  title: '生信分析',
-  subtitle: '差异表达分析、GO/KEGG 富集、单细胞分析与数据可视化',
+  title: '下游数据分析',
+  subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
   gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
-  features: [],
-  quickPrompts: [],
-  comingSoon: true
+  features: [
+    { title: 'bulk mRNA 下游可视化', description: '从表达矩阵、分组表或差异结果生成 PCA、火山图、热图和富集图' },
+    { title: '单细胞下游可视化', description: '从 h5ad/注释表/marker 表生成 UMAP、比例图、dotplot 和 violin 图' },
+    { title: '免疫学解释框架', description: '重点支持 B 细胞亚群、TLS、浆细胞、Tfh/Tfr 和免疫治疗反应解释' },
+    { title: '可复现交付', description: '输出图表、参数、代码、结果解释和可能陷阱，不从原始 FASTQ 开始' }
+  ],
+  quickPrompts: [
+    '我有整理好的 bulk mRNA 差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和免疫学解释报告。',
+    '我有整理好的单细胞 h5ad 或细胞注释表。请做下游可视化：UMAP、细胞比例、B 细胞亚群 marker dotplot、violin 图，并说明哪些结论只是转录特征推断。',
+    '请围绕肿瘤免疫中的 B 细胞/TLS 主题，对我提供的基因列表或 marker 表做通路富集和可视化，报告背景基因集、FDR 和解释边界。'
+  ]
 }
 
 const FILE_MANAGER_CONFIG: ModuleConfig = {

@@ -42,7 +42,7 @@ type NavItem = {
   id: string
   icon: LucideIcon
   label: string
-  section?: 'teaching' | 'research' | 'tools'
+  section?: 'teaching' | 'research' | 'capabilities'
   disabled?: boolean
   disabledHint?: string
 }
@@ -54,15 +54,15 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'ppt-gen', icon: Presentation, label: '课件 PPT', section: 'teaching' },
   { id: 'textbook', icon: BookOpen, label: '教材编写', section: 'teaching' },
   // Research
-  { id: 'paper-polish', icon: PenTool, label: '论文润色', section: 'research' },
-  { id: 'literature', icon: Search, label: '文献检索', section: 'research' },
+  { id: 'paper-polish', icon: PenTool, label: '文本写作', section: 'research' },
+  { id: 'literature', icon: Search, label: '文献阅读', section: 'research' },
   { id: 'review-writing', icon: FileText, label: '综述撰写', section: 'research' },
   { id: 'grant-writing', icon: PenTool, label: '自然基金撰写', section: 'research' },
-  { id: 'bioinformatics', icon: Microscope, label: '生信分析', section: 'research', disabled: true, disabledHint: '即将开放' },
-  // Tools
-  { id: 'write', icon: FileText, label: '写作工作台', section: 'tools' },
-  { id: 'chat', icon: MessageCircle, label: 'AI 对话', section: 'tools' },
-  { id: 'file-manager', icon: FolderOpen, label: '文件管理', section: 'tools' },
+  { id: 'bioinformatics', icon: Microscope, label: '下游数据分析', section: 'research' },
+  // Capabilities
+  { id: 'write', icon: FileText, label: '写作工作台', section: 'capabilities' },
+  { id: 'chat', icon: MessageCircle, label: 'AI 对话', section: 'capabilities' },
+  { id: 'file-manager', icon: FolderOpen, label: '文件管理', section: 'capabilities' },
 ]
 
 function getRouteHandler(
@@ -101,7 +101,7 @@ export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
   const sectionLabels: Record<string, string> = {
     teaching: '教学',
     research: '科研',
-    tools: '工具'
+    capabilities: '能力中心'
   }
 
   let lastSection: string | undefined = undefined

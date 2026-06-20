@@ -1,12 +1,12 @@
 {
   "id": "literature-reviewer",
   "name": "文献检索与综述",
-  "description": "构建检索式、核实论文、提取证据并形成带来源和不确定性说明的文献综述。",
-  "version": "1.0.0",
+  "description": "构建检索式、核实论文、精读文献、解读图表，并形成带来源和不确定性说明的文献综述或汇报大纲。",
+  "version": "1.1.0",
   "entry": "SKILL.md",
   "triggers": {
-    "commands": ["/literature", "/文献"],
-    "promptPatterns": ["(文献检索|文献综述|研究进展|最新研究|证据总结|literature review|systematic review)"],
+    "commands": ["/literature", "/文献", "/精读"],
+    "promptPatterns": ["(文献检索|文献综述|文献精读|文献阅读|文献汇报|组会汇报|研究进展|最新研究|证据总结|literature review|systematic review|journal club)"],
     "fileTypes": [".pdf", ".ris", ".bib", ".nbib", ".csv"]
   },
   "allowedTools": ["read", "write", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],

@@ -47,6 +47,7 @@ npm run dist:win
 
 - [产品路线图](docs/PROJECT_ROADMAP.md)
 - [课件素材工作流](docs/COURSEWARE_ARCHITECTURE.md)
+- [科研工作台与内置能力规划](docs/RESEARCH_WORKBENCH_PLAN.md)
 - [Git hooks 与 worktree 开发流程](docs/DEVELOPMENT.md)
 - [AI 能力与内置 Skills 架构](docs/AI_SKILL_ARCHITECTURE.md)
 - [仓库目录说明](docs/REPOSITORY_STRUCTURE.md)

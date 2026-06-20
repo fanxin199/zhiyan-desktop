@@ -1,12 +1,12 @@
 {
   "id": "academic-writer",
   "name": "论文与基金写作",
-  "description": "修改或起草生物医学论文、基金、综述和学位论文，强化逻辑、证据链与术语准确性。",
-  "version": "1.0.0",
+  "description": "修改或起草生物医学论文、基金、综述和学位论文，先建立项目主线，再逐段强化逻辑、证据链与术语准确性。",
+  "version": "1.1.0",
   "entry": "SKILL.md",
   "triggers": {
-    "commands": ["/write-paper", "/论文"],
-    "promptPatterns": ["(论文|基金|标书|综述|学位论文|摘要|discussion|manuscript|grant)"],
+    "commands": ["/write-paper", "/论文", "/基金"],
+    "promptPatterns": ["(论文|基金|国自然|自然基金|NSFC|标书|综述|学位论文|摘要|discussion|manuscript|grant|blueprint|STATUS)"],
     "fileTypes": [".doc", ".docx", ".md", ".txt", ".pdf"]
   },
   "allowedTools": ["read", "write", "edit", "grep", "find", "ls", "web_fetch", "web_search", "mcp_search", "mcp_describe", "mcp_call"],
