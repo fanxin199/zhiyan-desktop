@@ -1,13 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="智研助手">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ZhiYan Assistant">
   <defs>
-    <linearGradient id="bg" x1="72" y1="48" x2="440" y2="464" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#177DDC"/>
-      <stop offset="1" stop-color="#20A39E"/>
+    <linearGradient id="bg" x1="64" y1="40" x2="448" y2="472" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1267D6"/>
+      <stop offset="0.55" stop-color="#0E91C4"/>
+      <stop offset="1" stop-color="#12A684"/>
     </linearGradient>
+    <linearGradient id="pageRight" x1="262" y1="208" x2="424" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2FFFC"/>
+      <stop offset="1" stop-color="#DFF8F4"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#043B53" flood-opacity="0.24"/>
+    </filter>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path d="M104 151c54-20 104-11 152 28v221c-45-38-96-49-152-29V151Z" fill="#fff" opacity=".96"/>
-  <path d="M408 151c-54-20-104-11-152 28v221c45-38 96-49 152-29V151Z" fill="#E9FFFD"/>
-  <path d="M256 179v221" stroke="#C9F7F2" stroke-width="18" stroke-linecap="round"/>
-  <path d="m364 78 12 31 31 12-31 12-12 31-12-31-31-12 31-12 12-31Z" fill="#FFF3B0"/>
+  <path d="M92 150c32-17 67-21 104-11 24 6 45 17 64 31v236c-47-34-103-45-168-23V150Z" fill="#FFFFFF" opacity="0.97" filter="url(#softShadow)"/>
+  <path d="M420 150c-32-17-67-21-104-11-24 6-45 17-64 31v236c47-34 103-45 168-23V150Z" fill="url(#pageRight)" opacity="0.98" filter="url(#softShadow)"/>
+  <path d="M256 164v244" stroke="#BFF4EB" stroke-width="17" stroke-linecap="round"/>
+  <path d="M142 214c38-8 72-3 100 13M142 258c38-7 72-3 100 14M270 227c29-16 64-21 104-13M270 272c29-16 64-21 104-14" stroke="#D7E5F4" stroke-width="9" stroke-linecap="round" opacity="0.72"/>
+  <path d="M153 150h180l-126 139h162" fill="none" stroke="#083F70" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" opacity="0.2"/>
+  <path d="M153 138h180l-126 139h162" fill="none" stroke="#F7FFFE" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M153 138h180l-126 139h162" fill="none" stroke="#9BE7DC" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="153" cy="138" r="31" fill="#F7FFFE"/>
+  <circle cx="333" cy="138" r="31" fill="#F7FFFE"/>
+  <circle cx="207" cy="277" r="31" fill="#F7FFFE"/>
+  <circle cx="369" cy="277" r="31" fill="#F7FFFE"/>
+  <circle cx="153" cy="138" r="17" fill="#12A684"/>
+  <circle cx="333" cy="138" r="17" fill="#1267D6"/>
+  <circle cx="207" cy="277" r="17" fill="#0E91C4"/>
+  <circle cx="369" cy="277" r="17" fill="#12A684"/>
+  <circle cx="333" cy="138" r="8" fill="#CFFAF2"/>
+  <circle cx="369" cy="277" r="8" fill="#DFFFF8"/>
+  <path d="M397 82l10 25 25 10-25 10-10 25-10-25-25-10 25-10 10-25Z" fill="#FFF1A8"/>
 </svg>

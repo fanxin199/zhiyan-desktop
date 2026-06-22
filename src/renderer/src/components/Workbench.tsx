@@ -504,13 +504,25 @@ export function Workbench(): ReactElement {
         ) : route === 'ppt-gen' ? (
           <PptGenPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'paper-polish' ? (
-          <PaperPolishPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <PaperPolishPage
+            onStartChat={handleModuleQuickPrompt}
+            onOpenWrite={openWriteMode}
+            className="ds-no-drag"
+          />
         ) : route === 'literature' ? (
           <LiteraturePage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'review-writing' ? (
-          <ReviewWritingPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <ReviewWritingPage
+            onStartChat={handleModuleQuickPrompt}
+            onOpenWrite={openWriteMode}
+            className="ds-no-drag"
+          />
         ) : route === 'grant-writing' ? (
-          <GrantWritingPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <GrantWritingPage
+            onStartChat={handleModuleQuickPrompt}
+            onOpenWrite={openWriteMode}
+            className="ds-no-drag"
+          />
         ) : route === 'textbook' ? (
           <TextbookPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'bioinformatics' ? (

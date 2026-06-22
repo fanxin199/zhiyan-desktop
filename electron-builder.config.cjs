@@ -10,6 +10,9 @@ const hasExplicitMacSigningIdentity = Boolean(
 const iconPath = existsSync('./src/asset/img/zhiyan.png')
   ? './src/asset/img/zhiyan.png'
   : undefined
+const winIconPath = existsSync('./src/asset/img/zhiyan.ico')
+  ? './src/asset/img/zhiyan.ico'
+  : iconPath
 
 module.exports = {
   appId: 'com.zhiyan.assistant',
@@ -68,7 +71,7 @@ module.exports = {
     sign: hasExplicitMacSigningIdentity
   },
   win: {
-    ...(iconPath ? { icon: iconPath } : {}),
+    ...(winIconPath ? { icon: winIconPath } : {}),
     target: [{ target: 'nsis', arch: ['x64'] }]
   },
   nsis: {

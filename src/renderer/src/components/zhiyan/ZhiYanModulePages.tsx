@@ -18,11 +18,36 @@ import {
 } from 'lucide-react'
 import { extractPdfText, type PdfExtractResult } from '@renderer/lib/pdf-text-extractor'
 import { CoursewarePage } from './CoursewarePage'
+import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 
 type ModulePageProps = {
   onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onOpenWrite?: () => void
   className?: string
+}
+
+type ResearchTaskType = {
+  id: string
+  label: string
+  description: string
+  instruction: string
+}
+
+type ResearchTaskFile = {
+  name: string
+  path: string
+}
+
+type ResearchTaskEntryConfig = {
+  title: string
+  description: string
+  taskTypes: ResearchTaskType[]
+  placeholder: string
+  fileFilters: Array<{ name: string; extensions: string[] }>
+  submitLabel: string
+  allowWriteWorkbench?: boolean
+  constraints: string[]
 }
 
 type ModuleConfig = {
@@ -35,16 +60,256 @@ type ModuleConfig = {
     description: string
   }>
   quickPrompts: string[]
+  taskEntry?: ResearchTaskEntryConfig
   comingSoon?: boolean
+}
+
+function dirname(filePath: string): string {
+  const lastIndex = Math.max(filePath.lastIndexOf('\\'), filePath.lastIndexOf('/'))
+  return lastIndex > 0 ? filePath.slice(0, lastIndex) : ''
+}
+
+export function buildResearchTaskPrompt(
+  config: ModuleConfig,
+  selectedTask: ResearchTaskType,
+  userInput: string,
+  files: ResearchTaskFile[]
+): string | null {
+  const trimmedInput = userInput.trim()
+  if (!trimmedInput && files.length === 0) return null
+
+  const lines = [
+    `你正在处理「${config.title}」模块中的科研任务。`,
+    '',
+    `## 任务类型`,
+    selectedTask.label,
+    '',
+    `## 执行方式`,
+    selectedTask.instruction,
+    ''
+  ]
+
+  if (trimmedInput) {
+    lines.push('## 用户输入')
+    lines.push(trimmedInput)
+    lines.push('')
+  }
+
+  if (files.length > 0) {
+    lines.push('## 用户选择的本地文件')
+    files.forEach((file, index) => {
+      lines.push(`${index + 1}. ${file.name}：${file.path}`)
+    })
+    lines.push('')
+    lines.push('如需读取文件，请优先基于上述路径在当前工作区中读取；如果文件不可读，先说明限制并要求用户补充可读取文本。')
+    lines.push('')
+  }
+
+  if (config.taskEntry?.constraints.length) {
+    lines.push('## 必须遵守的科研写作与分析边界')
+    config.taskEntry.constraints.forEach((constraint, index) => {
+      lines.push(`${index + 1}. ${constraint}`)
+    })
+    lines.push('')
+  }
+
+  lines.push('## 输出要求')
+  lines.push('先给可直接使用的结果，再补充依据、待确认问题和下一步可执行动作。')
+
+  return lines.join('\n')
+}
+
+function ResearchTaskEntry({
+  config,
+  onStartChat,
+  onOpenWrite
+}: {
+  config: ModuleConfig
+  onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onOpenWrite?: () => void
+}): ReactElement | null {
+  const entry = config.taskEntry
+  const [selectedTaskId, setSelectedTaskId] = useState(entry?.taskTypes[0]?.id ?? '')
+  const [userInput, setUserInput] = useState('')
+  const [files, setFiles] = useState<ResearchTaskFile[]>([])
+  const [error, setError] = useState('')
+
+  if (!entry) return null
+  const taskEntry = entry
+
+  const selectedTask = taskEntry.taskTypes.find((task) => task.id === selectedTaskId)
+    ?? taskEntry.taskTypes[0]
+  const canSubmit = Boolean(userInput.trim() || files.length > 0)
+
+  async function handlePickFile(): Promise<void> {
+    if (!window.dsGui?.pickFile) {
+      setError('当前环境不支持文件选择。')
+      return
+    }
+    setError('')
+    const picked = await window.dsGui.pickFile({ filters: taskEntry.fileFilters })
+    if (picked.canceled || !picked.path) return
+    const name = picked.path.split(/[\\/]/).pop() ?? picked.path
+    setFiles((current) => {
+      if (current.some((file) => file.path === picked.path)) return current
+      return [...current, { name, path: picked.path as string }]
+    })
+  }
+
+  function handleSubmit(): void {
+    const prompt = buildResearchTaskPrompt(config, selectedTask, userInput, files)
+    if (!prompt) {
+      setError('请先输入任务需求，或添加一个本地文件。')
+      return
+    }
+    setError('')
+    const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
+    onStartChat(prompt, workspaceRoot ? { workspaceRoot } : undefined)
+  }
+
+  function applyQuickPrompt(prompt: string): void {
+    setUserInput((current) => current.trim() ? `${current.trim()}\n\n${prompt}` : prompt)
+    setError('')
+  }
+
+  return (
+    <section
+      className="rounded-xl border border-accent/20 bg-ds-card p-5 shadow-sm"
+      data-testid={`research-task-entry-${config.title}`}
+    >
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-[15px] font-bold text-ds-text">{taskEntry.title}</h2>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-ds-muted">{taskEntry.description}</p>
+        </div>
+        {taskEntry.allowWriteWorkbench && onOpenWrite ? (
+          <button
+            type="button"
+            onClick={onOpenWrite}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[12.5px] font-semibold text-ds-text transition hover:bg-ds-hover"
+          >
+            <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
+            打开写作工作台
+          </button>
+        ) : null}
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <div className="mb-2 text-[12px] font-semibold text-ds-muted">选择任务类型</div>
+          <div className="flex flex-wrap gap-2">
+            {taskEntry.taskTypes.map((task) => {
+              const selected = task.id === selectedTask.id
+              return (
+                <button
+                  key={task.id}
+                  type="button"
+                  onClick={() => setSelectedTaskId(task.id)}
+                  className={`rounded-lg border px-3 py-2 text-left text-[12.5px] font-semibold transition ${
+                    selected
+                      ? 'border-accent bg-accent text-white'
+                      : 'border-ds-border bg-ds-card text-ds-text hover:bg-ds-hover'
+                  }`}
+                  title={task.description}
+                >
+                  {task.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="mt-2 text-[12px] leading-relaxed text-ds-muted">{selectedTask.description}</p>
+        </div>
+
+        <ResizableTextArea
+          value={userInput}
+          onChange={(event) => setUserInput(event.target.value)}
+          rows={6}
+          className="min-h-[160px] rounded-xl border border-ds-border bg-ds-main px-3 py-2 text-[13px] text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
+          placeholder={taskEntry.placeholder}
+        />
+
+        {files.length > 0 ? (
+          <div className="space-y-2">
+            {files.map((file) => (
+              <div
+                key={file.path}
+                className="flex items-center justify-between gap-3 rounded-lg border border-ds-border-muted bg-ds-main px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[12.5px] font-semibold text-ds-text">{file.name}</p>
+                  <p className="truncate text-[11.5px] text-ds-muted">{file.path}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFiles((current) => current.filter((item) => item.path !== file.path))}
+                  className="rounded-lg p-1.5 text-ds-muted transition hover:bg-red-500/10 hover:text-red-500"
+                  aria-label="移除文件"
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={1.8} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12.5px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
+            <span>{error}</span>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => void handlePickFile()}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-4 py-2.5 text-[13px] font-semibold text-ds-text transition hover:bg-ds-hover"
+          >
+            <Upload className="h-4 w-4" strokeWidth={1.8} />
+            添加本地文件
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <Check className="h-4 w-4" strokeWidth={2} />
+            {taskEntry.submitLabel}
+          </button>
+        </div>
+
+        {config.quickPrompts.length > 0 ? (
+          <div className="border-t border-ds-border-muted pt-3">
+            <div className="mb-2 text-[12px] font-semibold text-ds-muted">可点选示例填入上方输入框</div>
+            <div className="flex flex-wrap gap-2">
+              {config.quickPrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => applyQuickPrompt(prompt)}
+                  className="max-w-full rounded-full border border-ds-border-muted bg-ds-main px-3 py-1.5 text-left text-[12px] text-ds-muted transition hover:border-accent/40 hover:text-ds-text"
+                >
+                  <span className="line-clamp-1">{prompt}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  )
 }
 
 function ModulePageShell({
   config,
   onStartChat,
+  onOpenWrite,
   className = ''
 }: {
   config: ModuleConfig
-  onStartChat: (prompt: string) => void
+  onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onOpenWrite?: () => void
   className?: string
 }): ReactElement {
   const Icon = config.icon
@@ -75,6 +340,8 @@ function ModulePageShell({
           </div>
         ) : (
           <div className="space-y-8">
+            <ResearchTaskEntry config={config} onStartChat={onStartChat} onOpenWrite={onOpenWrite} />
+
             {/* Features Grid */}
             {config.features && config.features.length > 0 && (
               <div className="space-y-4">
@@ -97,7 +364,7 @@ function ModulePageShell({
             )}
 
             {/* Quick Prompts */}
-            {config.quickPrompts && config.quickPrompts.length > 0 && (
+            {!config.taskEntry && config.quickPrompts && config.quickPrompts.length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
@@ -145,11 +412,51 @@ const PPT_CONFIG: ModuleConfig = {
   ]
 }
 
-const PAPER_CONFIG: ModuleConfig = {
+export const PAPER_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '科研文本写作',
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
   gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
+  taskEntry: {
+    title: '开始一项写作任务',
+    description: '输入研究主题、已有段落或修改要求；也可以添加论文、基金草稿或参考材料。',
+    taskTypes: [
+      {
+        id: 'blueprint',
+        label: '建立项目 Blueprint',
+        description: '先锁定科学问题、核心假说、章节边界和术语表。',
+        instruction: '请先建立写作 Blueprint，再等待用户确认，不要直接展开正文。'
+      },
+      {
+        id: 'polish',
+        label: '论文/基金润色',
+        description: '按上下文优化逻辑、证据链、术语和表达。',
+        instruction: '请先判断文本在全文中的功能，再做科研写作层面的润色和结构优化。'
+      },
+      {
+        id: 'translate',
+        label: '中文转英文论文表达',
+        description: '把中文科研文本改写为英文生物医学论文表达。',
+        instruction: '请不要逐句直译，要保留科学含义和作者语气，改写为克制清晰的英文论文表达。'
+      },
+      {
+        id: 'continue',
+        label: '逐段续写',
+        description: '围绕已确认主线逐段生成正文，并形成本节摘要卡片。',
+        instruction: '请每次只写一个小节，写完后生成 Section Card 和下一节承接点。'
+      }
+    ],
+    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于 B 细胞亚群与 TLS 影响免疫治疗反应的论文 Discussion，请先帮我建立 Blueprint。',
+    fileFilters: [{ name: '科研写作材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
+    submitLabel: '发送写作任务',
+    allowWriteWorkbench: true,
+    constraints: [
+      '先判断文本功能和全文位置，再开始写作或修改。',
+      '保留科学含义和作者语气，不把推测写成事实。',
+      '不得编造实验结果、样本量、统计显著性、伦理批准号或不存在的参考文献。',
+      '明确区分用户数据、文献事实、机制推断和待验证假设。'
+    ]
+  },
   features: [
     { title: '项目主线 Blueprint', description: '先固定科学问题、核心假说、研究目的和术语表，再开始写作' },
     { title: '逐段写作', description: '每次只处理一个部分，自动承接上一节并限制下一节内容' },
@@ -163,11 +470,50 @@ const PAPER_CONFIG: ModuleConfig = {
   ]
 }
 
-const LITERATURE_CONFIG: ModuleConfig = {
+export const LITERATURE_CONFIG: ModuleConfig = {
   icon: Search,
   title: '文献阅读',
   subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
   gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
+  taskEntry: {
+    title: '开始文献阅读任务',
+    description: '添加 PDF 或输入研究问题，系统会按科研问题而不是摘要堆叠来组织阅读结果。',
+    taskTypes: [
+      {
+        id: 'single-paper',
+        label: '单篇 PDF 精读',
+        description: '拆解研究问题、实验设计、关键图和局限性。',
+        instruction: '请围绕研究问题、模型、方法、结果、图表、局限性和对用户课题的启发精读单篇文献。'
+      },
+      {
+        id: 'evidence',
+        label: '多篇证据整理',
+        description: '把多篇文献按主题、证据等级和结论边界整合。',
+        instruction: '请按主题和证据等级综合多篇文献，不做逐篇摘要堆叠。'
+      },
+      {
+        id: 'latest',
+        label: '最新文献检索',
+        description: '联网核实最新研究、PMID/DOI、年份和期刊。',
+        instruction: '请围绕用户问题检索最新文献，区分综述、原始研究、临床队列和数据库再分析证据。'
+      },
+      {
+        id: 'journal-club',
+        label: '文献汇报 PPT 大纲',
+        description: '生成适合研究生组会汇报的页面结构。',
+        instruction: '请把文献转化为组会汇报大纲，包含背景、科学问题、主图讲解、创新点、局限性和讨论问题。'
+      }
+    ],
+    placeholder: '请输入文献阅读目标、研究问题或粘贴 PMID/DOI/题名。也可以先添加 PDF 文件。例如：请精读这篇关于 TLS 和免疫治疗反应的论文，重点解释每个主图如何支持结论。',
+    fileFilters: [{ name: '文献材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
+    submitLabel: '发送文献任务',
+    constraints: [
+      '按研究问题、实验设计、关键图、主要结论、局限性和对用户课题的启发输出。',
+      '图表解读必须先结合全文和图注，避免只根据摘要下结论。',
+      '涉及最新文献、PMID、DOI、年份、期刊或临床试验信息时必须联网核实。',
+      '如果只能基于摘要或元数据总结，必须明确说明证据来源限制。'
+    ]
+  },
   features: [
     { title: '文献精读', description: '围绕科学问题、模型、方法、结果、图表和局限性拆解单篇论文' },
     { title: '图表解读', description: '先读全文和图注，再逐图解释证据链，而不是只概括摘要' },
@@ -181,11 +527,51 @@ const LITERATURE_CONFIG: ModuleConfig = {
   ]
 }
 
-const REVIEW_CONFIG: ModuleConfig = {
+export const REVIEW_CONFIG: ModuleConfig = {
   icon: Search,
   title: '综述撰写',
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
   gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+  taskEntry: {
+    title: '开始综述撰写任务',
+    description: '输入综述主题、中心论点或已有文献列表，先形成论证主线，再分节写作。',
+    taskTypes: [
+      {
+        id: 'blueprint',
+        label: '综述 Blueprint',
+        description: '确定中心论点、章节逻辑和每节边界。',
+        instruction: '请先生成综述 Blueprint，包括中心论点、章节结构、每节边界和不能写偏的内容。'
+      },
+      {
+        id: 'outline',
+        label: '章节大纲',
+        description: '把主题拆成可写作的小节和论证顺序。',
+        instruction: '请围绕科研问题生成综述章节大纲，并说明每节承担的论证功能。'
+      },
+      {
+        id: 'evidence-matrix',
+        label: '证据矩阵',
+        description: '按机制、模型、疾病场景和证据等级整理文献。',
+        instruction: '请把文献整理为证据矩阵，区分机制证据、相关性证据、临床队列和待验证假设。'
+      },
+      {
+        id: 'section-draft',
+        label: '分节初稿',
+        description: '每次只写一个小节，并生成摘要卡片。',
+        instruction: '请只撰写用户指定的小节，写完后生成本节摘要卡片和下一节承接点。'
+      }
+    ],
+    placeholder: '请给出综述主题、中心论点、目标期刊/读者或已有文献列表。例如：我想写 B 细胞亚群在肿瘤免疫中的作用，重点围绕 TLS、浆细胞和免疫治疗反应。',
+    fileFilters: [{ name: '综述材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
+    submitLabel: '发送综述任务',
+    allowWriteWorkbench: true,
+    constraints: [
+      '先形成清晰论证主线，再进入分节写作。',
+      '明确每个小节的论证功能和边界，避免材料堆叠。',
+      '标明证据等级、争议点、替代解释和未解决问题。',
+      '不得编造参考文献或把文献相关性写成因果机制。'
+    ]
+  },
   features: [
     { title: '主题框架', description: '从研究问题生成综述章节结构与论证主线' },
     { title: '证据组织', description: '按机制、模型、疾病场景和技术路线整理文献' },
@@ -199,11 +585,57 @@ const REVIEW_CONFIG: ModuleConfig = {
   ]
 }
 
-const GRANT_CONFIG: ModuleConfig = {
+export const GRANT_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '自然基金撰写',
   subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
   gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
+  taskEntry: {
+    title: '开始自然基金撰写任务',
+    description: '输入项目题目、科学问题、前期基础或拟解决问题，按国自然模块逐步推进。',
+    taskTypes: [
+      {
+        id: 'blueprint',
+        label: '项目 Blueprint',
+        description: '先固定题目、科学问题、核心假说和三项研究内容。',
+        instruction: '请先建立国自然写作 Blueprint，包括题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。'
+      },
+      {
+        id: 'rationale',
+        label: '立项依据',
+        description: '围绕科学问题组织研究现状、证据链和问题缺口。',
+        instruction: '请只撰写或修改立项依据部分，围绕同一科学问题展开，写完后暂停等待用户确认。'
+      },
+      {
+        id: 'aims-route',
+        label: '研究内容/技术路线',
+        description: '把目标、假说、关键实验和预期结果拆成可执行方案。',
+        instruction: '请把研究内容、关键实验、技术路线和预期结果对应起来，避免目标与实验脱节。'
+      },
+      {
+        id: 'innovation',
+        label: '创新点',
+        description: '检查创新点是否具体对应科学问题和研究内容。',
+        instruction: '请先判断每个创新点是否对应科学问题和研究内容，再改写为具体、可评审的表述。'
+      },
+      {
+        id: 'risk',
+        label: '可行性与风险',
+        description: '补充研究基础、技术风险和替代方案。',
+        instruction: '请补充可行性依据、技术风险、替代方案和结果解释边界。'
+      }
+    ],
+    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“肿瘤 TLS 中 B 细胞亚群调控免疫治疗反应的机制研究”，请先建立项目 Blueprint。',
+    fileFilters: [{ name: '基金材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
+    submitLabel: '发送基金任务',
+    allowWriteWorkbench: true,
+    constraints: [
+      '所有模块必须围绕同一科学问题和核心假说展开。',
+      '创新点必须具体对应研究内容，避免空泛表述。',
+      '不编造实验结果、预实验数据、样本量、统计显著性或伦理批准信息。',
+      '关键文献论点尽量补 PMID/DOI；无法核实时明确标注。'
+    ]
+  },
   features: [
     { title: '立项依据', description: '建立科学问题、研究现状、创新点之间的证据链' },
     { title: '研究内容', description: '拆解目标、假说、关键实验和预期结果' },
@@ -235,11 +667,50 @@ const TEXTBOOK_CONFIG: ModuleConfig = {
   ]
 }
 
-const BIOINFORMATICS_CONFIG: ModuleConfig = {
+export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   icon: Microscope,
   title: '下游数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
   gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
+  taskEntry: {
+    title: '开始下游数据分析任务',
+    description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的免疫学问题。',
+    taskTypes: [
+      {
+        id: 'bulk',
+        label: 'bulk mRNA',
+        description: '从表达矩阵、分组表或差异结果生成图表和解释。',
+        instruction: '请先检查 bulk mRNA 数据格式、列名、分组和阈值，再设计可视化和统计解释流程。'
+      },
+      {
+        id: 'single-cell',
+        label: '单细胞下游可视化',
+        description: '从 h5ad、注释表或 marker 表生成 UMAP、比例图和 marker 图。',
+        instruction: '请先检查单细胞数据对象、细胞注释、样本分组和 marker 定义，再做下游可视化。'
+      },
+      {
+        id: 'enrichment',
+        label: '基因列表富集',
+        description: '对基因列表或差异基因做 GO/KEGG/GSEA 和免疫学解释。',
+        instruction: '请先确认基因 ID 类型、背景基因集和阈值，再进行富集分析和可视化建议。'
+      },
+      {
+        id: 'immune-report',
+        label: '免疫学解释报告',
+        description: '围绕 B 细胞、TLS、浆细胞、Tfh/Tfr 或免疫治疗反应解释结果。',
+        instruction: '请围绕用户指定的肿瘤免疫问题组织结果解释、图表建议、陷阱和验证实验。'
+      }
+    ],
+    placeholder: '请说明数据类型、文件内容、分组设计和想回答的问题。例如：我有 bulk RNA-seq 差异结果表，想围绕 B 细胞/TLS 解释免疫治疗响应差异，请先检查列名和阈值。',
+    fileFilters: [{ name: '下游分析数据', extensions: ['csv', 'tsv', 'xlsx', 'h5ad', 'rds', 'txt'] }],
+    submitLabel: '发送分析任务',
+    constraints: [
+      '必须先检查数据格式、列名、样本分组、阈值和可用字段，再开始分析。',
+      '明确统计/模型选择、关键 QC 点、可视化方案和可复现步骤。',
+      '转录特征不能直接等同功能结论，尤其是 B 细胞亚群、TLS、浆细胞和 Tfh/Tfr 解释。',
+      '默认从整理后的数据开始，不从原始 FASTQ 开始。'
+    ]
+  },
   features: [
     { title: 'bulk mRNA 下游可视化', description: '从表达矩阵、分组表或差异结果生成 PCA、火山图、热图和富集图' },
     { title: '单细胞下游可视化', description: '从 h5ad/注释表/marker 表生成 UMAP、比例图、dotplot 和 violin 图' },
