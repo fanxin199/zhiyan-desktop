@@ -7,7 +7,6 @@ import {
   Search,
   BookOpen,
   Microscope,
-  FolderOpen,
   Upload,
   Trash2,
   Check,
@@ -21,6 +20,7 @@ import { extractPdfText, type PdfExtractResult } from '@renderer/lib/pdf-text-ex
 import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
+import { FileManagerWorkspacePage } from './FileManagerWorkspacePage'
 
 export type InlineModuleId =
   | 'literature'
@@ -975,24 +975,6 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   ]
 }
 
-const FILE_MANAGER_CONFIG: ModuleConfig = {
-  icon: FolderOpen,
-  title: '文件管理',
-  subtitle: '管理您的项目文件夹，预览和操作各类文档',
-  gradient: 'bg-gradient-to-br from-slate-600 to-slate-700',
-  features: [
-    { title: '文件预览', description: '预览 PDF、Word、Excel、图片等文件' },
-    { title: 'AI 分析', description: '选择文件让 AI 进行分析和处理' },
-    { title: '批量操作', description: '批量导出、格式转换' },
-    { title: '工作区管理', description: '创建和管理项目文件夹' }
-  ],
-  quickPrompts: [
-    '帮我整理当前文件夹中的论文文件',
-    '将文件夹中的所有 PDF 文件提取摘要',
-    '帮我把这份 Word 文档转换为 PDF 格式'
-  ]
-}
-
 // ── Exported Module Pages ──────────────────────────────────────────
 
 const REFERENCE_LESSON_PLAN_TEMPLATE = `________ ________ 教案
@@ -1672,5 +1654,5 @@ export function BioinformaticsPage(props: ModulePageProps): ReactElement {
 }
 
 export function FileManagerPage(props: ModulePageProps): ReactElement {
-  return <ModulePageShell config={FILE_MANAGER_CONFIG} {...props} />
+  return <FileManagerWorkspacePage onStartChat={props.onStartChat} className={props.className} />
 }
