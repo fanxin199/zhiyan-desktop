@@ -6,6 +6,7 @@ import {
   buildResearchTaskPrompt,
   GrantWritingPage,
   GRANT_CONFIG,
+  LITERATURE_CONFIG,
   LiteraturePage,
   PaperPolishPage,
   ReviewWritingPage,
@@ -84,6 +85,19 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('项目 Blueprint')
     expect(prompt).toContain('grant.md：D:\\project\\grant.md')
     expect(prompt).toContain('请建立项目主线')
+  })
+
+  it('embeds extracted PDF text in the task prompt instead of only passing a local path', () => {
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    const files = [{
+      name: 'paper.pdf',
+      path: 'D:\\papers\\paper.pdf',
+      extractedText: 'Results: B cells form tertiary lymphoid structures.'
+    }] as unknown as Array<{ name: string; path: string }>
+
+    const prompt = buildResearchTaskPrompt(LITERATURE_CONFIG, task, '请精读这篇论文', files)
+
+    expect(prompt).toContain('Results: B cells form tertiary lymphoid structures.')
   })
 
   it('keeps grant-writing evidence and fabrication constraints', () => {

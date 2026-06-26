@@ -53,6 +53,30 @@ const PluginMarketplaceView = lazy(() =>
 const COMPOSER_FILE_CONTEXT_MAX_CHARS_PER_FILE = 60_000
 const COMPOSER_FILE_CONTEXT_MAX_TOTAL_CHARS = 180_000
 
+type ModuleTaskStartOptions = {
+  prompt: string
+  workspaceRoot?: string
+  setRoute: (route: 'chat') => void
+  createThread: (options?: { workspaceRoot?: string }) => Promise<void>
+  sendMessage: (prompt: string, mode: string) => Promise<boolean>
+  setInput: (value: string) => void
+}
+
+export async function startModuleTask({
+  prompt,
+  workspaceRoot,
+  setRoute,
+  createThread,
+  sendMessage,
+  setInput
+}: ModuleTaskStartOptions): Promise<boolean> {
+  setRoute('chat')
+  await createThread(workspaceRoot ? { workspaceRoot } : undefined)
+  const sent = await sendMessage(prompt, 'agent')
+  if (!sent) setInput(prompt)
+  return sent
+}
+
 function mergeSkillCommands(
   runtimeSkills: CoreRuntimeSkillJson[],
   localSkills: SkillListItem[]
@@ -413,9 +437,14 @@ export function Workbench(): ReactElement {
     prompt: string,
     options?: { workspaceRoot?: string }
   ): void => {
-    setInput(prompt)
-    setRoute('chat')
-    void createThread(options?.workspaceRoot ? { workspaceRoot: options.workspaceRoot } : undefined)
+    void startModuleTask({
+      prompt,
+      workspaceRoot: options?.workspaceRoot,
+      setRoute,
+      createThread,
+      sendMessage,
+      setInput
+    })
   }
   const renderRuntimeBanner = (message: string): ReactElement => (
     <RuntimeBanner
