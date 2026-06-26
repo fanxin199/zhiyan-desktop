@@ -1,4 +1,5 @@
 import { useState, useRef, type ReactElement } from 'react'
+import JSZip from 'jszip'
 import {
   GraduationCap,
   Presentation,
@@ -41,9 +42,135 @@ type ResearchTaskFile = {
   extractedPages?: number
   pageCount?: number
   truncated?: boolean
+  requiresWorkspaceRead?: boolean
 }
 
 const RESEARCH_TASK_FILE_CONTEXT_MAX_CHARS = 60_000
+const RESEARCH_FILE_EXTRACTION_MAX_CHARS = 240_000
+
+type ResearchFileTextKind = 'pdf' | 'text' | 'docx' | 'xlsx' | 'unsupported'
+
+type ResearchFileTextExtraction = {
+  kind: ResearchFileTextKind
+  text: string
+  truncated: boolean
+  pageCount?: number
+  extractedPages?: number
+}
+
+function extensionFromFileName(name: string): string {
+  const match = /\.([^.]+)$/u.exec(name.trim().toLowerCase())
+  return match?.[1] ?? ''
+}
+
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return bytes
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&')
+}
+
+function xmlText(value: string): string {
+  return decodeXmlEntities(
+    value
+      .replace(/<w:tab\b[^>]*\/>/giu, '\t')
+      .replace(/<w:(?:br|cr)\b[^>]*\/>/giu, '\n')
+      .replace(/<\/w:p>/giu, '\n')
+      .replace(/<[^>]+>/gu, '')
+  ).replace(/\n{3,}/gu, '\n\n').trim()
+}
+
+function truncateResearchFileText(text: string): Pick<ResearchFileTextExtraction, 'text' | 'truncated'> {
+  if (text.length <= RESEARCH_FILE_EXTRACTION_MAX_CHARS) return { text, truncated: false }
+  return {
+    text: text.slice(0, RESEARCH_FILE_EXTRACTION_MAX_CHARS),
+    truncated: true
+  }
+}
+
+async function extractDocxText(bytes: Uint8Array): Promise<string> {
+  const archive = await JSZip.loadAsync(bytes)
+  const documentXml = await archive.file('word/document.xml')?.async('string')
+  if (!documentXml) throw new Error('DOCX 文件缺少正文内容。')
+  return xmlText(documentXml)
+}
+
+async function extractXlsxText(bytes: Uint8Array): Promise<string> {
+  const archive = await JSZip.loadAsync(bytes)
+  const sharedStringsXml = await archive.file('xl/sharedStrings.xml')?.async('string')
+  const sharedStrings = sharedStringsXml
+    ? [...sharedStringsXml.matchAll(/<si\b[^>]*>([\s\S]*?)<\/si>/giu)].map((match) => xmlText(match[1] ?? ''))
+    : []
+  const worksheetPaths = Object.keys(archive.files)
+    .filter((path) => /^xl\/worksheets\/sheet\d+\.xml$/u.test(path))
+    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
+  const sheets: string[] = []
+  for (const path of worksheetPaths) {
+    const worksheetXml = await archive.file(path)?.async('string')
+    if (!worksheetXml) continue
+    const rows = [...worksheetXml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/giu)].map((row) => {
+      const cells = [...(row[1] ?? '').matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/giu)]
+      return cells.map((cell) => {
+        const attributes = cell[1] ?? ''
+        const content = cell[2] ?? ''
+        const sharedMatch = /\bt="s"/u.test(attributes)
+          ? /<v>(\d+)<\/v>/iu.exec(content)
+          : null
+        if (sharedMatch) return sharedStrings[Number(sharedMatch[1])] ?? ''
+        const inlineText = /\bt="inlineStr"/u.test(attributes) ? xmlText(content) : ''
+        if (inlineText) return inlineText
+        return xmlText((/<v>([\s\S]*?)<\/v>/iu.exec(content)?.[1] ?? ''))
+      }).join('\t')
+    }).filter(Boolean)
+    if (rows.length > 0) sheets.push(rows.join('\n'))
+  }
+  if (sheets.length === 0) throw new Error('XLSX 文件中未找到可读取的工作表数据。')
+  return sheets.join('\n\n')
+}
+
+export async function extractResearchTaskFileText(input: {
+  name: string
+  dataBase64: string
+}): Promise<ResearchFileTextExtraction> {
+  const extension = extensionFromFileName(input.name)
+  if (!['pdf', 'txt', 'md', 'csv', 'tsv', 'docx', 'xlsx'].includes(extension)) {
+    return { kind: 'unsupported', text: '', truncated: false }
+  }
+  const bytes = base64ToBytes(input.dataBase64)
+  if (extension === 'pdf') {
+    const buffer = new ArrayBuffer(bytes.byteLength)
+    new Uint8Array(buffer).set(bytes)
+    const extracted = await extractPdfText(new File([buffer], input.name, { type: 'application/pdf' }))
+    return {
+      kind: 'pdf',
+      text: extracted.text,
+      truncated: extracted.truncated,
+      pageCount: extracted.pageCount,
+      extractedPages: extracted.extractedPages
+    }
+  }
+  const sourceText = extension === 'docx'
+    ? await extractDocxText(bytes)
+    : extension === 'xlsx'
+      ? await extractXlsxText(bytes)
+      : new TextDecoder('utf-8').decode(bytes)
+  const clipped = truncateResearchFileText(sourceText.trim())
+  return {
+    kind: extension === 'docx' ? 'docx' : extension === 'xlsx' ? 'xlsx' : 'text',
+    ...clipped
+  }
+}
 
 type ResearchTaskEntryConfig = {
   title: string
@@ -109,7 +236,7 @@ export function buildResearchTaskPrompt(
     lines.push('')
     const filesWithoutExtractedText = files.filter((file) => !file.extractedText?.trim())
     if (filesWithoutExtractedText.length > 0) {
-      lines.push('未提取正文的文件请优先基于上述路径在当前工作区中读取；如果文件不可读，先说明限制并要求用户补充可读取文本。')
+      lines.push('未提取正文的文件需要在当前工作区中读取和检查；对于 DOC、H5AD、RDS 等专有格式，先确认可用分析工具和文件结构，再开始解释。')
     }
     const filesWithExtractedText = files.filter((file) => file.extractedText?.trim())
     if (filesWithExtractedText.length > 0) {
@@ -178,10 +305,11 @@ function ResearchTaskEntry({
     if (picked.canceled || !picked.path) return
     const name = picked.path.split(/[\\/]/).pop() ?? picked.path
     const path = picked.path as string
-    if (!name.toLowerCase().endsWith('.pdf')) {
+    const extension = extensionFromFileName(name)
+    if (!['pdf', 'txt', 'md', 'csv', 'tsv', 'docx', 'xlsx'].includes(extension)) {
       setFiles((current) => {
         if (current.some((file) => file.path === path)) return current
-        return [...current, { name, path }]
+        return [...current, { name, path, requiresWorkspaceRead: true }]
       })
       return
     }
@@ -190,14 +318,9 @@ function ResearchTaskEntry({
     try {
       const readResult = await window.dsGui.readFileBinary(path)
       if (!readResult.ok) throw new Error(readResult.message)
-      const binary = atob(readResult.data)
-      const bytes = new Uint8Array(binary.length)
-      for (let index = 0; index < binary.length; index += 1) {
-        bytes[index] = binary.charCodeAt(index)
-      }
-      const extracted = await extractPdfText(new File([bytes], name, { type: 'application/pdf' }))
+      const extracted = await extractResearchTaskFileText({ name, dataBase64: readResult.data })
       if (!extracted.text.trim()) {
-        throw new Error('未提取到可读文字。扫描版 PDF 请先提供可复制文本或文字版 PDF。')
+        throw new Error('未提取到可读内容。扫描版 PDF 请先提供可复制文本或文字版 PDF。')
       }
       setFiles((current) => {
         const nextFile: ResearchTaskFile = {
@@ -308,6 +431,12 @@ function ResearchTaskEntry({
                       已提取 {file.extractedPages ?? file.pageCount}/{file.pageCount} 页
                       {file.truncated ? '，正文已截断' : ''}
                     </p>
+                  ) : null}
+                  {file.extractedText && !file.pageCount ? (
+                    <p className="mt-1 text-[11.5px] text-ds-muted">已提取可读文本</p>
+                  ) : null}
+                  {file.requiresWorkspaceRead ? (
+                    <p className="mt-1 text-[11.5px] text-ds-muted">将由智能体在工作区中检查文件结构</p>
                   ) : null}
                 </div>
                 <button
