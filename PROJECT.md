@@ -61,3 +61,9 @@ npm run dist:win
 - `docs/COURSEWARE_ARCHITECTURE.md`
 - `docs/DEVELOPMENT.md`
 - `docs/AI_SKILL_ARCHITECTURE.md`
+
+## 当前优化计划
+
+前端体验和功能模块的逐步优化任务见 `docs/UX_OPTIMIZATION_PLAN.md`。
+该文档按 P0→P3 优先级排列，每个任务带 `[ ]` 复选框。
+AI Agent 每次进入项目时应读取该文件，从第一个未完成的 `[ ]` 继续执行，每次只完成一个任务。
