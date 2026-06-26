@@ -613,6 +613,10 @@ export function Workbench(): ReactElement {
           <ReviewWritingPage
             onStartChat={handleModuleQuickPrompt}
             onOpenWrite={openWriteMode}
+            showInlineConversation={
+              inlineConversationThreadIds['review-writing'] === activeThreadId
+            }
+            inlineConversation={renderModuleConversation('综述撰写')}
             className="ds-no-drag"
           />
         ) : route === 'grant-writing' ? (

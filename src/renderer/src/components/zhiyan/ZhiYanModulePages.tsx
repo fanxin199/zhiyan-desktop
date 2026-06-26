@@ -780,6 +780,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
   title: '综述撰写',
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
   gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+  inlineConversationModule: 'review-writing',
   taskEntry: {
     title: '开始综述撰写任务',
     description: '输入综述主题、中心论点或已有文献列表，先形成论证主线，再分节写作。',
