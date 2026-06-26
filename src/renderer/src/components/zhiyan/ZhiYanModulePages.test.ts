@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import JSZip from 'jszip'
 import {
   BioinformaticsPage,
+  buildResearchTaskDisplayText,
   buildResearchTaskPrompt,
   extractResearchTaskFileText,
   GrantWritingPage,
@@ -100,6 +101,26 @@ describe('buildResearchTaskPrompt', () => {
     const prompt = buildResearchTaskPrompt(LITERATURE_CONFIG, task, '请精读这篇论文', files)
 
     expect(prompt).toContain('Results: B cells form tertiary lymphoid structures.')
+  })
+
+  it('keeps the research task display text concise when source files are attached', () => {
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    const displayText = buildResearchTaskDisplayText(LITERATURE_CONFIG, task, [{
+      name: 'paper.pdf',
+      path: 'D:\\papers\\paper.pdf',
+      extractedText: 'Long source text that must not be shown in the conversation.'
+    }])
+
+    expect(displayText).toBe('文献阅读 · 单篇 PDF 精读：paper.pdf')
+    expect(displayText).not.toContain('Long source text')
+  })
+
+  it('uses conditional project inspiration and does not require external verification for uploaded papers', () => {
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    const prompt = buildResearchTaskPrompt(LITERATURE_CONFIG, task, '请精读这篇论文', [])
+
+    expect(prompt).toContain('仅当用户明确说明自己的课题或研究方向时')
+    expect(prompt).toContain('无需逐条联网核实参考文献、PMID、DOI')
   })
 
   it('keeps grant-writing evidence and fabrication constraints', () => {

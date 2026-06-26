@@ -7,6 +7,7 @@ import { DEFAULT_COMPOSER_MODEL_IDS } from '@shared/default-composer-models'
 import type { SkillListItem } from '@shared/ds-gui-api'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
+import type { SendMessageOverrides } from '../store/chat-store-types'
 import type { CoreRuntimeInfoJson, CoreRuntimeSkillJson } from '../agent/kun-contract'
 import { getProvider } from '../agent/registry'
 import { useChatStore } from '../store/chat-store'
@@ -45,6 +46,7 @@ import { SidebarTitlebarToggleButton } from './sidebar/SidebarPrimitives'
 import { WriteAssistantPanel } from './write/WriteAssistantPanel'
 import { WriteSidebar } from './write/WriteSidebar'
 import { WriteWorkspaceView } from './write/WriteWorkspaceView'
+import { ModuleConversationPanel } from './zhiyan/ModuleConversationPanel'
 
 const PluginMarketplaceView = lazy(() =>
   import('./PluginMarketplaceView').then((module) => ({ default: module.PluginMarketplaceView }))
@@ -56,24 +58,30 @@ const COMPOSER_FILE_CONTEXT_MAX_TOTAL_CHARS = 180_000
 type ModuleTaskStartOptions = {
   prompt: string
   workspaceRoot?: string
+  displayText?: string
+  navigateToChat?: boolean
   setRoute: (route: 'chat') => void
   createThread: (options?: { workspaceRoot?: string }) => Promise<void>
-  sendMessage: (prompt: string, mode: string) => Promise<boolean>
+  sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
   setInput: (value: string) => void
 }
 
 export async function startModuleTask({
   prompt,
   workspaceRoot,
+  displayText,
+  navigateToChat = true,
   setRoute,
   createThread,
   sendMessage,
   setInput
 }: ModuleTaskStartOptions): Promise<boolean> {
-  setRoute('chat')
+  if (navigateToChat) setRoute('chat')
   await createThread(workspaceRoot ? { workspaceRoot } : undefined)
-  const sent = await sendMessage(prompt, 'agent')
-  if (!sent) setInput(prompt)
+  const sent = displayText
+    ? await sendMessage(prompt, 'agent', { displayText })
+    : await sendMessage(prompt, 'agent')
+  if (!sent) setInput(displayText ?? prompt)
   return sent
 }
 
@@ -215,6 +223,8 @@ export function Workbench(): ReactElement {
   const [attachmentUploadBusy, setAttachmentUploadBusy] = useState(false)
   const [attachmentUploadError, setAttachmentUploadError] = useState<string | null>(null)
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
+  const [literatureConversationVisible, setLiteratureConversationVisible] = useState(false)
+  const [literatureConversationThreadId, setLiteratureConversationThreadId] = useState<string | null>(null)
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
   const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
@@ -435,15 +445,25 @@ export function Workbench(): ReactElement {
   }
   const handleModuleQuickPrompt = (
     prompt: string,
-    options?: { workspaceRoot?: string }
+    options?: {
+      workspaceRoot?: string
+      displayText?: string
+      stayInModule?: boolean
+    }
   ): void => {
     void startModuleTask({
       prompt,
       workspaceRoot: options?.workspaceRoot,
+      displayText: options?.displayText,
+      navigateToChat: !options?.stayInModule,
       setRoute,
       createThread,
       sendMessage,
       setInput
+    }).then((sent) => {
+      if (!options?.stayInModule) return
+      setLiteratureConversationVisible(sent)
+      setLiteratureConversationThreadId(sent ? useChatStore.getState().activeThreadId : null)
     })
   }
   const renderRuntimeBanner = (message: string): ReactElement => (
@@ -539,7 +559,40 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'literature' ? (
-          <LiteraturePage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <LiteraturePage
+            onStartChat={handleModuleQuickPrompt}
+            showInlineConversation={
+              literatureConversationVisible && literatureConversationThreadId === activeThreadId
+            }
+            inlineConversation={
+              <ModuleConversationPanel
+                title="文献解读"
+                busy={busy}
+                input={input}
+                setInput={setInput}
+                mode={mode}
+                setMode={setMode}
+                runtimeConnection={runtimeConnection}
+                activeThreadId={activeThreadId}
+                blocks={blocks}
+                liveReasoning={liveReasoning}
+                liveAssistant={liveAssistant}
+                composerModel={composerModel}
+                composerPickList={composerPickList}
+                composerModelGroups={composerModelGroups}
+                composerReasoningEffort={composerReasoningEffort}
+                setComposerModel={setComposerModel}
+                setComposerReasoningEffort={setComposerReasoningEffort}
+                queuedMessages={queuedMessages}
+                removeQueuedMessage={removeQueuedMessage}
+                onSend={handleSend}
+                onInterrupt={(options) => void interrupt(options)}
+                onRetryConnection={() => void probeRuntime('user')}
+                onOpenSettings={() => openSettings('agents')}
+              />
+            }
+            className="ds-no-drag"
+          />
         ) : route === 'review-writing' ? (
           <ReviewWritingPage
             onStartChat={handleModuleQuickPrompt}

@@ -1,4 +1,4 @@
-import { useState, useRef, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import JSZip from 'jszip'
 import {
   GraduationCap,
@@ -23,8 +23,14 @@ import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 
 type ModulePageProps = {
-  onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onStartChat: (prompt: string, options?: {
+    workspaceRoot?: string
+    displayText?: string
+    stayInModule?: boolean
+  }) => void
   onOpenWrite?: () => void
+  inlineConversation?: ReactElement
+  showInlineConversation?: boolean
   className?: string
 }
 
@@ -272,13 +278,25 @@ export function buildResearchTaskPrompt(
   return lines.join('\n')
 }
 
+export function buildResearchTaskDisplayText(
+  config: ModuleConfig,
+  selectedTask: ResearchTaskType,
+  files: ResearchTaskFile[]
+): string {
+  const fileNames = files.slice(0, 3).map((file) => file.name)
+  const fileSummary = fileNames.length > 0
+    ? `：${fileNames.join('、')}${files.length > fileNames.length ? '等' : ''}`
+    : ''
+  return `${config.title} · ${selectedTask.label}${fileSummary}`
+}
+
 function ResearchTaskEntry({
   config,
   onStartChat,
   onOpenWrite
 }: {
   config: ModuleConfig
-  onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onStartChat: ModulePageProps['onStartChat']
   onOpenWrite?: () => void
 }): ReactElement | null {
   const entry = config.taskEntry
@@ -352,7 +370,11 @@ function ResearchTaskEntry({
     }
     setError('')
     const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
-    onStartChat(prompt, workspaceRoot ? { workspaceRoot } : undefined)
+    onStartChat(prompt, {
+      ...(workspaceRoot ? { workspaceRoot } : {}),
+      displayText: buildResearchTaskDisplayText(config, selectedTask, files),
+      ...(config.title === '文献阅读' ? { stayInModule: true } : {})
+    })
   }
 
   function applyQuickPrompt(prompt: string): void {
@@ -506,14 +528,24 @@ function ModulePageShell({
   config,
   onStartChat,
   onOpenWrite,
+  inlineConversation,
+  showInlineConversation = false,
   className = ''
 }: {
   config: ModuleConfig
-  onStartChat: (prompt: string, options?: { workspaceRoot?: string }) => void
+  onStartChat: ModulePageProps['onStartChat']
   onOpenWrite?: () => void
+  inlineConversation?: ReactElement
+  showInlineConversation?: boolean
   className?: string
 }): ReactElement {
   const Icon = config.icon
+  const conversationRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!showInlineConversation) return
+    conversationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [showInlineConversation])
 
   return (
     <div className={`flex h-full flex-col overflow-y-auto bg-ds-main ${className}`}>
@@ -542,6 +574,10 @@ function ModulePageShell({
         ) : (
           <div className="space-y-8">
             <ResearchTaskEntry config={config} onStartChat={onStartChat} onOpenWrite={onOpenWrite} />
+
+            {showInlineConversation && inlineConversation ? (
+              <div ref={conversationRef}>{inlineConversation}</div>
+            ) : null}
 
             {/* Features Grid */}
             {config.features && config.features.length > 0 && (
@@ -684,7 +720,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
         id: 'single-paper',
         label: '单篇 PDF 精读',
         description: '拆解研究问题、实验设计、关键图和局限性。',
-        instruction: '请围绕研究问题、模型、方法、结果、图表、局限性和对用户课题的启发精读单篇文献。'
+        instruction: '请精读单篇文献，默认按研究问题、实验设计、关键图、主要结论和局限性组织。仅当用户明确说明自己的课题或研究方向时，再补充可借鉴之处，并标记为基于文献的推断。'
       },
       {
         id: 'evidence',
@@ -709,9 +745,9 @@ export const LITERATURE_CONFIG: ModuleConfig = {
     fileFilters: [{ name: '文献材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送文献任务',
     constraints: [
-      '按研究问题、实验设计、关键图、主要结论、局限性和对用户课题的启发输出。',
+      '默认按研究问题、实验设计、关键图、主要结论和局限性输出；仅当用户明确说明自己的课题或研究方向时，才补充对其课题的启发。',
       '图表解读必须先结合全文和图注，避免只根据摘要下结论。',
-      '涉及最新文献、PMID、DOI、年份、期刊或临床试验信息时必须联网核实。',
+      '对于已上传的论文，默认依据论文全文、图表和图注进行解读；除非用户明确要求核验外部信息，无需逐条联网核实参考文献、PMID、DOI、年份、期刊或临床试验信息。',
       '如果只能基于摘要或元数据总结，必须明确说明证据来源限制。'
     ]
   },
@@ -719,10 +755,10 @@ export const LITERATURE_CONFIG: ModuleConfig = {
     { title: '文献精读', description: '围绕科学问题、模型、方法、结果、图表和局限性拆解单篇论文' },
     { title: '图表解读', description: '先读全文和图注，再逐图解释证据链，而不是只概括摘要' },
     { title: '汇报 PPT', description: '将论文转化为研究生组会或课题组汇报的页面结构' },
-    { title: '证据核实', description: '联网核实 PMID、DOI、年份、期刊和临床试验信息' }
+    { title: '按需核实', description: '仅在检索最新文献或明确要求时联网核实外部信息' }
   ],
   quickPrompts: [
-    '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论、局限性和对我课题的启发来整理。',
+    '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论和局限性整理。',
     '请把这篇文献做成研究生组会汇报 PPT 大纲，包含背景、科学问题、每个主图的讲解、创新点、局限性和讨论问题。',
     '请围绕 B 细胞亚群、TLS 和肿瘤免疫治疗反应检索最新文献，区分综述、原始研究和临床队列证据，并列出 PMID/DOI。'
   ]
