@@ -12,7 +12,9 @@ import {
   GRANT_CONFIG,
   LITERATURE_CONFIG,
   LiteraturePage,
+  PAPER_CONFIG,
   PaperPolishPage,
+  REVIEW_CONFIG,
   ReviewWritingPage,
   SyllabusPage,
   BIOINFORMATICS_CONFIG
@@ -117,7 +119,7 @@ describe('buildResearchTaskPrompt', () => {
       path: 'D:\\project\\grant.md'
     }])
 
-    expect(prompt).toContain('项目 Blueprint')
+    expect(prompt).toContain('项目蓝图')
     expect(prompt).toContain('grant.md：D:\\project\\grant.md')
     expect(prompt).toContain('请建立项目主线')
   })
@@ -171,6 +173,13 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('先检查数据格式、列名、样本分组、阈值')
     expect(prompt).toContain('转录特征不能直接等同功能结论')
     expect(prompt).toContain('不从原始 FASTQ 开始')
+  })
+
+  it('uses teacher-facing Chinese labels for writing blueprints and data analysis', () => {
+    expect(PAPER_CONFIG.taskEntry!.taskTypes[0].label).toBe('建立写作蓝图')
+    expect(REVIEW_CONFIG.taskEntry!.taskTypes[0].label).toBe('综述蓝图')
+    expect(GRANT_CONFIG.taskEntry!.taskTypes[0].label).toBe('项目蓝图')
+    expect(BIOINFORMATICS_CONFIG.title).toBe('科研数据分析')
   })
 })
 

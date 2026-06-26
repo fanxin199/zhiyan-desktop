@@ -683,9 +683,9 @@ export const PAPER_CONFIG: ModuleConfig = {
     taskTypes: [
       {
         id: 'blueprint',
-        label: '建立项目 Blueprint',
+        label: '建立写作蓝图',
         description: '先锁定科学问题、核心假说、章节边界和术语表。',
-        instruction: '请先建立写作 Blueprint，再等待用户确认，不要直接展开正文。'
+        instruction: '请先建立写作蓝图，再等待用户确认，不要直接展开正文。'
       },
       {
         id: 'polish',
@@ -703,10 +703,10 @@ export const PAPER_CONFIG: ModuleConfig = {
         id: 'continue',
         label: '逐段续写',
         description: '围绕已确认主线逐段生成正文，并形成本节摘要卡片。',
-        instruction: '请每次只写一个小节，写完后生成 Section Card 和下一节承接点。'
+        instruction: '请每次只写一个小节，写完后生成小节摘要卡和下一节承接点。'
       }
     ],
-    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于 B 细胞亚群与 TLS 影响免疫治疗反应的论文 Discussion，请先帮我建立 Blueprint。',
+    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于 B 细胞亚群与 TLS 影响免疫治疗反应的论文 Discussion，请先帮我建立写作蓝图。',
     fileFilters: [{ name: '科研写作材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送写作任务',
     allowWriteWorkbench: true,
@@ -718,13 +718,13 @@ export const PAPER_CONFIG: ModuleConfig = {
     ]
   },
   features: [
-    { title: '项目主线 Blueprint', description: '先固定科学问题、核心假说、研究目的和术语表，再开始写作' },
+    { title: '写作蓝图', description: '先固定科学问题、核心假说、研究目的和术语表，再开始写作' },
     { title: '逐段写作', description: '每次只处理一个部分，自动承接上一节并限制下一节内容' },
-    { title: '断点续写', description: '用 STATUS 记录进度、已完成小节和下一步，避免跨对话写偏' },
+    { title: '断点续写', description: '用进度摘要记录进度、已完成小节和下一步，避免跨对话写偏' },
     { title: '证据边界', description: '区分用户数据、文献事实、机制推断和待验证假设' }
   ],
   quickPrompts: [
-    '请先帮我建立一个基金/论文写作 Blueprint：包括项目主线、科学问题、核心假说、研究目的、术语表和各章节写作边界。确认后再逐段写作。',
+    '请先帮我建立一个基金/论文写作蓝图：包括项目主线、科学问题、核心假说、研究目的、术语表和各章节写作边界。确认后再逐段写作。',
     '帮我按上下文逐段优化这篇英文论文。每处理一个 Results 或 Discussion 小节前都要读取全文主线、上一节摘要和本节目的，完成后生成本节摘要卡片。',
     '帮我把这段中文科研文本改写成英文论文表达。不要逐句翻译，先判断它在全文中的功能，再保持科学含义和作者语气进行改写。'
   ]
@@ -800,9 +800,9 @@ export const REVIEW_CONFIG: ModuleConfig = {
     taskTypes: [
       {
         id: 'blueprint',
-        label: '综述 Blueprint',
+        label: '综述蓝图',
         description: '确定中心论点、章节逻辑和每节边界。',
-        instruction: '请先生成综述 Blueprint，包括中心论点、章节结构、每节边界和不能写偏的内容。'
+        instruction: '请先生成综述蓝图，包括中心论点、章节结构、每节边界和不能写偏的内容。'
       },
       {
         id: 'outline',
@@ -841,7 +841,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
     { title: '争议梳理', description: '明确证据等级、替代解释和未解决问题' }
   ],
   quickPrompts: [
-    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述 Blueprint，先明确中心论点、章节逻辑和每节边界。',
+    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述蓝图，先明确中心论点、章节逻辑和每节边界。',
     '围绕 TLS、浆细胞和免疫治疗反应整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
     '帮我把这些文献组织成综述的段落链条，每次只写一个小节，写完后生成摘要卡片和下一节承接点。'
   ]
@@ -859,9 +859,9 @@ export const GRANT_CONFIG: ModuleConfig = {
     taskTypes: [
       {
         id: 'blueprint',
-        label: '项目 Blueprint',
+        label: '项目蓝图',
         description: '先固定题目、科学问题、核心假说和三项研究内容。',
-        instruction: '请先建立国自然写作 Blueprint，包括题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。'
+        instruction: '请先建立国自然写作项目蓝图，包括题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。'
       },
       {
         id: 'rationale',
@@ -888,7 +888,7 @@ export const GRANT_CONFIG: ModuleConfig = {
         instruction: '请补充可行性依据、技术风险、替代方案和结果解释边界。'
       }
     ],
-    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“肿瘤 TLS 中 B 细胞亚群调控免疫治疗反应的机制研究”，请先建立项目 Blueprint。',
+    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“肿瘤 TLS 中 B 细胞亚群调控免疫治疗反应的机制研究”，请先建立项目蓝图。',
     fileFilters: [{ name: '基金材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送基金任务',
     allowWriteWorkbench: true,
@@ -906,8 +906,8 @@ export const GRANT_CONFIG: ModuleConfig = {
     { title: '风险替代', description: '补充技术风险、替代方案和可行性论证' }
   ],
   quickPrompts: [
-    '请先为我的国自然项目建立写作 Blueprint：题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。',
-    '在已确认 Blueprint 的基础上，只撰写立项依据部分。要求围绕研究主线展开，关键论点补充 PMID，写完后暂停等待我确认。',
+    '请先为我的国自然项目建立项目蓝图：题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。',
+    '在已确认项目蓝图的基础上，只撰写立项依据部分。要求围绕研究主线展开，关键论点补充 PMID，写完后暂停等待我确认。',
     '帮我修改基金申请书的创新点，要求先判断每个创新点是否与科学问题和研究内容对应，避免空泛表述。'
   ]
 }
@@ -932,12 +932,12 @@ const TEXTBOOK_CONFIG: ModuleConfig = {
 
 export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   icon: Microscope,
-  title: '下游数据分析',
+  title: '科研数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
   gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
   inlineConversationModule: 'bioinformatics',
   taskEntry: {
-    title: '开始下游数据分析任务',
+    title: '开始科研数据分析任务',
     description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的免疫学问题。',
     taskTypes: [
       {

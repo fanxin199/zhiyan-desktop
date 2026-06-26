@@ -49,7 +49,7 @@
 
 ### Task 0.3 · 术语中文化
 
-- [ ] **0.3.1** 在 `src/renderer/src/components/zhiyan/ZhiYanModulePages.tsx` 中：
+- [x] **0.3.1** 在 `src/renderer/src/components/zhiyan/ZhiYanModulePages.tsx` 中：
   - PAPER_CONFIG：所有 "Blueprint" → "写作蓝图"。
   - GRANT_CONFIG：所有 "Blueprint" → "项目蓝图"。
   - REVIEW_CONFIG：所有 "Blueprint" → "综述蓝图"。
