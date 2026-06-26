@@ -33,6 +33,7 @@ import {
   gitBranchPayloadSchema,
   guiUpdateChannelSchema,
   logErrorPayloadSchema,
+  legacyWordTextExtractPayloadSchema,
   notificationPayloadSchema,
   openEditorPathPayloadSchema,
   pubMedSearchPayloadSchema,
@@ -102,6 +103,7 @@ import {
 import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
+import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
   checkTextbookProject,
   exportTextbookProject,
@@ -409,6 +411,12 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       }
     }
   })
+
+  ipcMain.handle('file:extract-legacy-word-text', async (_, payload: unknown) =>
+    extractLegacyWordText(
+      parseIpcPayload('file:extract-legacy-word-text', legacyWordTextExtractPayloadSchema, payload).path
+    )
+  )
 
   ipcMain.handle('file:extract-pdf-range', async (_, payload: unknown) => {
     const request = parseIpcPayload(

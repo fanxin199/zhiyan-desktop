@@ -771,6 +771,10 @@ export const coursewareSourcePathPayloadSchema = z.object({
   path: trimmedString(MAX_PATH_LENGTH)
 }).strict()
 
+export const legacyWordTextExtractPayloadSchema = z.object({
+  path: trimmedString(MAX_PATH_LENGTH)
+}).strict()
+
 export const pubMedSearchPayloadSchema = z.object({
   query: trimmedString(1_000),
   maxResults: z.number().int().min(1).max(20).optional(),

@@ -15,6 +15,8 @@ const api = {
     ipcRenderer.invoke('file:pick-file', options),
   readFileBinary: (filePath) =>
     ipcRenderer.invoke('file:read-binary', filePath),
+  extractLegacyWordText: (path) =>
+    ipcRenderer.invoke('file:extract-legacy-word-text', { path }),
   inspectPdf: (path) =>
     ipcRenderer.invoke('file:inspect-pdf', { path }),
   analyzeCoursewareSource: (path) =>

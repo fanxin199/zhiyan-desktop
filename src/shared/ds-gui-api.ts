@@ -79,6 +79,9 @@ import type {
 export type RuntimeRequestResult = { ok: boolean; status: number; body: string }
 export type WorkspacePickResult = { canceled: boolean; path: string | null }
 export type PathOpenResult = { ok: boolean; message?: string }
+export type LegacyWordTextExtractResult =
+  | { ok: true; text: string; truncated: boolean }
+  | { ok: false; message: string }
 export const DESKTOP_COMMANDS = [
   'undo',
   'redo',
@@ -150,6 +153,7 @@ export type DsGuiApi = {
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   readFileBinary: (filePath: string) => Promise<{ ok: true; data: string; size: number } | { ok: false; message: string }>
+  extractLegacyWordText: (path: string) => Promise<LegacyWordTextExtractResult>
   inspectPdf: (path: string) => Promise<PdfInspectResult>
   analyzeCoursewareSource: (path: string) => Promise<CoursewareSourceAnalysisResult>
   loadCoursewareProject: (path: string) => Promise<CoursewareProject>

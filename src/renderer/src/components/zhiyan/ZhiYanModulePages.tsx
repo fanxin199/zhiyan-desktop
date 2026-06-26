@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   type LucideIcon
 } from 'lucide-react'
-import { extractPdfText, type PdfExtractResult } from '@renderer/lib/pdf-text-extractor'
+import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
 import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
@@ -62,9 +62,9 @@ type ResearchTaskFile = {
 const RESEARCH_TASK_FILE_CONTEXT_MAX_CHARS = 60_000
 const RESEARCH_FILE_EXTRACTION_MAX_CHARS = 240_000
 
-type ResearchFileTextKind = 'pdf' | 'text' | 'docx' | 'xlsx' | 'unsupported'
+type ResearchFileTextKind = 'pdf' | 'text' | 'doc' | 'docx' | 'xlsx' | 'unsupported'
 
-type ResearchFileTextExtraction = {
+export type ResearchFileTextExtraction = {
   kind: ResearchFileTextKind
   text: string
   truncated: boolean
@@ -84,6 +84,19 @@ function base64ToBytes(value: string): Uint8Array {
     bytes[index] = binary.charCodeAt(index)
   }
   return bytes
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error ?? new Error('读取文件失败。'))
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : ''
+      const marker = result.indexOf(',')
+      resolve(marker >= 0 ? result.slice(marker + 1) : result)
+    }
+    reader.readAsDataURL(file)
+  })
 }
 
 function decodeXmlEntities(value: string): string {
@@ -1067,8 +1080,7 @@ export function SyllabusPage({
   const [textSource, setTextSource] = useState('')
   const [selectedFile, setSelectedFile] = useState<{ name: string; path: string } | null>(null)
 
-  // PDF 文本提取状态
-  const [extractedContent, setExtractedContent] = useState<PdfExtractResult | null>(null)
+  const [extractedContent, setExtractedContent] = useState<ResearchFileTextExtraction | null>(null)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -1093,6 +1105,46 @@ export function SyllabusPage({
     )
   }
 
+  const extractSyllabusFile = async (input: {
+    name: string
+    path?: string
+    file?: File
+  }): Promise<void> => {
+    const extension = extensionFromFileName(input.name)
+    setIsExtracting(true)
+    setExtractError(null)
+    try {
+      let extracted: ResearchFileTextExtraction
+      if (extension === 'doc') {
+        if (!input.path || !window.dsGui?.extractLegacyWordText) {
+          throw new Error('旧版 DOC 文件需要通过桌面应用选择，以便读取正文。请将文件另存为 DOCX 后重试。')
+        }
+        const result = await window.dsGui.extractLegacyWordText(input.path)
+        if (!result.ok) throw new Error(result.message)
+        extracted = { kind: 'doc', text: result.text, truncated: result.truncated }
+      } else {
+        let dataBase64 = ''
+        if (input.file) {
+          dataBase64 = await fileToBase64(input.file)
+        } else if (input.path && window.dsGui?.readFileBinary) {
+          const readResult = await window.dsGui.readFileBinary(input.path)
+          if (!readResult.ok) throw new Error(readResult.message)
+          dataBase64 = readResult.data
+        } else {
+          throw new Error('当前环境无法读取所选文件。')
+        }
+        extracted = await extractResearchTaskFileText({ name: input.name, dataBase64 })
+      }
+      if (!extracted.text.trim()) throw new Error('文件中未提取到可读正文。')
+      setExtractedContent(extracted)
+    } catch (error) {
+      setExtractedContent(null)
+      setExtractError(`文件内容提取失败：${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setIsExtracting(false)
+    }
+  }
+
   const handlePickFile = async () => {
     const dsGui = (window as any).dsGui
     if (!dsGui?.pickFile) {
@@ -1111,33 +1163,7 @@ export function SyllabusPage({
     setExtractedContent(null)
     setExtractError(null)
 
-    // 如果是 PDF 文件，立即提取文本内容
-    if (fileName.toLowerCase().endsWith('.pdf')) {
-      setIsExtracting(true)
-      try {
-        // 通过 IPC readFileBinary 协议读取本地文件为 Blob，再构造 File 对象
-        const readResult = await dsGui.readFileBinary(fullPath)
-        if (!readResult.ok) {
-          throw new Error(readResult.message)
-        }
-        const binaryStr = atob(readResult.data)
-        const bytes = new Uint8Array(binaryStr.length)
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i)
-        }
-        const file = new File([bytes], fileName, { type: 'application/pdf' })
-        const extractResult = await extractPdfText(file)
-        setExtractedContent(extractResult)
-        if (extractResult.text.trim().length === 0) {
-          setExtractError('PDF 文件中未提取到文本内容，可能是扫描版 PDF。请尝试使用文字版 PDF。')
-        }
-      } catch (err) {
-        console.error('PDF extraction failed:', err)
-        setExtractError('PDF 解析失败：' + (err instanceof Error ? err.message : String(err)))
-      } finally {
-        setIsExtracting(false)
-      }
-    }
+    await extractSyllabusFile({ name: fileName, path: fullPath })
   }
 
   // Keep legacy handler for drag-drop fallback
@@ -1150,21 +1176,7 @@ export function SyllabusPage({
     setExtractedContent(null)
     setExtractError(null)
 
-    if (file.name.toLowerCase().endsWith('.pdf')) {
-      setIsExtracting(true)
-      try {
-        const result = await extractPdfText(file)
-        setExtractedContent(result)
-        if (result.text.trim().length === 0) {
-          setExtractError('PDF 文件中未提取到文本内容，可能是扫描版 PDF。请尝试使用文字版 PDF。')
-        }
-      } catch (err) {
-        console.error('PDF extraction failed:', err)
-        setExtractError('PDF 解析失败：' + (err instanceof Error ? err.message : String(err)))
-      } finally {
-        setIsExtracting(false)
-      }
-    }
+    await extractSyllabusFile({ name: file.name, path: filePath, file })
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1181,8 +1193,8 @@ export function SyllabusPage({
         setFormError('请选择本地章节文件！')
         return
       }
-      if (selectedFile.name.toLowerCase().endsWith('.pdf') && !extractedContent?.text?.trim()) {
-        setFormError('PDF 文本提取尚未完成或未提取到内容，请等待提取完成后再提交。')
+      if (!extractedContent?.text?.trim()) {
+        setFormError('文件正文尚未提取完成或未提取到内容，请等待提取完成后再提交。')
         return
       }
       sourceDetail = '本地文件路径：' + selectedFile.path
@@ -1205,11 +1217,12 @@ export function SyllabusPage({
     let contentSourceSection = ''
     if (sourceType === 'file' && extractedContent?.text?.trim()) {
       const truncationNote = extractedContent.truncated
-        ? '\n\n> 注意：原 PDF 共 ' + extractedContent.pageCount + ' 页，因字符限制仅提取了前 ' + extractedContent.extractedPages + ' 页的内容。'
+        ? '\n\n> 注意：文件正文因字符限制已截断。'
         : ''
-      contentSourceSection = '以下是从用户上传的 PDF 文件「' + (selectedFile?.name || '') + '」中自动提取的完整教学内容（共 ' + extractedContent.pageCount + ' 页）：' + truncationNote + '\n\n' + extractedContent.text + '\n\n请基于上述提取的 PDF 内容编写教案。'
-    } else if (sourceType === 'file') {
-      contentSourceSection = '用户上传了文件「' + (selectedFile?.name || '') + '」，请使用 bash 工具通过 PowerShell 命令读取该文件内容：' + (selectedFile?.path || '')
+      const pageNote = extractedContent.pageCount
+        ? `（共 ${extractedContent.pageCount} 页，已提取 ${extractedContent.extractedPages ?? extractedContent.pageCount} 页）`
+        : ''
+      contentSourceSection = '以下是从用户上传的文件「' + (selectedFile?.name || '') + '」中自动提取的教学内容' + pageNote + '：' + truncationNote + '\n\n' + extractedContent.text + '\n\n请基于上述提取内容编写教案。'
     } else {
       contentSourceSection = '直接使用以下内容源进行编写：\n' + sourceDetail
     }
@@ -1233,7 +1246,7 @@ export function SyllabusPage({
     promptParts.push('3. 教材和参考资料部分：只保留标题行，内容留白，由教师本人填写。')
     promptParts.push('')
     promptParts.push('## 内容精炼要求（极其重要）：')
-    promptParts.push('- PDF 原文内容仅作为知识库，你必须从中提炼核心知识点、关键概念和教学要点。')
+    promptParts.push('- 原始文件正文仅作为知识库，你必须从中提炼核心知识点、关键概念和教学要点。')
     promptParts.push('- 每个栏目的内容必须精练、概括性强，用教学语言重新组织，而非大段复制原文。')
     promptParts.push('- 教学目的/要求：3-5条，每条一句话概括。')
     promptParts.push('- 教学重点/难点：各列2-4个关键词或短句即可。')
@@ -1281,7 +1294,7 @@ export function SyllabusPage({
     }
     promptParts.push('')
     promptParts.push('### 5. 内容编写指令：')
-    promptParts.push('1. 从内容源中提炼核心知识点，用教学语言重新组织，不要照搬 PDF 原文。')
+    promptParts.push('1. 从内容源中提炼核心知识点，用教学语言重新组织，不要照搬原文。')
     promptParts.push('2. 每个教案栏目内容要精练概括，严格控制字数，整份教案1500-2500字。')
     if (schoolValue) {
       promptParts.push('3. 学校名称字段：填写"' + schoolValue + '"。')
@@ -1568,11 +1581,11 @@ export function SyllabusPage({
                       </button>
                     </div>
 
-                    {/* PDF 提取状态显示 */}
+                    {/* 文件正文提取状态 */}
                     {isExtracting && (
                       <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[12.5px] text-blue-600">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>正在提取 PDF 文本内容，请稍候...</span>
+                        <span>正在提取文件正文，请稍候...</span>
                       </div>
                     )}
                     {extractError && (
@@ -1585,8 +1598,10 @@ export function SyllabusPage({
                       <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-[12.5px] text-green-600">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>
-                          已成功提取 PDF 内容：共 {extractedContent.pageCount} 页，
-                          提取 {extractedContent.extractedPages} 页，
+                          已成功提取文件正文：
+                          {extractedContent.pageCount
+                            ? `共 ${extractedContent.pageCount} 页，提取 ${extractedContent.extractedPages ?? extractedContent.pageCount} 页，`
+                            : ''}
                           {extractedContent.text.length.toLocaleString()} 字符
                           {extractedContent.truncated && '（已达字符上限，部分内容被截断）'}
                         </span>
@@ -1606,7 +1621,7 @@ export function SyllabusPage({
               className={`w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium py-3 px-4 shadow hover:opacity-95 hover:shadow-md transition-all text-[15px] ${isExtracting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isExtracting ? (
-                <><Loader2 className="h-5 w-5 animate-spin" /> PDF 内容提取中...</>
+                <><Loader2 className="h-5 w-5 animate-spin" /> 文件正文提取中...</>
               ) : (
                 <><Check className="h-5 w-5" strokeWidth={2} /> 开始生成智能教案</>
               )}
