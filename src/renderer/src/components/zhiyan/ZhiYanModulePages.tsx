@@ -839,6 +839,7 @@ export const GRANT_CONFIG: ModuleConfig = {
   title: '自然基金撰写',
   subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
   gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
+  inlineConversationModule: 'grant-writing',
   taskEntry: {
     title: '开始自然基金撰写任务',
     description: '输入项目题目、科学问题、前期基础或拟解决问题，按国自然模块逐步推进。',

@@ -84,11 +84,17 @@ describe('ZhiYanModulePages research task entries', () => {
         onStartChat: noop,
         showInlineConversation: true,
         inlineConversation: createElement('div', null, '综述撰写对话')
+      })),
+      renderToStaticMarkup(createElement(GrantWritingPage, {
+        onStartChat: noop,
+        showInlineConversation: true,
+        inlineConversation: createElement('div', null, '自然基金撰写对话')
       }))
     ]
 
     expect(pages[0]).toContain('文本写作对话')
     expect(pages[1]).toContain('综述撰写对话')
+    expect(pages[2]).toContain('自然基金撰写对话')
   })
 })
 
