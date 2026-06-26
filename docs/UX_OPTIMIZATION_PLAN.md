@@ -30,12 +30,12 @@
 
 ### Task 0.1 · 侧边栏图标去重与模块改名
 
-- [ ] **0.1.1** 在 `src/renderer/src/components/zhiyan/ZhiYanSidebar.tsx` 的 `NAV_ITEMS` 数组中：
+- [x] **0.1.1** 在 `src/renderer/src/components/zhiyan/ZhiYanSidebar.tsx` 的 `NAV_ITEMS` 数组中：
   - 将 "综述撰写" 的图标从 `Search` 改为 `ScrollText`（或 `Library`），与"文献阅读"区分。
   - 将 "自然基金撰写" 的图标从 `PenTool` 改为 `Award`（或 `FileCheck`），与"文本写作"区分。
   - 将 "下游数据分析" 的 `label` 改为 `"科研数据分析"`。
-- [ ] **0.1.2** 在 `src/renderer/src/components/zhiyan/ZhiYanDashboard.tsx` 中同步修改对应卡片的图标和标题，保持与侧边栏一致。
-- [ ] **0.1.3** 将 Dashboard 中 "AI 对话" 卡片的图标从 `BarChart3` 改为 `MessageCircle`。
+- [x] **0.1.2** 在 `src/renderer/src/components/zhiyan/ZhiYanDashboard.tsx` 中同步修改对应卡片的图标和标题，保持与侧边栏一致。
+- [x] **0.1.3** 将 Dashboard 中 "AI 对话" 卡片的图标从 `BarChart3` 改为 `MessageCircle`。
 
 ### Task 0.2 · SessionHeader 隐藏技术指标
 

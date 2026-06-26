@@ -1,14 +1,16 @@
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Award,
   BookOpen,
   FileText,
   GraduationCap,
+  MessageCircle,
   Microscope,
   Presentation,
   PenTool,
+  ScrollText,
   Search,
-  BarChart3,
   type LucideIcon
 } from 'lucide-react'
 
@@ -146,20 +148,20 @@ export function ZhiYanDashboard({
             />
             <QuickActionCard
               icon={Microscope}
-              title="下游数据分析"
+              title="科研数据分析"
               description="基于整理后数据生成 bulk 和单细胞可视化分析"
               gradient="bg-gradient-to-br from-emerald-600 to-emerald-800"
               onClick={onOpenBioinformatics}
             />
             <QuickActionCard
-              icon={Search}
+              icon={ScrollText}
               title="综述撰写"
               description="围绕科研问题组织文献、框架和初稿"
               gradient="bg-gradient-to-br from-cyan-600 to-cyan-800"
               onClick={onOpenReviewWriting}
             />
             <QuickActionCard
-              icon={PenTool}
+              icon={Award}
               title="自然基金撰写"
               description="辅助立项依据、研究内容与技术路线成稿"
               gradient="bg-gradient-to-br from-orange-600 to-orange-800"
@@ -181,7 +183,7 @@ export function ZhiYanDashboard({
               onClick={onOpenWrite}
             />
             <QuickActionCard
-              icon={BarChart3}
+              icon={MessageCircle}
               title="AI 对话"
               description="自由对话，让 AI 助手帮您处理任何教学科研任务"
               gradient="bg-gradient-to-br from-slate-600 to-slate-800"

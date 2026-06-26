@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BookOpen,
+  Award,
   FileText,
   FolderOpen,
   GraduationCap,
@@ -10,6 +11,7 @@ import {
   Microscope,
   PenTool,
   Presentation,
+  ScrollText,
   Search,
   Settings,
   type LucideIcon
@@ -56,9 +58,9 @@ const NAV_ITEMS: NavItem[] = [
   // Research
   { id: 'paper-polish', icon: PenTool, label: '文本写作', section: 'research' },
   { id: 'literature', icon: Search, label: '文献阅读', section: 'research' },
-  { id: 'review-writing', icon: FileText, label: '综述撰写', section: 'research' },
-  { id: 'grant-writing', icon: PenTool, label: '自然基金撰写', section: 'research' },
-  { id: 'bioinformatics', icon: Microscope, label: '下游数据分析', section: 'research' },
+  { id: 'review-writing', icon: ScrollText, label: '综述撰写', section: 'research' },
+  { id: 'grant-writing', icon: Award, label: '自然基金撰写', section: 'research' },
+  { id: 'bioinformatics', icon: Microscope, label: '科研数据分析', section: 'research' },
   // Capabilities
   { id: 'write', icon: FileText, label: '写作工作台', section: 'capabilities' },
   { id: 'chat', icon: MessageCircle, label: 'AI 对话', section: 'capabilities' },
