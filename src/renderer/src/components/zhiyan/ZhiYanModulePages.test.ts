@@ -6,6 +6,7 @@ import {
   BioinformaticsPage,
   buildResearchTaskDisplayText,
   buildResearchTaskPrompt,
+  buildSyllabusTaskDisplayText,
   extractResearchTaskFileText,
   GrantWritingPage,
   GRANT_CONFIG,
@@ -13,6 +14,7 @@ import {
   LiteraturePage,
   PaperPolishPage,
   ReviewWritingPage,
+  SyllabusPage,
   BIOINFORMATICS_CONFIG
 } from './ZhiYanModulePages'
 
@@ -139,6 +141,30 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('先检查数据格式、列名、样本分组、阈值')
     expect(prompt).toContain('转录特征不能直接等同功能结论')
     expect(prompt).toContain('不从原始 FASTQ 开始')
+  })
+})
+
+describe('SyllabusPage task handoff', () => {
+  it('renders an inline conversation slot when a lesson-plan task is active', () => {
+    const html = renderToStaticMarkup(createElement(SyllabusPage, {
+      onStartChat: noop,
+      showInlineConversation: true,
+      inlineConversation: createElement('div', null, '教案生成对话')
+    }))
+
+    expect(html).toContain('教案生成对话')
+  })
+
+  it('keeps the lesson-plan task display text free of source content and templates', () => {
+    const displayText = buildSyllabusTaskDisplayText({
+      courseName: '医学免疫学',
+      topic: '移植免疫',
+      fileName: 'chapter.pdf'
+    })
+
+    expect(displayText).toBe('智能教案生成：移植免疫')
+    expect(displayText).not.toContain('chapter.pdf')
+    expect(displayText).not.toContain('教案模板')
   })
 })
 

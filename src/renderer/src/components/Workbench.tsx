@@ -225,6 +225,8 @@ export function Workbench(): ReactElement {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [literatureConversationVisible, setLiteratureConversationVisible] = useState(false)
   const [literatureConversationThreadId, setLiteratureConversationThreadId] = useState<string | null>(null)
+  const [syllabusConversationVisible, setSyllabusConversationVisible] = useState(false)
+  const [syllabusConversationThreadId, setSyllabusConversationThreadId] = useState<string | null>(null)
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
   const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
@@ -448,24 +450,57 @@ export function Workbench(): ReactElement {
     options?: {
       workspaceRoot?: string
       displayText?: string
-      stayInModule?: boolean
+      inlineModule?: 'literature' | 'syllabus'
     }
   ): void => {
     void startModuleTask({
       prompt,
       workspaceRoot: options?.workspaceRoot,
       displayText: options?.displayText,
-      navigateToChat: !options?.stayInModule,
+      navigateToChat: !options?.inlineModule,
       setRoute,
       createThread,
       sendMessage,
       setInput
     }).then((sent) => {
-      if (!options?.stayInModule) return
-      setLiteratureConversationVisible(sent)
-      setLiteratureConversationThreadId(sent ? useChatStore.getState().activeThreadId : null)
+      const threadId = sent ? useChatStore.getState().activeThreadId : null
+      if (options?.inlineModule === 'literature') {
+        setLiteratureConversationVisible(sent)
+        setLiteratureConversationThreadId(threadId)
+      }
+      if (options?.inlineModule === 'syllabus') {
+        setSyllabusConversationVisible(sent)
+        setSyllabusConversationThreadId(threadId)
+      }
     })
   }
+  const renderModuleConversation = (title: string): ReactElement => (
+    <ModuleConversationPanel
+      title={title}
+      busy={busy}
+      input={input}
+      setInput={setInput}
+      mode={mode}
+      setMode={setMode}
+      runtimeConnection={runtimeConnection}
+      activeThreadId={activeThreadId}
+      blocks={blocks}
+      liveReasoning={liveReasoning}
+      liveAssistant={liveAssistant}
+      composerModel={composerModel}
+      composerPickList={composerPickList}
+      composerModelGroups={composerModelGroups}
+      composerReasoningEffort={composerReasoningEffort}
+      setComposerModel={setComposerModel}
+      setComposerReasoningEffort={setComposerReasoningEffort}
+      queuedMessages={queuedMessages}
+      removeQueuedMessage={removeQueuedMessage}
+      onSend={handleSend}
+      onInterrupt={(options) => void interrupt(options)}
+      onRetryConnection={() => void probeRuntime('user')}
+      onOpenSettings={() => openSettings('agents')}
+    />
+  )
   const renderRuntimeBanner = (message: string): ReactElement => (
     <RuntimeBanner
       message={message}
@@ -549,7 +584,14 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'syllabus' ? (
-          <SyllabusPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <SyllabusPage
+            onStartChat={handleModuleQuickPrompt}
+            showInlineConversation={
+              syllabusConversationVisible && syllabusConversationThreadId === activeThreadId
+            }
+            inlineConversation={renderModuleConversation('教案生成')}
+            className="ds-no-drag"
+          />
         ) : route === 'ppt-gen' ? (
           <PptGenPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'paper-polish' ? (
@@ -564,33 +606,7 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               literatureConversationVisible && literatureConversationThreadId === activeThreadId
             }
-            inlineConversation={
-              <ModuleConversationPanel
-                title="文献解读"
-                busy={busy}
-                input={input}
-                setInput={setInput}
-                mode={mode}
-                setMode={setMode}
-                runtimeConnection={runtimeConnection}
-                activeThreadId={activeThreadId}
-                blocks={blocks}
-                liveReasoning={liveReasoning}
-                liveAssistant={liveAssistant}
-                composerModel={composerModel}
-                composerPickList={composerPickList}
-                composerModelGroups={composerModelGroups}
-                composerReasoningEffort={composerReasoningEffort}
-                setComposerModel={setComposerModel}
-                setComposerReasoningEffort={setComposerReasoningEffort}
-                queuedMessages={queuedMessages}
-                removeQueuedMessage={removeQueuedMessage}
-                onSend={handleSend}
-                onInterrupt={(options) => void interrupt(options)}
-                onRetryConnection={() => void probeRuntime('user')}
-                onOpenSettings={() => openSettings('agents')}
-              />
-            }
+            inlineConversation={renderModuleConversation('文献解读')}
             className="ds-no-drag"
           />
         ) : route === 'review-writing' ? (

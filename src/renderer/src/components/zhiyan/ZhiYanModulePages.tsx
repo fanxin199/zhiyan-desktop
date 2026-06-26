@@ -26,7 +26,7 @@ type ModulePageProps = {
   onStartChat: (prompt: string, options?: {
     workspaceRoot?: string
     displayText?: string
-    stayInModule?: boolean
+    inlineModule?: 'literature' | 'syllabus'
   }) => void
   onOpenWrite?: () => void
   inlineConversation?: ReactElement
@@ -373,7 +373,7 @@ function ResearchTaskEntry({
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
       displayText: buildResearchTaskDisplayText(config, selectedTask, files),
-      ...(config.title === '文献阅读' ? { stayInModule: true } : {})
+      ...(config.title === '文献阅读' ? { inlineModule: 'literature' as const } : {})
     })
   }
 
@@ -1039,7 +1039,21 @@ const getDirectoryPath = (filePath: string): string => {
   return filePath.substring(0, lastIndex)
 }
 
-export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): ReactElement {
+export function buildSyllabusTaskDisplayText(input: {
+  courseName: string
+  topic: string
+  fileName?: string
+}): string {
+  const label = input.topic.trim() || input.fileName?.trim() || input.courseName.trim() || '新教案'
+  return `智能教案生成：${label.slice(0, 80)}`
+}
+
+export function SyllabusPage({
+  onStartChat,
+  inlineConversation,
+  showInlineConversation = false,
+  className = ''
+}: ModulePageProps): ReactElement {
   // Form fields state
   const [teacher, setTeacher] = useState('')
   const [courseName, setCourseName] = useState('')
@@ -1064,6 +1078,12 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
   const [formError, setFormError] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const conversationRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!showInlineConversation) return
+    conversationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [showInlineConversation])
 
   const toggleMethod = (method: string) => {
     setMethods((prev) =>
@@ -1287,8 +1307,15 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
 
     const prompt = promptParts.join('\n')
 
-    // 将 PDF 所在目录作为 workspace 传递给 Kun agent
-    onStartChat(prompt, sourceDir ? { workspaceRoot: sourceDir } : undefined)
+    onStartChat(prompt, {
+      ...(sourceDir ? { workspaceRoot: sourceDir } : {}),
+      displayText: buildSyllabusTaskDisplayText({
+        courseName,
+        topic,
+        fileName: selectedFile?.name
+      }),
+      inlineModule: 'syllabus'
+    })
   }
 
     return (
@@ -1589,10 +1616,14 @@ export function SyllabusPage({ onStartChat, className = '' }: ModulePageProps): 
               )}
             </button>
             <p className="text-center text-[12px] text-ds-muted mt-2">
-              系统将根据您填写的参数与上传内容自动进入 AI 对话界面，为您量身定制规范教案
+              系统将根据您填写的参数与上传内容在本页生成教案，您可继续补充或修改要求
             </p>
           </div>
         </form>
+
+        {showInlineConversation && inlineConversation ? (
+          <div ref={conversationRef} className="mt-8">{inlineConversation}</div>
+        ) : null}
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ type WorkbenchModule = typeof workbench & {
     workspaceRoot?: string
     displayText?: string
     navigateToChat?: boolean
+    inlineModule?: 'literature' | 'syllabus'
     setRoute: (route: 'chat') => void
     createThread: (options?: { workspaceRoot?: string }) => Promise<void>
     sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
