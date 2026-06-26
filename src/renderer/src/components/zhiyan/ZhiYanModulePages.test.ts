@@ -72,6 +72,16 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(literature).not.toContain('打开写作工作台')
     expect(bioinformatics).not.toContain('打开写作工作台')
   })
+
+  it('renders a local conversation slot for scientific writing when a task is active', () => {
+    const html = renderToStaticMarkup(createElement(PaperPolishPage, {
+      onStartChat: noop,
+      showInlineConversation: true,
+      inlineConversation: createElement('div', null, '文本写作对话')
+    }))
+
+    expect(html).toContain('文本写作对话')
+  })
 })
 
 describe('buildResearchTaskPrompt', () => {

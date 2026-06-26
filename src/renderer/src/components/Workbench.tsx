@@ -34,6 +34,7 @@ import {
   SyllabusPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
+import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import { MessageTimeline } from './chat/MessageTimeline'
 import { FloatingComposer, type ComposerFileReference } from './chat/FloatingComposer'
 import {
@@ -223,10 +224,8 @@ export function Workbench(): ReactElement {
   const [attachmentUploadBusy, setAttachmentUploadBusy] = useState(false)
   const [attachmentUploadError, setAttachmentUploadError] = useState<string | null>(null)
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
-  const [literatureConversationVisible, setLiteratureConversationVisible] = useState(false)
-  const [literatureConversationThreadId, setLiteratureConversationThreadId] = useState<string | null>(null)
-  const [syllabusConversationVisible, setSyllabusConversationVisible] = useState(false)
-  const [syllabusConversationThreadId, setSyllabusConversationThreadId] = useState<string | null>(null)
+  const [inlineConversationThreadIds, setInlineConversationThreadIds] =
+    useState<Partial<Record<InlineModuleId, string>>>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
   const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
@@ -450,7 +449,7 @@ export function Workbench(): ReactElement {
     options?: {
       workspaceRoot?: string
       displayText?: string
-      inlineModule?: 'literature' | 'syllabus'
+      inlineModule?: InlineModuleId
     }
   ): void => {
     void startModuleTask({
@@ -463,15 +462,12 @@ export function Workbench(): ReactElement {
       sendMessage,
       setInput
     }).then((sent) => {
+      if (!options?.inlineModule) return
       const threadId = sent ? useChatStore.getState().activeThreadId : null
-      if (options?.inlineModule === 'literature') {
-        setLiteratureConversationVisible(sent)
-        setLiteratureConversationThreadId(threadId)
-      }
-      if (options?.inlineModule === 'syllabus') {
-        setSyllabusConversationVisible(sent)
-        setSyllabusConversationThreadId(threadId)
-      }
+      setInlineConversationThreadIds((current) => ({
+        ...current,
+        [options.inlineModule!]: threadId ?? undefined
+      }))
     })
   }
   const renderModuleConversation = (title: string): ReactElement => (
@@ -587,7 +583,7 @@ export function Workbench(): ReactElement {
           <SyllabusPage
             onStartChat={handleModuleQuickPrompt}
             showInlineConversation={
-              syllabusConversationVisible && syllabusConversationThreadId === activeThreadId
+              inlineConversationThreadIds.syllabus === activeThreadId
             }
             inlineConversation={renderModuleConversation('教案生成')}
             className="ds-no-drag"
@@ -598,13 +594,17 @@ export function Workbench(): ReactElement {
           <PaperPolishPage
             onStartChat={handleModuleQuickPrompt}
             onOpenWrite={openWriteMode}
+            showInlineConversation={
+              inlineConversationThreadIds['paper-polish'] === activeThreadId
+            }
+            inlineConversation={renderModuleConversation('文本写作')}
             className="ds-no-drag"
           />
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
             showInlineConversation={
-              literatureConversationVisible && literatureConversationThreadId === activeThreadId
+              inlineConversationThreadIds.literature === activeThreadId
             }
             inlineConversation={renderModuleConversation('文献解读')}
             className="ds-no-drag"

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import * as workbench from './Workbench'
 import type { SendMessageOverrides } from '../store/chat-store-types'
+import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 
 type WorkbenchModule = typeof workbench & {
   startModuleTask?: (options: {
@@ -8,7 +9,7 @@ type WorkbenchModule = typeof workbench & {
     workspaceRoot?: string
     displayText?: string
     navigateToChat?: boolean
-    inlineModule?: 'literature' | 'syllabus'
+    inlineModule?: InlineModuleId
     setRoute: (route: 'chat') => void
     createThread: (options?: { workspaceRoot?: string }) => Promise<void>
     sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>

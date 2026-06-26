@@ -22,11 +22,19 @@ import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 
+export type InlineModuleId =
+  | 'literature'
+  | 'syllabus'
+  | 'paper-polish'
+  | 'review-writing'
+  | 'grant-writing'
+  | 'bioinformatics'
+
 type ModulePageProps = {
   onStartChat: (prompt: string, options?: {
     workspaceRoot?: string
     displayText?: string
-    inlineModule?: 'literature' | 'syllabus'
+    inlineModule?: InlineModuleId
   }) => void
   onOpenWrite?: () => void
   inlineConversation?: ReactElement
@@ -200,6 +208,7 @@ type ModuleConfig = {
   }>
   quickPrompts: string[]
   taskEntry?: ResearchTaskEntryConfig
+  inlineConversationModule?: InlineModuleId
   comingSoon?: boolean
 }
 
@@ -373,7 +382,7 @@ function ResearchTaskEntry({
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
       displayText: buildResearchTaskDisplayText(config, selectedTask, files),
-      ...(config.title === '文献阅读' ? { inlineModule: 'literature' as const } : {})
+      ...(config.inlineConversationModule ? { inlineModule: config.inlineConversationModule } : {})
     })
   }
 
@@ -654,6 +663,7 @@ export const PAPER_CONFIG: ModuleConfig = {
   title: '科研文本写作',
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
   gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
+  inlineConversationModule: 'paper-polish',
   taskEntry: {
     title: '开始一项写作任务',
     description: '输入研究主题、已有段落或修改要求；也可以添加论文、基金草稿或参考材料。',
@@ -712,6 +722,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
   title: '文献阅读',
   subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
   gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
+  inlineConversationModule: 'literature',
   taskEntry: {
     title: '开始文献阅读任务',
     description: '添加 PDF 或输入研究问题，系统会按科研问题而不是摘要堆叠来组织阅读结果。',
