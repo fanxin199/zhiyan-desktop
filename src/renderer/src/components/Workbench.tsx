@@ -470,9 +470,14 @@ export function Workbench(): ReactElement {
       }))
     })
   }
-  const renderModuleConversation = (title: string): ReactElement => (
+  const renderModuleConversation = (
+    title: string,
+    statusLabels?: { busy: string; ready: string }
+  ): ReactElement => (
     <ModuleConversationPanel
       title={title}
+      busyLabel={statusLabels?.busy}
+      readyLabel={statusLabels?.ready}
       busy={busy}
       input={input}
       setInput={setInput}
@@ -585,7 +590,10 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               inlineConversationThreadIds.syllabus === activeThreadId
             }
-            inlineConversation={renderModuleConversation('教案生成')}
+            inlineConversation={renderModuleConversation('教案生成', {
+              busy: '正在生成教案',
+              ready: '教案已生成'
+            })}
             className="ds-no-drag"
           />
         ) : route === 'ppt-gen' ? (
@@ -597,7 +605,10 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               inlineConversationThreadIds['paper-polish'] === activeThreadId
             }
-            inlineConversation={renderModuleConversation('文本写作')}
+            inlineConversation={renderModuleConversation('文本写作', {
+              busy: '正在处理写作任务',
+              ready: '写作任务已完成'
+            })}
             className="ds-no-drag"
           />
         ) : route === 'literature' ? (
@@ -606,7 +617,10 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               inlineConversationThreadIds.literature === activeThreadId
             }
-            inlineConversation={renderModuleConversation('文献解读')}
+            inlineConversation={renderModuleConversation('文献解读', {
+              busy: '正在解读',
+              ready: '解读已完成'
+            })}
             className="ds-no-drag"
           />
         ) : route === 'review-writing' ? (
@@ -616,7 +630,10 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               inlineConversationThreadIds['review-writing'] === activeThreadId
             }
-            inlineConversation={renderModuleConversation('综述撰写')}
+            inlineConversation={renderModuleConversation('综述撰写', {
+              busy: '正在处理综述任务',
+              ready: '综述任务已完成'
+            })}
             className="ds-no-drag"
           />
         ) : route === 'grant-writing' ? (
@@ -626,13 +643,26 @@ export function Workbench(): ReactElement {
             showInlineConversation={
               inlineConversationThreadIds['grant-writing'] === activeThreadId
             }
-            inlineConversation={renderModuleConversation('自然基金撰写')}
+            inlineConversation={renderModuleConversation('自然基金撰写', {
+              busy: '正在处理基金任务',
+              ready: '基金任务已完成'
+            })}
             className="ds-no-drag"
           />
         ) : route === 'textbook' ? (
           <TextbookPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'bioinformatics' ? (
-          <BioinformaticsPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <BioinformaticsPage
+            onStartChat={handleModuleQuickPrompt}
+            showInlineConversation={
+              inlineConversationThreadIds.bioinformatics === activeThreadId
+            }
+            inlineConversation={renderModuleConversation('科研数据分析', {
+              busy: '正在读取并分析数据',
+              ready: '分析已完成'
+            })}
+            className="ds-no-drag"
+          />
         ) : route === 'file-manager' ? (
           <FileManagerPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
         ) : route === 'plugins' ? (

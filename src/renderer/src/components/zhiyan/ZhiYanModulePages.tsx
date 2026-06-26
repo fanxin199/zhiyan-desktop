@@ -922,6 +922,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   title: '下游数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
   gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
+  inlineConversationModule: 'bioinformatics',
   taskEntry: {
     title: '开始下游数据分析任务',
     description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的免疫学问题。',

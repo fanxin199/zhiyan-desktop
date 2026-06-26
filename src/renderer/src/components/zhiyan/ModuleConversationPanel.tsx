@@ -9,6 +9,8 @@ import type { ComposerReasoningEffort } from '../chat/FloatingComposerModelPicke
 
 type Props = {
   title: string
+  busyLabel?: string
+  readyLabel?: string
   input: string
   setInput: (value: string) => void
   mode: 'plan' | 'agent'
@@ -35,6 +37,8 @@ type Props = {
 
 export function ModuleConversationPanel({
   title,
+  busyLabel = '正在处理',
+  readyLabel = '已完成',
   input,
   setInput,
   mode,
@@ -67,7 +71,7 @@ export function ModuleConversationPanel({
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 text-[12px] text-ds-muted">
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" strokeWidth={1.9} /> : null}
-          {busy ? '正在解读' : '已完成'}
+          {busy ? busyLabel : readyLabel}
         </span>
       </header>
       <div className="min-h-0 flex-1 bg-ds-main/35 dark:bg-transparent">
