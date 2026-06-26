@@ -95,6 +95,7 @@ export function coerceRendererSettings(settings: AppSettingsV1): AppSettingsV1 {
     notifications: {
       turnComplete: raw.notifications?.turnComplete !== false
     },
+    showTechnicalMetrics: raw.showTechnicalMetrics === true,
     appBehavior: normalizeAppBehaviorSettings(raw.appBehavior),
     write: normalizeWriteSettings(raw.write),
     claw: normalizeClawSettings(raw.claw),

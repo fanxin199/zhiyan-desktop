@@ -307,6 +307,8 @@
   "applied": "Applied",
   "applyFailed": "Could not apply",
   "autoApplyBlocked": "Fix the port to apply changes",
+  "showTechnicalMetrics": "Show technical metrics",
+  "showTechnicalMetricsDesc": "Show mode, token usage, cost, and cache hit rate in the conversation header. Hidden by default to keep the workspace focused.",
   "workspaceRoot": "Default working directory",
   "workspaceRootDesc": "First launch uses ~/.zhiyan/default_workspace by default, and you can change it to another directory.",
   "workspaceRootPlaceholder": "~/.zhiyan/default_workspace",

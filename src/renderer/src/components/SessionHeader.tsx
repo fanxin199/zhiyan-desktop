@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { GitFork } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { rendererRuntimeClient } from '../agent/runtime-client'
 import { useChatStore } from '../store/chat-store'
 import { formatRelativeTime } from '../lib/format-relative-time'
 import { workspaceLabelFromPath } from '../lib/workspace-label'
@@ -12,6 +13,10 @@ type Props = {
   className?: string
 }
 
+export function shouldShowTechnicalMetrics(compact: boolean, enabled: boolean): boolean {
+  return !compact && enabled
+}
+
 export function SessionHeader({ compact = false, className = '' }: Props): ReactElement {
   const { t, i18n } = useTranslation('common')
   const threads = useChatStore((s) => s.threads)
@@ -20,6 +25,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
   const runtimeConnection = useChatStore((s) => s.runtimeConnection)
   const workspaceLabel = useChatStore((s) => s.workspaceLabel)
   const renameActiveThread = useChatStore((s) => s.renameActiveThread)
+  const [showTechnicalMetrics, setShowTechnicalMetrics] = useState(false)
 
   const active = threads.find((th) => th.id === activeThreadId)
   const activeWorkspaceLabel = active?.workspace
@@ -27,9 +33,10 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
     : workspaceLabel
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
+  const showFullTechnicalMetrics = shouldShowTechnicalMetrics(compact, showTechnicalMetrics)
   const threadUsage = useThreadUsage(
     activeThreadId,
-    runtimeConnection === 'ready',
+    showFullTechnicalMetrics && runtimeConnection === 'ready',
     `${active?.updatedAt ?? ''}:${busy ? 'busy' : 'idle'}`
   )
   const forkedFromTitle = active?.forkedFromTitle?.trim() ?? ''
@@ -48,6 +55,19 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
     }
     setEditing(false)
   }, [active])
+
+  useEffect(() => {
+    let cancelled = false
+    void rendererRuntimeClient
+      .getSettings()
+      .then((settings) => {
+        if (!cancelled) setShowTechnicalMetrics(settings.showTechnicalMetrics)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const commitTitle = (): void => {
     if (!active) {
@@ -79,42 +99,9 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
             <div className="session-header-compact-meta flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10.5px] leading-[15px] text-ds-faint">
               <span className="session-meta-workspace max-w-[min(42vw,240px)] truncate">{activeWorkspaceLabel}</span>
               <span className="session-meta-workspace-separator opacity-70">·</span>
-              <span className="session-meta-mode shrink-0 capitalize">{active.mode}</span>
-              <span className="session-meta-mode-separator opacity-70">·</span>
               <span className="session-meta-time shrink-0 tabular-nums">
                 {formatRelativeTime(active.updatedAt, i18n.language)}
               </span>
-              {active.forkedFromThreadId ? (
-                <>
-                  <span className="session-meta-fork-separator opacity-70">·</span>
-                  <span
-                    className="session-meta-fork inline-flex min-w-0 max-w-[min(34vw,220px)] items-center gap-1 truncate"
-                    title={forkLabel}
-                  >
-                    <GitFork className="h-3 w-3 shrink-0" strokeWidth={1.8} />
-                    <span className="truncate">
-                      {forkedFromTitle
-                        ? t('sessionForkedFromCompact', { title: forkedFromTitle })
-                        : t('sessionForked')}
-                    </span>
-                  </span>
-                </>
-              ) : null}
-              {threadUsage ? (
-                <>
-                  <span className="session-meta-usage-separator opacity-70">·</span>
-                  <span
-                    className="session-meta-usage shrink-0 tabular-nums"
-                    title={t('sessionUsageTitle', { turns: threadUsage.turns })}
-                  >
-                    {t('sessionUsageCompact', {
-                      tokens: formatCompactNumber(threadUsage.totalTokens),
-                      cost: formatCost(threadUsage.costUsd, i18n.language, threadUsage.costCny),
-                      cache: formatPercent(threadUsage.cacheHitRate)
-                    })}
-                  </span>
-                </>
-              ) : null}
             </div>
           </div>
         ) : (
@@ -134,8 +121,12 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
             <div className="mb-1 flex min-w-0 items-center gap-2 text-[12.5px] font-medium text-ds-faint">
               <span>{activeWorkspaceLabel}</span>
               <span>·</span>
-              <span className="capitalize">{active.mode}</span>
-              <span>·</span>
+              {showFullTechnicalMetrics ? (
+                <>
+                  <span className="capitalize">{active.mode}</span>
+                  <span>·</span>
+                </>
+              ) : null}
               <span>{formatRelativeTime(active.updatedAt, i18n.language)}</span>
             </div>
             <div className="flex min-w-0 items-center gap-2.5">
@@ -170,9 +161,11 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
               )}
             </div>
             <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-[12.5px] text-ds-faint">
-              <span className="inline-flex items-center rounded-full border border-ds-border bg-ds-subtle px-2.5 py-1 font-medium capitalize text-ds-muted">
-                {active.mode}
-              </span>
+              {showFullTechnicalMetrics ? (
+                <span className="inline-flex items-center rounded-full border border-ds-border bg-ds-subtle px-2.5 py-1 font-medium capitalize text-ds-muted">
+                  {active.mode}
+                </span>
+              ) : null}
               {active.workspace ? (
                 <span className="truncate rounded-full border border-ds-border bg-ds-card/70 px-2.5 py-1">
                   {active.workspace.split(/[/\\]/).pop()}
@@ -187,7 +180,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
                   <span className="truncate">{forkLabel}</span>
                 </span>
               ) : null}
-              {threadUsage ? (
+              {showFullTechnicalMetrics && threadUsage ? (
                 <>
                   <span
                     className="inline-flex items-center rounded-full border border-ds-border bg-ds-subtle px-2.5 py-1 font-medium text-ds-muted"

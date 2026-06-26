@@ -450,6 +450,7 @@ export type AppSettingsV1 = {
   workspaceRoot: string
   log: LogConfigV1
   notifications: NotificationConfigV1
+  showTechnicalMetrics: boolean
   appBehavior: AppBehaviorConfigV1
   write: WriteSettingsV1
   claw: ClawSettingsV1

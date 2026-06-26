@@ -116,6 +116,7 @@ describe('Kun single-agent regression', () => {
       workspaceRoot: '/tmp',
       log: { enabled: true, retentionDays: 7 },
       notifications: { turnComplete: true },
+      showTechnicalMetrics: false,
       appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
       write: defaultWriteSettings(),
       claw: defaultClawSettings(),

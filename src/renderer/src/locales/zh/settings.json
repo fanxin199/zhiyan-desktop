@@ -307,6 +307,8 @@
   "applied": "已应用",
   "applyFailed": "应用失败",
   "autoApplyBlocked": "修正端口后自动应用",
+  "showTechnicalMetrics": "显示技术指标",
+  "showTechnicalMetricsDesc": "在会话标题区域显示模式、Token 用量、费用和缓存命中率。默认隐藏，避免干扰日常工作。",
   "workspaceRoot": "默认工作目录",
   "workspaceRootDesc": "首次启动默认使用 ~/.zhiyan/default_workspace；你也可以改成别的目录。",
   "workspaceRootPlaceholder": "~/.zhiyan/default_workspace",

@@ -39,11 +39,11 @@
 
 ### Task 0.2 · SessionHeader 隐藏技术指标
 
-- [ ] **0.2.1** 在 `src/renderer/src/components/SessionHeader.tsx` 中：
+- [x] **0.2.1** 在 `src/renderer/src/components/SessionHeader.tsx` 中：
   - compact 模式下只保留：**对话标题** + **工作区名** + **相对时间**。
   - 隐藏 `mode`（"agent"字样）、`tokens`、`cost`、`cacheHitRate` 显示。
   - 将"分叉"标签文案改为"从『XXX』新建的分支"（中文友好）。
-- [ ] **0.2.2** 增加一个 app-settings 布尔选项 `showTechnicalMetrics`（默认 false），仅当开启时才在 SessionHeader 中显示完整技术指标。需同步更新 `src/shared/app-settings-types.ts` 的类型定义和 `settings-section-general.tsx` 的 UI 开关。
+- [x] **0.2.2** 增加一个 app-settings 布尔选项 `showTechnicalMetrics`（默认 false），仅当开启时才在 SessionHeader 中显示完整技术指标。需同步更新 `src/shared/app-settings-types.ts` 的类型定义和 `settings-section-general.tsx` 的 UI 开关。
 
 ### Task 0.3 · 术语中文化
 

@@ -511,6 +511,7 @@ const settingsPatchObjectSchema = z.object({
   workspaceRoot: defaultPathSchema,
   log: logPatchSchema.optional(),
   notifications: notificationsPatchSchema.optional(),
+  showTechnicalMetrics: z.boolean().optional(),
   appBehavior: appBehaviorPatchSchema.optional(),
   write: writeSettingsPatchSchema.optional(),
   claw: clawSettingsPatchSchema.optional(),

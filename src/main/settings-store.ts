@@ -296,6 +296,7 @@ const defaultSettings = (): AppSettingsV1 => ({
   notifications: {
     turnComplete: true
   },
+  showTechnicalMetrics: false,
   appBehavior: normalizeAppBehaviorSettings(),
   guiUpdate: {
     channel: DEFAULT_GUI_UPDATE_CHANNEL

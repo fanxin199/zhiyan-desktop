@@ -63,6 +63,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
     notifications: {
       turnComplete: maybeSettings.notifications?.turnComplete !== false
     },
+    showTechnicalMetrics: maybeSettings.showTechnicalMetrics === true,
     appBehavior: normalizeAppBehaviorSettings(maybeSettings.appBehavior),
     write: normalizeWriteSettings(maybeSettings.write),
     claw: normalizeClawSettings(maybeSettings.claw),

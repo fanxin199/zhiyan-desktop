@@ -42,6 +42,7 @@ function settings(): AppSettingsV1 {
     workspaceRoot: '/tmp/workspace',
     log: { enabled: false, retentionDays: 7 },
     notifications: { turnComplete: true },
+    showTechnicalMetrics: false,
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),
@@ -173,6 +174,22 @@ describe('app behavior settings', () => {
       startMinimized: false,
       closeToTray: true
     })
+  })
+})
+
+describe('technical metrics visibility setting', () => {
+  it('defaults to hidden and preserves an explicit opt-in', () => {
+    const hiddenByDefault = normalizeAppSettings({
+      ...settings(),
+      showTechnicalMetrics: undefined
+    } as unknown as AppSettingsV1) as unknown as { showTechnicalMetrics: boolean }
+    const enabled = normalizeAppSettings({
+      ...settings(),
+      showTechnicalMetrics: true
+    } as unknown as AppSettingsV1) as unknown as { showTechnicalMetrics: boolean }
+
+    expect(hiddenByDefault.showTechnicalMetrics).toBe(false)
+    expect(enabled.showTechnicalMetrics).toBe(true)
   })
 })
 

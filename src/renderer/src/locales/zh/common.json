@@ -893,7 +893,7 @@
   "compactThread": "压缩会话",
   "forkThread": "分叉会话",
   "sessionForked": "分叉会话",
-  "sessionForkedFrom": "分叉自 {{title}}",
+  "sessionForkedFrom": "从『{{title}}』新建的分支",
   "sessionForkedFromCompact": "来自 {{title}}",
   "goalUserMessage": "目标：{{objective}}",
   "goalNoActiveTitle": "当前没有目标",

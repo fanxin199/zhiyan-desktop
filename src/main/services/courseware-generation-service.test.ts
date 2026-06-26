@@ -34,6 +34,7 @@ function settings(): AppSettingsV1 {
     workspaceRoot: 'C:\\workspace',
     log: { enabled: false, retentionDays: 7 },
     notifications: { turnComplete: true },
+    showTechnicalMetrics: false,
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

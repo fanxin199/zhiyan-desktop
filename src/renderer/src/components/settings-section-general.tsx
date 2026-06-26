@@ -197,6 +197,16 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   }
                 />
                 <SettingRow
+                  title={t('showTechnicalMetrics')}
+                  description={t('showTechnicalMetricsDesc')}
+                  control={
+                    <Toggle
+                      checked={form.showTechnicalMetrics}
+                      onChange={(v) => update({ showTechnicalMetrics: v })}
+                    />
+                  }
+                />
+                <SettingRow
                   title={t('workspaceRoot')}
                   description={t('workspaceRootDesc')}
                   control={
