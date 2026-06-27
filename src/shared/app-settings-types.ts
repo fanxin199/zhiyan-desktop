@@ -203,6 +203,14 @@ export type NotificationConfigV1 = {
   turnComplete: boolean
 }
 
+export type TeacherProfileSettingsV1 = {
+  name: string
+  school: string
+  department: string
+  courses: string[]
+  researchTopics: string[]
+}
+
 export type AppBehaviorConfigV1 = {
   openAtLogin: boolean
   startMinimized: boolean
@@ -451,6 +459,7 @@ export type AppSettingsV1 = {
   log: LogConfigV1
   notifications: NotificationConfigV1
   showTechnicalMetrics: boolean
+  teacherProfile: TeacherProfileSettingsV1
   appBehavior: AppBehaviorConfigV1
   write: WriteSettingsV1
   claw: ClawSettingsV1
@@ -459,12 +468,13 @@ export type AppSettingsV1 = {
 }
 
 export type AppSettingsPatch = Partial<
-  Omit<AppSettingsV1, 'provider' | 'agents' | 'log' | 'notifications' | 'appBehavior' | 'write' | 'claw' | 'schedule' | 'guiUpdate'>
+  Omit<AppSettingsV1, 'provider' | 'agents' | 'log' | 'notifications' | 'teacherProfile' | 'appBehavior' | 'write' | 'claw' | 'schedule' | 'guiUpdate'>
 > & {
   provider?: ModelProviderSettingsPatchV1
   agents?: KunSettingsEnvelopePatchV1
   log?: Partial<LogConfigV1>
   notifications?: Partial<NotificationConfigV1>
+  teacherProfile?: Partial<TeacherProfileSettingsV1>
   appBehavior?: Partial<AppBehaviorConfigV1>
   write?: WriteSettingsPatchV1
   claw?: ClawSettingsPatchV1

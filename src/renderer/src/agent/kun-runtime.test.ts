@@ -26,6 +26,13 @@ function settings(): AppSettingsV1 {
     log: { enabled: false, retentionDays: 7 },
     notifications: { turnComplete: true },
     showTechnicalMetrics: false,
+    teacherProfile: {
+      name: '',
+      school: '',
+      department: '',
+      courses: [],
+      researchTopics: []
+    },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

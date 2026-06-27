@@ -284,6 +284,14 @@ const notificationsPatchSchema = z.object({
   turnComplete: z.boolean().optional()
 }).strict()
 
+const teacherProfilePatchSchema = z.object({
+  name: z.string().trim().max(120).optional(),
+  school: z.string().trim().max(200).optional(),
+  department: z.string().trim().max(200).optional(),
+  courses: z.array(z.string().trim().max(160)).max(100).optional(),
+  researchTopics: z.array(z.string().trim().max(200)).max(100).optional()
+}).strict()
+
 const appBehaviorPatchSchema = z.object({
   openAtLogin: z.boolean().optional(),
   startMinimized: z.boolean().optional(),
@@ -512,6 +520,7 @@ const settingsPatchObjectSchema = z.object({
   log: logPatchSchema.optional(),
   notifications: notificationsPatchSchema.optional(),
   showTechnicalMetrics: z.boolean().optional(),
+  teacherProfile: teacherProfilePatchSchema.optional(),
   appBehavior: appBehaviorPatchSchema.optional(),
   write: writeSettingsPatchSchema.optional(),
   claw: clawSettingsPatchSchema.optional(),

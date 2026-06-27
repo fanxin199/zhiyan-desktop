@@ -7,6 +7,7 @@ import {
   type GuiUpdateConfigV1,
   type NotificationConfigV1,
   type ScheduleSettingsPatchV1,
+  type TeacherProfileSettingsV1,
   type WriteSettingsPatchV1
 } from './app-settings-types'
 import {
@@ -17,7 +18,7 @@ import {
   migrateLegacyAppSettings
 } from './app-settings-kun'
 import { normalizeModelProviderSettings } from './app-settings-provider'
-import { normalizeDeepseekBaseUrl } from './app-settings-normalizers'
+import { compactStrings, normalizeDeepseekBaseUrl } from './app-settings-normalizers'
 import { normalizeClawSettings } from './app-settings-claw'
 import { normalizeScheduleSettings } from './app-settings-schedule'
 import { normalizeWriteSettings } from './app-settings-write'
@@ -29,6 +30,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
   const maybeSettings = migrated as AppSettingsV1 & {
     appBehavior?: Partial<AppBehaviorConfigV1>
     notifications?: Partial<NotificationConfigV1>
+    teacherProfile?: Partial<TeacherProfileSettingsV1>
     provider?: Parameters<typeof normalizeModelProviderSettings>[0]
     write?: WriteSettingsPatchV1
     claw?: ClawSettingsPatchV1
@@ -64,6 +66,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
       turnComplete: maybeSettings.notifications?.turnComplete !== false
     },
     showTechnicalMetrics: maybeSettings.showTechnicalMetrics === true,
+    teacherProfile: normalizeTeacherProfileSettings(maybeSettings.teacherProfile),
     appBehavior: normalizeAppBehaviorSettings(maybeSettings.appBehavior),
     write: normalizeWriteSettings(maybeSettings.write),
     claw: normalizeClawSettings(maybeSettings.claw),
@@ -73,6 +76,18 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
         maybeSettings.guiUpdate?.channel ?? DEFAULT_GUI_UPDATE_CHANNEL
       )
     }
+  }
+}
+
+export function normalizeTeacherProfileSettings(
+  profile?: Partial<TeacherProfileSettingsV1>
+): TeacherProfileSettingsV1 {
+  return {
+    name: typeof profile?.name === 'string' ? profile.name.trim() : '',
+    school: typeof profile?.school === 'string' ? profile.school.trim() : '',
+    department: typeof profile?.department === 'string' ? profile.department.trim() : '',
+    courses: compactStrings(profile?.courses),
+    researchTopics: compactStrings(profile?.researchTopics)
   }
 }
 

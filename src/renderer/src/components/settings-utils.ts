@@ -14,6 +14,7 @@ import {
   normalizeGuiUpdateChannel,
   normalizeModelProviderSettings,
   normalizeScheduleSettings,
+  normalizeTeacherProfileSettings,
   normalizeWriteSettings,
   type AppSettingsPatch,
   type AppSettingsV1
@@ -56,6 +57,10 @@ export function mergeSettings(current: AppSettingsV1, patch: SettingsPatch): App
       ...safeCurrent.notifications,
       ...(patch.notifications ?? {})
     },
+    teacherProfile: normalizeTeacherProfileSettings({
+      ...safeCurrent.teacherProfile,
+      ...(patch.teacherProfile ?? {})
+    }),
     appBehavior: normalizeAppBehaviorSettings({
       ...safeCurrent.appBehavior,
       ...(patch.appBehavior ?? {})
@@ -96,6 +101,7 @@ export function coerceRendererSettings(settings: AppSettingsV1): AppSettingsV1 {
       turnComplete: raw.notifications?.turnComplete !== false
     },
     showTechnicalMetrics: raw.showTechnicalMetrics === true,
+    teacherProfile: normalizeTeacherProfileSettings(raw.teacherProfile),
     appBehavior: normalizeAppBehaviorSettings(raw.appBehavior),
     write: normalizeWriteSettings(raw.write),
     claw: normalizeClawSettings(raw.claw),

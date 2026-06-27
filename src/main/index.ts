@@ -17,6 +17,7 @@ import {
   mergeWriteSettings,
   normalizeAppSettings,
   normalizeAppBehaviorSettings,
+  normalizeTeacherProfileSettings,
   resolveKunRuntimeSettings,
   type AppBehaviorConfigV1,
   type AppSettingsPatch,
@@ -693,6 +694,10 @@ app.whenReady().then(async () => {
       provider: mergeModelProviderSettings(prev.provider, providerPatch),
       log: { ...prev.log, ...(partial.log ?? {}) },
       notifications: { ...prev.notifications, ...(partial.notifications ?? {}) },
+      teacherProfile: normalizeTeacherProfileSettings({
+        ...prev.teacherProfile,
+        ...(partial.teacherProfile ?? {})
+      }),
       appBehavior: normalizeAppBehaviorSettings({
         ...prev.appBehavior,
         ...(partial.appBehavior ?? {})

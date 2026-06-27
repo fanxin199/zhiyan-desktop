@@ -19,6 +19,7 @@ import {
   mergeScheduleSettings,
   mergeWriteSettings,
   normalizeAppBehaviorSettings,
+  normalizeTeacherProfileSettings,
   migrateLegacyAppSettings,
   normalizeAppSettings,
   type AppSettingsPatch,
@@ -297,6 +298,7 @@ const defaultSettings = (): AppSettingsV1 => ({
     turnComplete: true
   },
   showTechnicalMetrics: false,
+  teacherProfile: normalizeTeacherProfileSettings(),
   appBehavior: normalizeAppBehaviorSettings(),
   guiUpdate: {
     channel: DEFAULT_GUI_UPDATE_CHANNEL
@@ -318,6 +320,10 @@ function buildMergedSettings(parsed: Partial<AppSettingsV1>): AppSettingsV1 {
     ),
     log: { ...defaults.log, ...migrated.log },
     notifications: { ...defaults.notifications, ...migrated.notifications },
+    teacherProfile: normalizeTeacherProfileSettings({
+      ...defaults.teacherProfile,
+      ...migrated.teacherProfile
+    }),
     appBehavior: normalizeAppBehaviorSettings({
       ...defaults.appBehavior,
       ...migrated.appBehavior
@@ -428,6 +434,10 @@ export class JsonSettingsStore {
       provider: mergeModelProviderSettings(cur.provider, providerPatch),
       log: { ...cur.log, ...(partial.log ?? {}) },
       notifications: { ...cur.notifications, ...(partial.notifications ?? {}) },
+      teacherProfile: normalizeTeacherProfileSettings({
+        ...cur.teacherProfile,
+        ...(partial.teacherProfile ?? {})
+      }),
       appBehavior: normalizeAppBehaviorSettings({
         ...cur.appBehavior,
         ...(partial.appBehavior ?? {})

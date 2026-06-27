@@ -43,6 +43,13 @@ function settings(): AppSettingsV1 {
     log: { enabled: false, retentionDays: 7 },
     notifications: { turnComplete: true },
     showTechnicalMetrics: false,
+    teacherProfile: {
+      name: '',
+      school: '',
+      department: '',
+      courses: [],
+      researchTopics: []
+    },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),
@@ -190,6 +197,40 @@ describe('technical metrics visibility setting', () => {
 
     expect(hiddenByDefault.showTechnicalMetrics).toBe(false)
     expect(enabled.showTechnicalMetrics).toBe(true)
+  })
+})
+
+describe('teacher profile settings', () => {
+  it('defaults to empty teacher profile fields and preserves saved values', () => {
+    const emptyProfile = normalizeAppSettings({
+      ...settings(),
+      teacherProfile: undefined
+    } as unknown as AppSettingsV1).teacherProfile
+    const savedProfile = normalizeAppSettings({
+      ...settings(),
+      teacherProfile: {
+        name: '李老师',
+        school: '医学院',
+        department: '免疫学系',
+        courses: ['医学免疫学', '肿瘤免疫学'],
+        researchTopics: ['B 细胞亚群', 'TLS']
+      }
+    }).teacherProfile
+
+    expect(emptyProfile).toEqual({
+      name: '',
+      school: '',
+      department: '',
+      courses: [],
+      researchTopics: []
+    })
+    expect(savedProfile).toEqual({
+      name: '李老师',
+      school: '医学院',
+      department: '免疫学系',
+      courses: ['医学免疫学', '肿瘤免疫学'],
+      researchTopics: ['B 细胞亚群', 'TLS']
+    })
   })
 })
 

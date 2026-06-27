@@ -43,6 +43,13 @@ function createSettings(patch: Partial<AppSettingsV1['write']['inlineCompletion'
       turnComplete: true
     },
     showTechnicalMetrics: false,
+    teacherProfile: {
+      name: '',
+      school: '',
+      department: '',
+      courses: [],
+      researchTopics: []
+    },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: {
       ...write,

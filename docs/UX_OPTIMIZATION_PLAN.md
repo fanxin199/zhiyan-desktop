@@ -67,7 +67,7 @@
 
 ### Task 1.1 · 教师档案持久化
 
-- [ ] **1.1.1** 在 `src/shared/app-settings-types.ts` 中增加 `teacherProfile` 字段：
+- [x] **1.1.1** 在 `src/shared/app-settings-types.ts` 中增加 `teacherProfile` 字段：
   ```ts
   teacherProfile: {
     name: string
