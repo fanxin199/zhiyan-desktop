@@ -67,6 +67,20 @@ type ModuleTaskStartOptions = {
   setInput: (value: string) => void
 }
 
+type InlineConversationThreadIds = Partial<Record<InlineModuleId, string>>
+
+export function isInlineModuleConversationVisible({
+  inlineConversationThreadIds,
+  moduleId,
+  activeThreadId
+}: {
+  inlineConversationThreadIds: InlineConversationThreadIds
+  moduleId: InlineModuleId
+  activeThreadId: string | null
+}): boolean {
+  return Boolean(activeThreadId && inlineConversationThreadIds[moduleId] === activeThreadId)
+}
+
 export async function startModuleTask({
   prompt,
   workspaceRoot,
@@ -225,7 +239,7 @@ export function Workbench(): ReactElement {
   const [attachmentUploadError, setAttachmentUploadError] = useState<string | null>(null)
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [inlineConversationThreadIds, setInlineConversationThreadIds] =
-    useState<Partial<Record<InlineModuleId, string>>>({})
+    useState<InlineConversationThreadIds>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
   const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
@@ -587,9 +601,11 @@ export function Workbench(): ReactElement {
         ) : route === 'syllabus' ? (
           <SyllabusPage
             onStartChat={handleModuleQuickPrompt}
-            showInlineConversation={
-              inlineConversationThreadIds.syllabus === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'syllabus',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('教案生成', {
               busy: '正在生成教案',
               ready: '教案已生成'
@@ -602,9 +618,11 @@ export function Workbench(): ReactElement {
           <PaperPolishPage
             onStartChat={handleModuleQuickPrompt}
             onOpenWrite={openWriteMode}
-            showInlineConversation={
-              inlineConversationThreadIds['paper-polish'] === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'paper-polish',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('文本写作', {
               busy: '正在处理写作任务',
               ready: '写作任务已完成'
@@ -614,9 +632,11 @@ export function Workbench(): ReactElement {
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
-            showInlineConversation={
-              inlineConversationThreadIds.literature === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'literature',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('文献解读', {
               busy: '正在解读',
               ready: '解读已完成'
@@ -627,9 +647,11 @@ export function Workbench(): ReactElement {
           <ReviewWritingPage
             onStartChat={handleModuleQuickPrompt}
             onOpenWrite={openWriteMode}
-            showInlineConversation={
-              inlineConversationThreadIds['review-writing'] === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'review-writing',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('综述撰写', {
               busy: '正在处理综述任务',
               ready: '综述任务已完成'
@@ -640,9 +662,11 @@ export function Workbench(): ReactElement {
           <GrantWritingPage
             onStartChat={handleModuleQuickPrompt}
             onOpenWrite={openWriteMode}
-            showInlineConversation={
-              inlineConversationThreadIds['grant-writing'] === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'grant-writing',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('自然基金撰写', {
               busy: '正在处理基金任务',
               ready: '基金任务已完成'
@@ -654,9 +678,11 @@ export function Workbench(): ReactElement {
         ) : route === 'bioinformatics' ? (
           <BioinformaticsPage
             onStartChat={handleModuleQuickPrompt}
-            showInlineConversation={
-              inlineConversationThreadIds.bioinformatics === activeThreadId
-            }
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'bioinformatics',
+              activeThreadId
+            })}
             inlineConversation={renderModuleConversation('科研数据分析', {
               busy: '正在读取并分析数据',
               ready: '分析已完成'

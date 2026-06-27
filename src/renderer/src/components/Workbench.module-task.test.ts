@@ -66,3 +66,63 @@ describe('module task launch', () => {
     )
   })
 })
+
+describe('module conversation isolation', () => {
+  it('shows each inline module conversation only when its own thread is active', () => {
+    const isInlineModuleConversationVisible = (
+      workbench as WorkbenchModule & {
+        isInlineModuleConversationVisible?: (options: {
+          inlineConversationThreadIds: Partial<Record<InlineModuleId, string>>
+          moduleId: InlineModuleId
+          activeThreadId: string | null
+        }) => boolean
+      }
+    ).isInlineModuleConversationVisible
+
+    const moduleIds: InlineModuleId[] = [
+      'literature',
+      'syllabus',
+      'paper-polish',
+      'review-writing',
+      'grant-writing',
+      'bioinformatics'
+    ]
+    const threadIds: Partial<Record<InlineModuleId, string>> = {
+      literature: 'thread-literature',
+      syllabus: 'thread-syllabus',
+      'paper-polish': 'thread-paper',
+      'review-writing': 'thread-review',
+      'grant-writing': 'thread-grant',
+      bioinformatics: 'thread-data'
+    }
+
+    expect(isInlineModuleConversationVisible).toBeTypeOf('function')
+    for (const moduleId of moduleIds) {
+      const ownThreadId = threadIds[moduleId]
+      const otherThreadId = moduleIds
+        .map((candidate) => threadIds[candidate])
+        .find((threadId) => threadId && threadId !== ownThreadId)
+
+      expect(isInlineModuleConversationVisible?.({
+        inlineConversationThreadIds: threadIds,
+        moduleId,
+        activeThreadId: ownThreadId ?? null
+      })).toBe(true)
+      expect(isInlineModuleConversationVisible?.({
+        inlineConversationThreadIds: threadIds,
+        moduleId,
+        activeThreadId: otherThreadId ?? null
+      })).toBe(false)
+      expect(isInlineModuleConversationVisible?.({
+        inlineConversationThreadIds: threadIds,
+        moduleId,
+        activeThreadId: 'thread-chat'
+      })).toBe(false)
+      expect(isInlineModuleConversationVisible?.({
+        inlineConversationThreadIds: threadIds,
+        moduleId,
+        activeThreadId: null
+      })).toBe(false)
+    }
+  })
+})
