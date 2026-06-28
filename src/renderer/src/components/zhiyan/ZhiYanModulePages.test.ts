@@ -12,6 +12,7 @@ import {
   GRANT_CONFIG,
   LITERATURE_CONFIG,
   LiteraturePage,
+  loadSyllabusTeacherProfileDefaults,
   PAPER_CONFIG,
   PaperPolishPage,
   REVIEW_CONFIG,
@@ -184,6 +185,26 @@ describe('buildResearchTaskPrompt', () => {
 })
 
 describe('SyllabusPage task handoff', () => {
+  it('loads teacher profile defaults for lesson-plan identity fields', async () => {
+    const getSettings = vi.fn(async () => ({
+      teacherProfile: {
+        name: '李老师',
+        school: '某某医科大学',
+        department: '基础医学院免疫学系',
+        courses: ['医学免疫学'],
+        researchTopics: ['B 细胞亚群']
+      }
+    }))
+    vi.stubGlobal('window', { dsGui: { getSettings } })
+
+    await expect(loadSyllabusTeacherProfileDefaults()).resolves.toEqual({
+      teacher: '李老师',
+      school: '某某医科大学',
+      department: '基础医学院免疫学系'
+    })
+    expect(getSettings).toHaveBeenCalledTimes(1)
+  })
+
   it('renders an inline conversation slot when a lesson-plan task is active', () => {
     const html = renderToStaticMarkup(createElement(SyllabusPage, {
       onStartChat: noop,

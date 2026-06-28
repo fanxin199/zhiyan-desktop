@@ -17,6 +17,7 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
+import type { AppSettingsV1 } from '@shared/app-settings'
 import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
@@ -1057,6 +1058,31 @@ export function buildSyllabusTaskDisplayText(input: {
   return `智能教案生成：${label.slice(0, 80)}`
 }
 
+export type SyllabusTeacherProfileDefaults = {
+  teacher: string
+  school: string
+  department: string
+}
+
+export async function loadSyllabusTeacherProfileDefaults(
+  getSettings: (() => Promise<Pick<AppSettingsV1, 'teacherProfile'>>) | undefined =
+    typeof window === 'undefined' ? undefined : window.dsGui?.getSettings
+): Promise<SyllabusTeacherProfileDefaults> {
+  const emptyDefaults = { teacher: '', school: '', department: '' }
+  if (!getSettings) return emptyDefaults
+
+  try {
+    const settings = await getSettings()
+    return {
+      teacher: settings.teacherProfile.name.trim(),
+      school: settings.teacherProfile.school.trim(),
+      department: settings.teacherProfile.department.trim()
+    }
+  } catch {
+    return emptyDefaults
+  }
+}
+
 export function SyllabusPage({
   onStartChat,
   inlineConversation,
@@ -1087,11 +1113,43 @@ export function SyllabusPage({
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const conversationRef = useRef<HTMLDivElement | null>(null)
+  const identityTouchedRef = useRef({
+    teacher: false,
+    school: false,
+    department: false
+  })
 
   useEffect(() => {
     if (!showInlineConversation) return
     conversationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [showInlineConversation])
+
+  useEffect(() => {
+    let cancelled = false
+
+    void loadSyllabusTeacherProfileDefaults().then((defaults) => {
+      if (cancelled) return
+      if (defaults.teacher) {
+        setTeacher((current) =>
+          identityTouchedRef.current.teacher || current.trim() ? current : defaults.teacher
+        )
+      }
+      if (defaults.school) {
+        setSchool((current) =>
+          identityTouchedRef.current.school || current.trim() ? current : defaults.school
+        )
+      }
+      if (defaults.department) {
+        setDepartment((current) =>
+          identityTouchedRef.current.department || current.trim() ? current : defaults.department
+        )
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const toggleMethod = (method: string) => {
     setMethods((prev) =>
@@ -1361,7 +1419,10 @@ export function SyllabusPage({
                 <input
                   type="text"
                   value={teacher}
-                  onChange={(e) => setTeacher(e.target.value)}
+                  onChange={(e) => {
+                    identityTouchedRef.current.teacher = true
+                    setTeacher(e.target.value)
+                  }}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：张三"
                 />
@@ -1424,7 +1485,10 @@ export function SyllabusPage({
                 <input
                   type="text"
                   value={school}
-                  onChange={(e) => setSchool(e.target.value)}
+                  onChange={(e) => {
+                    identityTouchedRef.current.school = true
+                    setSchool(e.target.value)
+                  }}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：仙交大"
                 />
@@ -1434,7 +1498,10 @@ export function SyllabusPage({
                 <input
                   type="text"
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
+                  onChange={(e) => {
+                    identityTouchedRef.current.department = true
+                    setDepartment(e.target.value)
+                  }}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：基础医学院病原生物学与免疫学系"
                 />
