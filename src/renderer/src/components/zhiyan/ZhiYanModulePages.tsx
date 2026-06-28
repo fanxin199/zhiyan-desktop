@@ -1064,6 +1064,42 @@ export type SyllabusTeacherProfileDefaults = {
   department: string
 }
 
+export type SyllabusIdentityPromptSections = {
+  values: SyllabusTeacherProfileDefaults
+  basicInfoLines: string[]
+  writingInstructionLines: string[]
+}
+
+export function buildSyllabusIdentityPromptSections(
+  input: SyllabusTeacherProfileDefaults
+): SyllabusIdentityPromptSections {
+  const values = {
+    teacher: input.teacher.trim(),
+    school: input.school.trim(),
+    department: input.department.trim()
+  }
+
+  return {
+    values,
+    basicInfoLines: [
+      '- 学校名称：' + (values.school || '（用户未填写，教案中此处留空）'),
+      '- 学科系/院系：' + (values.department || '（用户未填写，教案中此处留空）'),
+      '- 授课教师：' + (values.teacher || '（用户未填写，教案中此处留空）')
+    ],
+    writingInstructionLines: [
+      values.school
+        ? '3. 学校名称字段：填写"' + values.school + '"。'
+        : '3. 学校名称字段：留空，不要写任何内容或提示符。',
+      values.department
+        ? '4. 学科系/院系字段：填写"' + values.department + '"。'
+        : '4. 学科系/院系字段：留空，不要写任何内容或提示符。',
+      values.teacher
+        ? '5. 授课教师字段：填写"' + values.teacher + '"。'
+        : '5. 授课教师字段：留空，不要写任何内容或提示符。'
+    ]
+  }
+}
+
 export async function loadSyllabusTeacherProfileDefaults(
   getSettings: (() => Promise<Pick<AppSettingsV1, 'teacherProfile'>>) | undefined =
     typeof window === 'undefined' ? undefined : window.dsGui?.getSettings
@@ -1285,10 +1321,12 @@ export function SyllabusPage({
       contentSourceSection = '直接使用以下内容源进行编写：\n' + sourceDetail
     }
 
-    // 学校、院系、教师：用户填了就用，没填就留空
-    const schoolValue = school.trim()
-    const departmentValue = department.trim()
-    const teacherValue = teacher.trim()
+    // 学校、院系、教师：优先使用表单当前值，表单可由教师档案自动填充，也可手动覆盖。
+    const identityPromptSections = buildSyllabusIdentityPromptSections({
+      school,
+      department,
+      teacher
+    })
 
     // 输出目录说明
     const outputDirNote = sourceDir
@@ -1313,9 +1351,7 @@ export function SyllabusPage({
     promptParts.push('- 整份教案总字数控制在1500-2500字以内。')
     promptParts.push('')
     promptParts.push('### 1. 教案基本信息：')
-    promptParts.push('- 学校名称：' + (schoolValue || '（用户未填写，教案中此处留空）'))
-    promptParts.push('- 学科系/院系：' + (departmentValue || '（用户未填写，教案中此处留空）'))
-    promptParts.push('- 授课教师：' + (teacherValue || '（用户未填写，教案中此处留空）'))
+    promptParts.push(...identityPromptSections.basicInfoLines)
     promptParts.push('- 课程名称：' + (courseName || '(请从内容源推断)'))
     promptParts.push('- 授课题目：' + (topic || '(请从内容源推断章节标题)'))
     promptParts.push('- 计划学时：' + (hours || '(请根据内容量合理设定)'))
@@ -1354,21 +1390,7 @@ export function SyllabusPage({
     promptParts.push('### 5. 内容编写指令：')
     promptParts.push('1. 从内容源中提炼核心知识点，用教学语言重新组织，不要照搬原文。')
     promptParts.push('2. 每个教案栏目内容要精练概括，严格控制字数，整份教案1500-2500字。')
-    if (schoolValue) {
-      promptParts.push('3. 学校名称字段：填写"' + schoolValue + '"。')
-    } else {
-      promptParts.push('3. 学校名称字段：留空，不要写任何内容或提示符。')
-    }
-    if (departmentValue) {
-      promptParts.push('4. 学科系/院系字段：填写"' + departmentValue + '"。')
-    } else {
-      promptParts.push('4. 学科系/院系字段：留空，不要写任何内容或提示符。')
-    }
-    if (teacherValue) {
-      promptParts.push('5. 授课教师字段：填写"' + teacherValue + '"。')
-    } else {
-      promptParts.push('5. 授课教师字段：留空，不要写任何内容或提示符。')
-    }
+    promptParts.push(...identityPromptSections.writingInstructionLines)
     promptParts.push('6. 教材和参考资料部分：只输出"教材："和"参考资料："的标题行，内容留白，由教师自行填写。')
     promptParts.push('7. 严格遵循格式模板的表格结构。')
 

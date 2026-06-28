@@ -81,7 +81,7 @@
 - [x] **1.1.2** 在 `src/renderer/src/components/settings-section-general.tsx` 中增加"教师信息"卡片 UI，包含以上字段的输入框和保存按钮。
 - [x] **1.1.3** 产品判断取消：首次配置流程不增加"教师信息"步骤；教师信息改由老师在"通用设置"中按需填写。
 - [x] **1.1.4** 修改 `SyllabusPage` 的表单，从 `electron-store` 读取 `teacherProfile` 自动填充"授课教师"、"学校名称"、"院系"字段。用户仍可手动覆盖。
-- [ ] **1.1.5** 验证其他需要教师信息的模块（如教案导出 prompt 中的 schoolValue/departmentValue/teacherValue）也能自动读取。
+- [x] **1.1.5** 验证其他需要教师信息的模块（如教案导出 prompt 中的 schoolValue/departmentValue/teacherValue）也能自动读取。
 
 ### Task 1.2 · Dashboard 增加"最近使用"区域
 

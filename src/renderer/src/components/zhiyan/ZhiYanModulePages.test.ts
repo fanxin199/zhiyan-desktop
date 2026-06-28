@@ -13,6 +13,7 @@ import {
   LITERATURE_CONFIG,
   LiteraturePage,
   loadSyllabusTeacherProfileDefaults,
+  buildSyllabusIdentityPromptSections,
   PAPER_CONFIG,
   PaperPolishPage,
   REVIEW_CONFIG,
@@ -203,6 +204,25 @@ describe('SyllabusPage task handoff', () => {
       department: '基础医学院免疫学系'
     })
     expect(getSettings).toHaveBeenCalledTimes(1)
+  })
+
+  it('injects resolved teacher identity values into the lesson-plan prompt sections', () => {
+    const sections = buildSyllabusIdentityPromptSections({
+      teacher: '李老师',
+      school: '某某医科大学',
+      department: '基础医学院免疫学系'
+    })
+
+    const promptText = [
+      ...sections.basicInfoLines,
+      ...sections.writingInstructionLines
+    ].join('\n')
+
+    expect(promptText).toContain('某某医科大学')
+    expect(promptText).toContain('基础医学院免疫学系')
+    expect(promptText).toContain('李老师')
+    expect(promptText).not.toContain('用户未填写')
+    expect(promptText).not.toContain('留空')
   })
 
   it('renders an inline conversation slot when a lesson-plan task is active', () => {
