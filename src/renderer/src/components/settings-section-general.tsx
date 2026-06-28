@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import type { ApprovalPolicy, AppSettingsV1, SandboxMode } from '@shared/app-settings'
 import {
   DEFAULT_WRITE_INLINE_COMPLETION_BASE_URL,
@@ -19,6 +19,25 @@ import {
   SettingRow,
   Toggle
 } from './settings-controls'
+import { listSettingsText, splitSettingsList } from './settings-utils'
+
+type TeacherProfileDraft = {
+  name: string
+  school: string
+  department: string
+  coursesText: string
+  researchTopicsText: string
+}
+
+function teacherProfileDraftFromSettings(form: AppSettingsV1): TeacherProfileDraft {
+  return {
+    name: form.teacherProfile.name,
+    school: form.teacherProfile.school,
+    department: form.teacherProfile.department,
+    coursesText: listSettingsText(form.teacherProfile.courses),
+    researchTopicsText: listSettingsText(form.teacherProfile.researchTopics)
+  }
+}
 
 export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): ReactElement {
   const {
@@ -91,6 +110,31 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
   const openAtLoginSupported = platform === 'win32' || platform === 'darwin'
   const startMinimizedSupported = platform === 'win32'
   const desktopBehavior = form.appBehavior
+  const [teacherProfileDraft, setTeacherProfileDraft] = useState<TeacherProfileDraft>(() =>
+    teacherProfileDraftFromSettings(form)
+  )
+
+  useEffect(() => {
+    setTeacherProfileDraft(teacherProfileDraftFromSettings(form))
+  }, [form])
+
+  const updateTeacherProfileDraft = (patch: Partial<TeacherProfileDraft>): void => {
+    setTeacherProfileDraft((current) => ({ ...current, ...patch }))
+  }
+
+  const saveTeacherProfile = (): void => {
+    update({
+      teacherProfile: {
+        name: teacherProfileDraft.name,
+        school: teacherProfileDraft.school,
+        department: teacherProfileDraft.department,
+        courses: splitSettingsList(teacherProfileDraft.coursesText),
+        researchTopics: splitSettingsList(teacherProfileDraft.researchTopicsText)
+      }
+    })
+  }
+  const teacherProfileFieldClass =
+    'w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30'
 
   return (
             <>
@@ -241,6 +285,86 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                     </div>
                   }
                 />
+              </SettingsCard>
+
+              <SettingsCard title={t('teacherProfileTitle')} className="mt-6">
+                <div className="px-3 py-4">
+                  <p className="max-w-3xl text-[13px] leading-relaxed text-ds-muted">
+                    {t('teacherProfileDesc')}
+                  </p>
+                  <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                    <label className="space-y-1.5">
+                      <span className="text-[13px] font-semibold text-ds-ink">
+                        {t('teacherProfileName')}
+                      </span>
+                      <input
+                        className={teacherProfileFieldClass}
+                        value={teacherProfileDraft.name}
+                        onChange={(e) => updateTeacherProfileDraft({ name: e.target.value })}
+                        placeholder={t('teacherProfileNamePlaceholder')}
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-[13px] font-semibold text-ds-ink">
+                        {t('teacherProfileSchool')}
+                      </span>
+                      <input
+                        className={teacherProfileFieldClass}
+                        value={teacherProfileDraft.school}
+                        onChange={(e) => updateTeacherProfileDraft({ school: e.target.value })}
+                        placeholder={t('teacherProfileSchoolPlaceholder')}
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-[13px] font-semibold text-ds-ink">
+                        {t('teacherProfileDepartment')}
+                      </span>
+                      <input
+                        className={teacherProfileFieldClass}
+                        value={teacherProfileDraft.department}
+                        onChange={(e) => updateTeacherProfileDraft({ department: e.target.value })}
+                        placeholder={t('teacherProfileDepartmentPlaceholder')}
+                      />
+                    </label>
+                  </div>
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <label className="space-y-1.5">
+                      <span className="text-[13px] font-semibold text-ds-ink">
+                        {t('teacherProfileCourses')}
+                      </span>
+                      <textarea
+                        className={`${teacherProfileFieldClass} min-h-28 resize-y leading-6`}
+                        value={teacherProfileDraft.coursesText}
+                        onChange={(e) =>
+                          updateTeacherProfileDraft({ coursesText: e.target.value })
+                        }
+                        placeholder={t('teacherProfileCoursesPlaceholder')}
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-[13px] font-semibold text-ds-ink">
+                        {t('teacherProfileResearchTopics')}
+                      </span>
+                      <textarea
+                        className={`${teacherProfileFieldClass} min-h-28 resize-y leading-6`}
+                        value={teacherProfileDraft.researchTopicsText}
+                        onChange={(e) =>
+                          updateTeacherProfileDraft({ researchTopicsText: e.target.value })
+                        }
+                        placeholder={t('teacherProfileResearchTopicsPlaceholder')}
+                      />
+                    </label>
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={saveTeacherProfile}
+                      className="rounded-xl border border-ds-border bg-ds-card px-4 py-2 text-[14px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                    >
+                      {t('teacherProfileSave')}
+                    </button>
+                  </div>
+                </div>
               </SettingsCard>
 
               <SettingsCard title={t('desktopBehavior')} className="mt-6">
