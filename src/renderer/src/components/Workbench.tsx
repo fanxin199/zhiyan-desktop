@@ -107,7 +107,8 @@ const MODULE_PROJECT_DEFAULTS: Record<InlineModuleId, {
   'paper-polish': { name: '科研文本写作', type: 'research' },
   'review-writing': { name: '综述撰写', type: 'research' },
   'grant-writing': { name: '自然基金撰写', type: 'research' },
-  bioinformatics: { name: '科研数据分析', type: 'research' }
+  bioinformatics: { name: '科研数据分析', type: 'research' },
+  'file-manager': { name: '文件管理', type: 'teaching' }
 }
 
 function teacherProjectNameFromDisplayText(displayText: string | undefined, fallback: string): string {
@@ -757,7 +758,19 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'file-manager' ? (
-          <FileManagerPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <FileManagerPage
+            onStartChat={handleModuleQuickPrompt}
+            showInlineConversation={isInlineModuleConversationVisible({
+              inlineConversationThreadIds,
+              moduleId: 'file-manager',
+              activeThreadId
+            })}
+            inlineConversation={renderModuleConversation('文件整理', {
+              busy: '正在生成整理方案',
+              ready: '整理方案已生成'
+            })}
+            className="ds-no-drag"
+          />
         ) : route === 'plugins' ? (
           <Suspense fallback={<div className="h-full bg-ds-main" />}>
             <PluginMarketplaceView />

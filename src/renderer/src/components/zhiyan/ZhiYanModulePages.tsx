@@ -30,6 +30,7 @@ export type InlineModuleId =
   | 'review-writing'
   | 'grant-writing'
   | 'bioinformatics'
+  | 'file-manager'
 
 type ModulePageProps = {
   onStartChat: (prompt: string, options?: {
@@ -1779,5 +1780,12 @@ export function BioinformaticsPage(props: ModulePageProps): ReactElement {
 }
 
 export function FileManagerPage(props: ModulePageProps): ReactElement {
-  return <FileManagerWorkspacePage onStartChat={props.onStartChat} className={props.className} />
+  return (
+    <FileManagerWorkspacePage
+      onStartChat={props.onStartChat}
+      inlineConversation={props.inlineConversation}
+      showInlineConversation={props.showInlineConversation}
+      className={props.className}
+    />
+  )
 }

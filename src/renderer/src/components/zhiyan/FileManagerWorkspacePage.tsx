@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import {
   ArrowUp,
+  Bot,
   CheckSquare,
   File,
   FileCode2,
@@ -14,6 +15,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Sparkles,
   Trash2,
   X
 } from 'lucide-react'
@@ -21,11 +23,18 @@ import type { WorkspaceEntry } from '@shared/workspace-file'
 import { useChatStore } from '../../store/chat-store'
 
 type Props = {
-  onStartChat: (prompt: string, options?: { workspaceRoot?: string; displayText?: string }) => void
+  onStartChat: (
+    prompt: string,
+    options?: { workspaceRoot?: string; displayText?: string; inlineModule?: 'file-manager' }
+  ) => void
+  inlineConversation?: ReactElement
+  showInlineConversation?: boolean
   className?: string
 }
 
 type FileCategory = 'all' | 'documents' | 'data' | 'images'
+type SidePanelMode = 'preview' | 'ai'
+type FileManagerAiTaskId = 'classify' | 'rename' | 'dedupe' | 'convert' | 'summarize'
 
 type PreviewState =
   | { kind: 'empty' }
@@ -39,6 +48,43 @@ type PreviewState =
 const DOCUMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'md', 'rtf'])
 const DATA_EXTENSIONS = new Set(['csv', 'tsv', 'xlsx', 'xls', 'h5ad', 'rds', 'json'])
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'])
+const FILE_MANAGER_AI_TASKS: Array<{
+  id: FileManagerAiTaskId
+  label: string
+  description: string
+  defaultRequest: string
+}> = [
+  {
+    id: 'classify',
+    label: '分类整理',
+    description: '按教学、科研、行政或主题建立整理方案',
+    defaultRequest: '请按用途和主题为这些文件设计分类整理方案。'
+  },
+  {
+    id: 'rename',
+    label: '规范命名',
+    description: '生成清晰、统一、可追溯的文件名',
+    defaultRequest: '请为这些文件设计规范命名方案，保留原始含义并避免覆盖同名文件。'
+  },
+  {
+    id: 'dedupe',
+    label: '查找重复文件',
+    description: '识别疑似重复、旧版和临时文件',
+    defaultRequest: '请检查这些文件中可能重复、过时或命名相近的项目，并给出处理建议。'
+  },
+  {
+    id: 'convert',
+    label: '转换格式',
+    description: '规划 Word、PDF、图片和表格的转换步骤',
+    defaultRequest: '请判断这些文件适合转换成哪些格式，并列出转换前需要确认的事项。'
+  },
+  {
+    id: 'summarize',
+    label: '提取摘要',
+    description: '为材料生成摘要、关键词和用途说明',
+    defaultRequest: '请为这些文件生成简要摘要、关键词和建议用途。'
+  }
+]
 
 function normalizePath(path: string): string {
   return path.replaceAll('\\', '/').replace(/\/+$/u, '')
@@ -59,6 +105,79 @@ function parentDirectory(path: string, root: string): string | null {
 function joinPath(directory: string, name: string): string {
   const separator = directory.includes('\\') ? '\\' : '/'
   return `${directory.replace(/[\\/]$/u, '')}${separator}${name}`
+}
+
+function entryLine(entry: WorkspaceEntry, index: number): string {
+  const kind = entry.type === 'directory' ? '文件夹' : (entry.ext || '文件').toUpperCase()
+  return `${index + 1}. ${entry.name}（${kind}）：${entry.path}`
+}
+
+export function buildFileManagerAiPrompt({
+  workspaceRoot,
+  directory,
+  taskLabel,
+  userRequest,
+  selectedFiles,
+  visibleEntries
+}: {
+  workspaceRoot: string
+  directory: string
+  taskLabel: string
+  userRequest: string
+  selectedFiles: WorkspaceEntry[]
+  visibleEntries: WorkspaceEntry[]
+}): string {
+  const scopedEntries = selectedFiles.length > 0
+    ? selectedFiles
+    : visibleEntries.slice(0, 80)
+  const lines = [
+    '你正在处理「文件管理」模块中的 AI 文件整理任务。',
+    '',
+    '## 任务类型',
+    taskLabel,
+    '',
+    '## 当前文件夹',
+    directory,
+    '',
+    '## 工作区根目录',
+    workspaceRoot,
+    '',
+    '## 老师的整理需求',
+    userRequest.trim() || '请根据当前文件夹内容给出清晰、稳妥的整理建议。',
+    '',
+    '## 操作安全要求',
+    '1. 先生成整理方案，不要直接移动、删除、重命名、覆盖或转换任何文件。',
+    '2. 方案必须列出每一步的影响范围：涉及哪些文件、目标文件夹或目标文件名、是否可能覆盖现有文件。',
+    '3. 对移动、删除、重命名、覆盖、批量修改和格式转换，必须等待老师明确确认后再执行。',
+    '4. 如果文件内容不足以判断用途，先提出需要预览或读取的文件清单，不要凭文件名武断分类。',
+    '5. 输出要适合非技术背景老师阅读，避免命令行、脚本、代码等表述。',
+    ''
+  ]
+
+  if (selectedFiles.length > 0) {
+    lines.push('## 选定文件')
+  } else {
+    lines.push('## 当前可见文件')
+  }
+
+  if (scopedEntries.length === 0) {
+    lines.push('当前范围内没有可见文件。')
+  } else {
+    scopedEntries.forEach((entry, index) => {
+      lines.push(entryLine(entry, index))
+    })
+  }
+
+  lines.push(
+    '',
+    '## 输出格式',
+    '先用三段输出：',
+    '1. 范围确认：说明你将处理哪些文件或文件夹。',
+    '2. 整理方案：用表格列出建议动作、来源、目标、理由和风险。',
+    '3. 待老师确认：列出需要老师点击确认或补充说明的问题。'
+  )
+
+  return lines.join('\n')
 }
 
 export function fileCategory(entry: WorkspaceEntry): FileCategory {
@@ -82,7 +201,12 @@ function iconForEntry(entry: WorkspaceEntry): ReactElement {
   return <File className="h-4 w-4 text-ds-faint" strokeWidth={1.8} />
 }
 
-export function FileManagerWorkspacePage({ onStartChat, className = '' }: Props): ReactElement {
+export function FileManagerWorkspacePage({
+  onStartChat,
+  inlineConversation,
+  showInlineConversation = false,
+  className = ''
+}: Props): ReactElement {
   const defaultWorkspaceRoot = useChatStore((state) => state.workspaceRoot)
   const [workspaceRoot, setWorkspaceRoot] = useState(defaultWorkspaceRoot)
   const [directory, setDirectory] = useState(defaultWorkspaceRoot)
@@ -97,6 +221,9 @@ export function FileManagerWorkspacePage({ onStartChat, className = '' }: Props)
   const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [deletePending, setDeletePending] = useState(false)
+  const [sidePanelMode, setSidePanelMode] = useState<SidePanelMode>('preview')
+  const [aiTaskId, setAiTaskId] = useState<FileManagerAiTaskId>('classify')
+  const [aiRequest, setAiRequest] = useState('')
 
   const loadDirectory = async (targetDirectory = directory, targetRoot = workspaceRoot): Promise<void> => {
     if (!targetRoot.trim() || !window.dsGui?.listWorkspaceDirectory) return
@@ -263,6 +390,26 @@ export function FileManagerWorkspacePage({ onStartChat, className = '' }: Props)
     )
   }
 
+  const sendAiOrganizationPlan = (): void => {
+    if (!workspaceRoot) return
+    const task = FILE_MANAGER_AI_TASKS.find((item) => item.id === aiTaskId) ?? FILE_MANAGER_AI_TASKS[0]
+    const request = aiRequest.trim() || task.defaultRequest
+    const prompt = buildFileManagerAiPrompt({
+      workspaceRoot,
+      directory,
+      taskLabel: task.label,
+      userRequest: request,
+      selectedFiles,
+      visibleEntries
+    })
+    onStartChat(prompt, {
+      workspaceRoot,
+      inlineModule: 'file-manager',
+      displayText: `文件管理 · ${task.label}${selectedFiles.length > 0 ? `：${selectedFiles.length} 个文件` : '：当前文件夹'}`
+    })
+    setSidePanelMode('ai')
+  }
+
   const openSelectedInSystem = (): void => {
     if (!selectedEntry || !window.dsGui?.openEditorPath) return
     void window.dsGui.openEditorPath({
@@ -335,7 +482,7 @@ export function FileManagerWorkspacePage({ onStartChat, className = '' }: Props)
 
           {message ? <div className="mb-3 whitespace-pre-wrap border-l-2 border-red-500 bg-red-50 px-3 py-2 text-[12px] text-red-700 dark:bg-red-500/10 dark:text-red-200">{message}</div> : null}
 
-          <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
             <section className="flex min-h-0 flex-col border border-ds-border-muted bg-ds-card">
               <div className="flex flex-wrap items-center gap-2 border-b border-ds-border-muted px-3 py-2">
                 {(['all', 'documents', 'data', 'images'] as FileCategory[]).map((item) => (
@@ -385,19 +532,98 @@ export function FileManagerWorkspacePage({ onStartChat, className = '' }: Props)
             </section>
 
             <aside className="flex min-h-0 flex-col border border-ds-border-muted bg-ds-card">
-              <div className="flex min-h-12 items-center justify-between gap-2 border-b border-ds-border-muted px-4">
-                <span className="min-w-0 truncate text-[13px] font-semibold text-ds-text">{selectedEntry?.name ?? '文件预览'}</span>
-                {selectedEntry ? <button type="button" onClick={openSelectedInSystem} className="rounded-md border border-ds-border px-2 py-1 text-[11.5px] font-semibold text-ds-text hover:bg-ds-hover">系统打开</button> : null}
+              <div className="flex min-h-12 items-center gap-2 border-b border-ds-border-muted px-3">
+                <button
+                  type="button"
+                  onClick={() => setSidePanelMode('preview')}
+                  className={`rounded-md px-2.5 py-1.5 text-[12px] font-semibold ${sidePanelMode === 'preview' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                >
+                  预览
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidePanelMode('ai')}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-semibold ${sidePanelMode === 'ai' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                >
+                  <Bot className="h-3.5 w-3.5" strokeWidth={1.8} />
+                  AI 整理
+                </button>
+                {sidePanelMode === 'preview' && selectedEntry ? (
+                  <button type="button" onClick={openSelectedInSystem} className="ml-auto rounded-md border border-ds-border px-2 py-1 text-[11.5px] font-semibold text-ds-text hover:bg-ds-hover">系统打开</button>
+                ) : null}
               </div>
-              <div className="min-h-0 flex-1 overflow-auto p-4">
-                {preview.kind === 'empty' ? <div className="flex h-full min-h-48 items-center justify-center text-center text-[12.5px] text-ds-muted">选择一个文件查看内容</div> : null}
-                {preview.kind === 'loading' ? <div className="flex h-full min-h-48 items-center justify-center gap-2 text-[12.5px] text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在加载预览</div> : null}
-                {preview.kind === 'image' ? <img src={preview.dataUrl} alt={selectedEntry?.name ?? ''} className="max-h-full w-full object-contain" /> : null}
-                {preview.kind === 'text' ? <><pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-5 text-ds-text">{preview.content}</pre>{preview.truncated ? <p className="mt-3 text-[11.5px] text-ds-muted">仅显示文件开头内容。</p> : null}</> : null}
-                {preview.kind === 'pdf' ? <div className="space-y-3 text-[12.5px] text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-red-500" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-white" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
-                {preview.kind === 'unsupported' ? <div className="space-y-2 text-[12.5px] text-ds-muted"><File className="h-8 w-8 text-ds-faint" /><p>此格式暂不支持内嵌预览。</p><p>{preview.message}</p></div> : null}
-                {preview.kind === 'error' ? <div className="text-[12.5px] text-red-600">{preview.message}</div> : null}
-              </div>
+              {sidePanelMode === 'preview' ? (
+                <>
+                  <div className="border-b border-ds-border-muted px-4 py-2">
+                    <span className="block truncate text-[13px] font-semibold text-ds-text">{selectedEntry?.name ?? '文件预览'}</span>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-auto p-4">
+                    {preview.kind === 'empty' ? <div className="flex h-full min-h-48 items-center justify-center text-center text-[12.5px] text-ds-muted">选择一个文件查看内容，或切换到 AI 整理。</div> : null}
+                    {preview.kind === 'loading' ? <div className="flex h-full min-h-48 items-center justify-center gap-2 text-[12.5px] text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在加载预览</div> : null}
+                    {preview.kind === 'image' ? <img src={preview.dataUrl} alt={selectedEntry?.name ?? ''} className="max-h-full w-full object-contain" /> : null}
+                    {preview.kind === 'text' ? <><pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-5 text-ds-text">{preview.content}</pre>{preview.truncated ? <p className="mt-3 text-[11.5px] text-ds-muted">仅显示文件开头内容。</p> : null}</> : null}
+                    {preview.kind === 'pdf' ? <div className="space-y-3 text-[12.5px] text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-red-500" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-white" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
+                    {preview.kind === 'unsupported' ? <div className="space-y-2 text-[12.5px] text-ds-muted"><File className="h-8 w-8 text-ds-faint" /><p>此格式暂不支持内嵌预览。</p><p>{preview.message}</p></div> : null}
+                    {preview.kind === 'error' ? <div className="text-[12.5px] text-red-600">{preview.message}</div> : null}
+                  </div>
+                </>
+              ) : (
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div className="space-y-4 border-b border-ds-border-muted p-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-[13px] font-semibold text-ds-text">
+                        <Sparkles className="h-4 w-4 text-accent" strokeWidth={1.8} />
+                        AI 文件整理
+                      </div>
+                      <p className="mt-1 text-[12px] leading-5 text-ds-muted">
+                        先让 AI 生成整理方案。移动、删除、重命名、覆盖和批量转换都需要你确认后才执行。
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {FILE_MANAGER_AI_TASKS.map((task) => (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => {
+                            setAiTaskId(task.id)
+                            if (!aiRequest.trim()) setAiRequest(task.defaultRequest)
+                          }}
+                          className={`rounded-lg border px-3 py-2 text-left ${aiTaskId === task.id ? 'border-accent bg-accent/8 text-ds-text' : 'border-ds-border-muted text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                        >
+                          <span className="block text-[12.5px] font-semibold">{task.label}</span>
+                          <span className="mt-1 block text-[11px] leading-4 text-ds-faint">{task.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={aiRequest}
+                      onChange={(event) => setAiRequest(event.target.value)}
+                      placeholder="例如：帮我把这个文件夹按教学、科研、行政分类，并给出需要新建的文件夹和建议命名。"
+                      className="min-h-28 w-full resize-y rounded-lg border border-ds-border bg-ds-main px-3 py-2 text-[12.5px] leading-5 text-ds-text outline-none placeholder:text-ds-faint focus:border-accent"
+                    />
+                    <div className="rounded-lg bg-ds-main px-3 py-2 text-[11.5px] leading-5 text-ds-muted">
+                      当前范围：{selectedFiles.length > 0 ? `已选 ${selectedFiles.length} 个文件` : `当前文件夹 ${basename(directory) || directory}`}。
+                    </div>
+                    <button
+                      type="button"
+                      onClick={sendAiOrganizationPlan}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white hover:opacity-90"
+                    >
+                      <Send className="h-4 w-4" strokeWidth={1.8} />
+                      生成整理方案
+                    </button>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-auto p-3">
+                    {showInlineConversation && inlineConversation ? (
+                      inlineConversation
+                    ) : (
+                      <div className="flex h-full min-h-48 items-center justify-center text-center text-[12.5px] leading-6 text-ds-muted">
+                        生成方案后，AI 的整理建议会显示在这里。
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </aside>
           </div>
         </div>
