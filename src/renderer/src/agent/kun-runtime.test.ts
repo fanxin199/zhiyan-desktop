@@ -59,6 +59,23 @@ function installDsGui(overrides: Partial<Window['dsGui']>): void {
   })
 }
 
+function installLocalStorage(items: Record<string, string> = {}): void {
+  const store = new Map(Object.entries(items))
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn((key: string) => store.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store.set(key, value)
+    }),
+    removeItem: vi.fn((key: string) => {
+      store.delete(key)
+    })
+  })
+}
+
+function runtimeRequestCall(mock: ReturnType<typeof vi.fn>, index = 0): unknown[] {
+  return (mock.mock.calls as unknown[][])[index] ?? []
+}
+
 afterEach(() => {
   rendererRuntimeClient.invalidateSettings()
   vi.unstubAllGlobals()
@@ -223,12 +240,59 @@ describe('KunRuntimeProvider', () => {
     installDsGui({ runtimeRequest })
     const provider = new KunRuntimeProvider()
     const result = await provider.sendUserMessage('thr_1', 'hello')
-    expect(runtimeRequest).toHaveBeenCalledWith(
-      '/v1/threads/thr_1/turns',
-      'POST',
-      JSON.stringify({ prompt: 'hello' })
-    )
+    const call = runtimeRequestCall(runtimeRequest)
+    expect(call[0]).toBe('/v1/threads/thr_1/turns')
+    expect(call[1]).toBe('POST')
+    const body = JSON.parse(String(call[2])) as { prompt: string; displayText?: string }
+    expect(body.displayText).toBe('hello')
+    expect(body.prompt).toContain('## 老师当前请求\nhello')
+    expect(body.prompt).toContain('如果老师的请求不够明确，请先确认意图再执行。')
     expect(result.userMessageItemId).toBe('item_user_real')
+  })
+
+  it('wraps Kun turn requests with teacher and project context while preserving display text', async () => {
+    const runtimeRequest = vi.fn(async () => ({
+      ok: true,
+      status: 202,
+      body: JSON.stringify({ threadId: 'thr_1', turnId: 'turn_ctx', userMessageItemId: 'item_user_ctx' })
+    }))
+    const getSettings = vi.fn(async () => ({
+      ...settings(),
+      teacherProfile: {
+        name: '李老师',
+        school: '某某医科大学',
+        department: '基础医学院免疫学系',
+        courses: ['医学免疫学'],
+        researchTopics: ['B 细胞亚群']
+      },
+      teacherProjects: [{
+        id: 'teacher-project:literature:abc',
+        name: 'TLS 文献精读',
+        type: 'research' as const,
+        workspacePath: '/tmp/workspace',
+        summary: '文献阅读 · 单篇 PDF 精读',
+        lastUsedAt: '2026-06-29T00:00:00.000Z'
+      }]
+    }))
+    installLocalStorage({
+      'deepseekgui.threadProjects.v1': JSON.stringify({
+        version: 1,
+        bindings: {
+          thr_1: { projectId: 'teacher-project:literature:abc' }
+        }
+      })
+    })
+    installDsGui({ getSettings, runtimeRequest })
+    const provider = new KunRuntimeProvider()
+
+    await provider.sendUserMessage('thr_1', '帮我改一下')
+
+    const body = JSON.parse(String(runtimeRequestCall(runtimeRequest)[2])) as { prompt: string; displayText?: string }
+    expect(body.displayText).toBe('帮我改一下')
+    expect(body.prompt).toContain('你是智研助手，正在帮助李老师处理 TLS 文献精读。')
+    expect(body.prompt).toContain('当前模块：文献阅读。')
+    expect(body.prompt).toContain('如果老师的请求不够明确，请先确认意图再执行。')
+    expect(body.prompt).toContain('## 老师当前请求\n帮我改一下')
   })
 
   it('posts attachment ids with Kun turn requests when provided', async () => {
@@ -242,11 +306,14 @@ describe('KunRuntimeProvider', () => {
 
     await provider.sendUserMessage('thr_1', 'describe this', { attachmentIds: ['att_1'] })
 
-    expect(runtimeRequest).toHaveBeenCalledWith(
-      '/v1/threads/thr_1/turns',
-      'POST',
-      JSON.stringify({ prompt: 'describe this', attachmentIds: ['att_1'] })
-    )
+    const body = JSON.parse(String(runtimeRequestCall(runtimeRequest)[2])) as {
+      prompt: string
+      displayText?: string
+      attachmentIds?: string[]
+    }
+    expect(body.displayText).toBe('describe this')
+    expect(body.prompt).toContain('## 老师当前请求\ndescribe this')
+    expect(body.attachmentIds).toEqual(['att_1'])
   })
 
   it('posts explicit reasoning effort with Kun turn requests', async () => {
@@ -263,11 +330,16 @@ describe('KunRuntimeProvider', () => {
       reasoningEffort: 'max'
     })
 
-    expect(runtimeRequest).toHaveBeenCalledWith(
-      '/v1/threads/thr_1/turns',
-      'POST',
-      JSON.stringify({ prompt: 'think harder', model: 'auto', reasoningEffort: 'max' })
-    )
+    const body = JSON.parse(String(runtimeRequestCall(runtimeRequest)[2])) as {
+      prompt: string
+      displayText?: string
+      model?: string
+      reasoningEffort?: string
+    }
+    expect(body.displayText).toBe('think harder')
+    expect(body.prompt).toContain('## 老师当前请求\nthink harder')
+    expect(body.model).toBe('auto')
+    expect(body.reasoningEffort).toBe('max')
   })
 
   it('posts GUI plan context with Kun plan turn requests', async () => {
@@ -292,23 +364,23 @@ describe('KunRuntimeProvider', () => {
       }
     })
 
-    expect(runtimeRequest).toHaveBeenCalledWith(
-      '/v1/threads/thr_1/turns',
-      'POST',
-      JSON.stringify({
-        prompt: 'refine the plan',
-        displayText: 'Generate implementation plan',
-        mode: 'plan',
-        guiPlan: {
-          operation: 'refine',
-          workspaceRoot: '/workspace/deepseek-gui',
-          relativePath: '.kunsdd/plan/auth.md',
-          planId: '/workspace/deepseek-gui:.kunsdd/plan/auth.md',
-          sourceRequest: 'Add auth',
-          title: 'auth'
-        }
-      })
-    )
+    const body = JSON.parse(String(runtimeRequestCall(runtimeRequest)[2])) as {
+      prompt: string
+      displayText?: string
+      mode?: string
+      guiPlan?: Record<string, unknown>
+    }
+    expect(body.prompt).toContain('## 老师当前请求\nrefine the plan')
+    expect(body.displayText).toBe('Generate implementation plan')
+    expect(body.mode).toBe('plan')
+    expect(body.guiPlan).toEqual({
+      operation: 'refine',
+      workspaceRoot: '/workspace/deepseek-gui',
+      relativePath: '.kunsdd/plan/auth.md',
+      planId: '/workspace/deepseek-gui:.kunsdd/plan/auth.md',
+      sourceRequest: 'Add auth',
+      title: 'auth'
+    })
   })
 
   it('posts interrupt requests with the discard option when requested', async () => {

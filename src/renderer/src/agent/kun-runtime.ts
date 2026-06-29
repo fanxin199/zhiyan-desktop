@@ -62,6 +62,7 @@ import type {
 } from './kun-contract'
 import {
   buildQuery,
+  buildZhiYanManagedPrompt,
   chatBlockFromItem,
   dispatchKunRuntimeEvent,
   goalFromCore,
@@ -69,6 +70,7 @@ import {
   todosFromCore,
   threadFromCore
 } from './kun-mapper'
+import { readThreadProjectRegistry } from '../lib/thread-project-registry'
 import { rendererRuntimeClient } from './runtime-client'
 
 function createSseStreamId(): string {
@@ -230,12 +232,23 @@ export class KunRuntimeProvider implements AgentProvider {
       attachmentIds?: string[]
     }
   ): Promise<{ turnId: string; threadId: string; userMessageItemId?: string }> {
-    const body: Record<string, unknown> = { prompt: text, model: options?.model }
+    const settings = await rendererRuntimeClient.getSettings()
+    const projectId = readThreadProjectRegistry().bindings[threadId]?.projectId
+    const project = projectId
+      ? settings.teacherProjects.find((item) => item.id === projectId)
+      : undefined
+    const managedPrompt = buildZhiYanManagedPrompt(text, {
+      teacherProfile: settings.teacherProfile,
+      project
+    })
+    const displayText = options?.displayText?.trim() || text.trim()
+    const body: Record<string, unknown> = {
+      prompt: managedPrompt,
+      displayText,
+      model: options?.model
+    }
     if (options?.reasoningEffort?.trim()) {
       body.reasoningEffort = options.reasoningEffort.trim()
-    }
-    if (options?.displayText?.trim() && options.displayText.trim() !== text.trim()) {
-      body.displayText = options.displayText.trim()
     }
     const mode = options?.mode
     if (mode === 'agent' || mode === 'plan') {

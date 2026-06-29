@@ -1,7 +1,37 @@
 import { describe, expect, it } from 'vitest'
-import { chatBlockFromItem, dispatchKunRuntimeEvent, mergeChatBlocks } from './kun-mapper'
+import { buildZhiYanManagedPrompt, chatBlockFromItem, dispatchKunRuntimeEvent, mergeChatBlocks } from './kun-mapper'
 import type { CoreRuntimeEventJson, CoreTurnItemJson } from './kun-contract'
 import type { ThreadEventSink } from './types'
+
+describe('ZhiYan managed prompt context', () => {
+  it('adds teacher profile, project context, and confirmation rules before the user request', () => {
+    const prompt = buildZhiYanManagedPrompt('帮我改一下这些文件', {
+      teacherProfile: {
+        name: '李老师',
+        school: '某某医科大学',
+        department: '基础医学院免疫学系',
+        courses: ['医学免疫学'],
+        researchTopics: ['B 细胞亚群', '肿瘤免疫微环境']
+      },
+      project: {
+        id: 'teacher-project:literature:abc',
+        name: 'TLS 文献精读',
+        type: 'research',
+        workspacePath: 'D:\\papers',
+        summary: '文献阅读 · 单篇 PDF 精读',
+        lastUsedAt: '2026-06-29T00:00:00.000Z'
+      }
+    })
+
+    expect(prompt).toContain('你是智研助手，正在帮助李老师处理 TLS 文献精读。')
+    expect(prompt).toContain('学校/院系：某某医科大学 / 基础医学院免疫学系')
+    expect(prompt).toContain('研究方向：B 细胞亚群、肿瘤免疫微环境')
+    expect(prompt).toContain('当前模块：文献阅读。')
+    expect(prompt).toContain('如果老师的请求不够明确，请先确认意图再执行。')
+    expect(prompt).toContain('对涉及写文件、生成文档、移动、删除、重命名或批量修改的操作，先展示操作摘要和影响范围，等待老师确认后再执行。')
+    expect(prompt).toContain('## 老师当前请求\n帮我改一下这些文件')
+  })
+})
 
 function makeSink(): ThreadEventSink {
   return {

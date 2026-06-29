@@ -1,4 +1,8 @@
 import type {
+  TeacherProfileSettingsV1,
+  TeacherProjectSettingsV1
+} from '@shared/app-settings'
+import type {
   ChatBlock,
   CompactionEventPayload,
   NormalizedThread,
@@ -29,6 +33,89 @@ import type {
   CoreReviewTargetJson,
   CoreUsageSnapshotJson
 } from './kun-contract'
+
+export type ZhiYanManagedPromptContext = {
+  teacherProfile?: TeacherProfileSettingsV1
+  project?: TeacherProjectSettingsV1
+}
+
+const MODULE_LABELS_BY_ID: Record<string, string> = {
+  syllabus: '智能教案生成',
+  literature: '文献阅读',
+  'paper-polish': '科研文本写作',
+  'review-writing': '综述撰写',
+  'grant-writing': '自然基金撰写',
+  bioinformatics: '科研数据分析',
+  file: '文件管理',
+  'file-manager': '文件管理'
+}
+
+function nonEmpty(value: string | undefined): string {
+  return value?.trim() ?? ''
+}
+
+function teacherLabel(profile: TeacherProfileSettingsV1 | undefined): string {
+  const name = nonEmpty(profile?.name)
+  if (!name) return '老师'
+  return /(老师|教授|博士|医生|主任)$/u.test(name) ? name : `${name}老师`
+}
+
+function moduleLabelFromProject(project: TeacherProjectSettingsV1 | undefined): string {
+  const match = /^teacher-project:([^:]+):/u.exec(project?.id ?? '')
+  const moduleId = match?.[1] ?? ''
+  return MODULE_LABELS_BY_ID[moduleId] ?? (project?.type === 'teaching' ? '教学任务' : '科研任务')
+}
+
+function listLine(label: string, items: string[] | undefined): string | null {
+  const values = (items ?? []).map((item) => item.trim()).filter(Boolean)
+  return values.length > 0 ? `${label}：${values.join('、')}` : null
+}
+
+export function buildZhiYanManagedPrompt(
+  userRequest: string,
+  context: ZhiYanManagedPromptContext = {}
+): string {
+  const request = userRequest.trim()
+  const { teacherProfile, project } = context
+  const teacher = teacherLabel(teacherProfile)
+  const projectName = nonEmpty(project?.name) || '当前任务'
+  const lines = [
+    '[智研助手后台上下文]',
+    '',
+    `你是智研助手，正在帮助${teacher}处理 ${projectName}。`,
+    `当前模块：${moduleLabelFromProject(project)}。`
+  ]
+
+  const school = nonEmpty(teacherProfile?.school)
+  const department = nonEmpty(teacherProfile?.department)
+  if (school || department) {
+    lines.push(`学校/院系：${school || '未填写'} / ${department || '未填写'}`)
+  }
+  const courses = listLine('授课课程', teacherProfile?.courses)
+  if (courses) lines.push(courses)
+  const topics = listLine('研究方向', teacherProfile?.researchTopics)
+  if (topics) lines.push(topics)
+
+  if (project) {
+    lines.push(`项目类型：${project.type === 'teaching' ? '教学' : '科研'}`)
+    if (project.summary?.trim()) lines.push(`项目摘要：${project.summary.trim()}`)
+    if (project.workspacePath?.trim()) lines.push(`项目文件夹：${project.workspacePath.trim()}`)
+  }
+
+  lines.push(
+    '',
+    '## 行为规则',
+    '1. 如果老师的请求不够明确，请先确认意图再执行。',
+    '2. 当老师的请求与当前项目主题明显不一致时，主动询问是否切换项目或新建任务。',
+    '3. 当老师说“帮我改一下”“整理一下”“处理一下”但未指明对象时，先列出最近可见对象或可选操作让老师选择。',
+    '4. 对涉及写文件、生成文档、移动、删除、重命名或批量修改的操作，先展示操作摘要和影响范围，等待老师确认后再执行。',
+    '',
+    '## 老师当前请求',
+    request
+  )
+
+  return lines.join('\n')
+}
 
 export function buildQuery(options: Record<string, string | number | boolean | undefined>): string {
   const params = new URLSearchParams()

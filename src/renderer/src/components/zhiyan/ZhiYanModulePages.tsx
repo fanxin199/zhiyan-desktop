@@ -211,6 +211,12 @@ type ResearchTaskEntryConfig = {
   constraints: string[]
 }
 
+type ResearchTaskProjectContext = {
+  name: string
+  type: 'teaching' | 'research'
+  summary?: string
+}
+
 type ModuleConfig = {
   icon: LucideIcon
   title: string
@@ -235,7 +241,8 @@ export function buildResearchTaskPrompt(
   config: ModuleConfig,
   selectedTask: ResearchTaskType,
   userInput: string,
-  files: ResearchTaskFile[]
+  files: ResearchTaskFile[],
+  projectContext?: ResearchTaskProjectContext
 ): string | null {
   const trimmedInput = userInput.trim()
   if (!trimmedInput && files.length === 0) return null
@@ -297,6 +304,15 @@ export function buildResearchTaskPrompt(
 
   lines.push('## 输出要求')
   lines.push('先给可直接使用的结果，再补充依据、待确认问题和下一步可执行动作。')
+
+  if (projectContext?.name.trim()) {
+    lines.push('')
+    lines.push('## 当前项目上下文')
+    lines.push(`项目名称：${projectContext.name.trim()}`)
+    lines.push(`项目类型：${projectContext.type === 'teaching' ? '教学' : '科研'}`)
+    if (projectContext.summary?.trim()) lines.push(`项目摘要：${projectContext.summary.trim()}`)
+    lines.push('如果当前任务与该项目主题明显不一致，先询问老师是否切换项目或新建任务。')
+  }
 
   return lines.join('\n')
 }
@@ -386,7 +402,12 @@ function ResearchTaskEntry({
 
   function handleSubmit(): void {
     if (isExtracting) return
-    const prompt = buildResearchTaskPrompt(config, selectedTask, userInput, files)
+    const displayText = buildResearchTaskDisplayText(config, selectedTask, files)
+    const prompt = buildResearchTaskPrompt(config, selectedTask, userInput, files, {
+      name: `${config.title} · ${selectedTask.label}`,
+      type: config.inlineConversationModule === 'syllabus' ? 'teaching' : 'research',
+      summary: displayText
+    })
     if (!prompt) {
       setError('请先输入任务需求，或添加一个本地文件。')
       return
@@ -395,7 +416,7 @@ function ResearchTaskEntry({
     const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
-      displayText: buildResearchTaskDisplayText(config, selectedTask, files),
+      displayText,
       ...(config.inlineConversationModule ? { inlineModule: config.inlineConversationModule } : {})
     })
   }

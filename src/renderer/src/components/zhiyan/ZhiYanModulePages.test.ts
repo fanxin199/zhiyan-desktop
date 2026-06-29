@@ -126,6 +126,21 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('请建立项目主线')
   })
 
+  it('appends project context to research task prompts when provided', () => {
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    const prompt = buildResearchTaskPrompt(LITERATURE_CONFIG, task, '请精读这篇论文', [], {
+      name: 'TLS 文献精读',
+      type: 'research',
+      summary: '文献阅读 · 单篇 PDF 精读'
+    })
+
+    expect(prompt).toContain('## 当前项目上下文')
+    expect(prompt).toContain('项目名称：TLS 文献精读')
+    expect(prompt).toContain('项目类型：科研')
+    expect(prompt).toContain('项目摘要：文献阅读 · 单篇 PDF 精读')
+    expect(prompt).toContain('如果当前任务与该项目主题明显不一致，先询问老师是否切换项目或新建任务。')
+  })
+
   it('embeds extracted PDF text in the task prompt instead of only passing a local path', () => {
     const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
     const files = [{

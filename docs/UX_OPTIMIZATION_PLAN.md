@@ -126,18 +126,19 @@
 
 ### Task 2.1 · Kun Agent 上下文注入（意图确认）
 
-- [ ] **2.1.1** 在 `src/renderer/src/agent/kun-mapper.ts` 的 system prompt 构建逻辑中，注入教师档案和当前项目上下文：
+- [x] **2.1.1** 在 `src/renderer/src/agent/kun-mapper.ts` 的 system prompt 构建逻辑中，注入教师档案和当前项目上下文：
   ```
   你是智研助手，正在帮助 {name} 老师处理 {projectName}。
   当前模块：{moduleType}。
   如果老师的请求不够明确，请先确认意图再执行。
   ```
   需要从 chat store 和 app-settings 读取信息。
-- [ ] **2.1.2** 在 `buildResearchTaskPrompt()` 函数（ZhiYanModulePages.tsx）的 prompt 末尾追加项目上下文段落。
-- [ ] **2.1.3** 在 Kun agent 的 system prompt 中增加以下行为规则：
+- [x] **2.1.2** 在 `buildResearchTaskPrompt()` 函数（ZhiYanModulePages.tsx）的 prompt 末尾追加项目上下文段落。
+- [x] **2.1.3** 在 Kun agent 的 system prompt 中增加以下行为规则：
   - 当老师的请求与当前项目主题不一致时，主动询问是否切换项目。
   - 当老师说"帮我改一下"但未指明对象时，列出最近操作让老师选择。
   - 对涉及写文件/生成文档的操作，先展示摘要再执行。
+- [ ] **2.1.4** 文件管理 AI 整理面板与安全执行流：在文件管理页增加本页 AI 整理面板，支持“分类整理、规范命名、查找重复文件、转换格式、提取摘要”等快捷任务；AI 先生成操作方案，涉及移动、删除、重命名、覆盖或批量修改时必须展示影响范围并等待老师确认后执行。
 
 ### Task 2.2 · 跨模块信息共享
 
