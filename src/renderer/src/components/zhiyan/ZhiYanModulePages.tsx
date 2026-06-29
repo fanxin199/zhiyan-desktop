@@ -27,7 +27,11 @@ import {
 import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
-import { FileManagerWorkspacePage } from './FileManagerWorkspacePage'
+import {
+  FileManagerWorkspacePage,
+  type FileManagerModuleFile,
+  type FileManagerModuleTarget
+} from './FileManagerWorkspacePage'
 
 export type InlineModuleId =
   | 'literature'
@@ -45,6 +49,9 @@ type ModulePageProps = {
     inlineModule?: InlineModuleId
   }) => void
   onOpenWrite?: () => void
+  handoffFile?: FileManagerModuleFile
+  onHandoffFileConsumed?: () => void
+  onUseFileInModule?: (target: FileManagerModuleTarget, file: FileManagerModuleFile) => void
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
   className?: string
@@ -339,11 +346,15 @@ export function buildResearchTaskDisplayText(
 function ResearchTaskEntry({
   config,
   onStartChat,
-  onOpenWrite
+  onOpenWrite,
+  handoffFile,
+  onHandoffFileConsumed
 }: {
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
   onOpenWrite?: () => void
+  handoffFile?: FileManagerModuleFile
+  onHandoffFileConsumed?: () => void
 }): ReactElement | null {
   const entry = config.taskEntry
   const [selectedTaskId, setSelectedTaskId] = useState(entry?.taskTypes[0]?.id ?? '')
@@ -352,6 +363,7 @@ function ResearchTaskEntry({
   const [error, setError] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
   const [importableBlueprint, setImportableBlueprint] = useState<WritingBlueprintModuleContextV1 | null>(null)
+  const consumedHandoffPathRef = useRef<string | null>(null)
 
   const taskEntry = entry
   const selectedTask = taskEntry?.taskTypes.find((task) => task.id === selectedTaskId)
@@ -372,20 +384,23 @@ function ResearchTaskEntry({
     }
   }, [config.inlineConversationModule])
 
+  useEffect(() => {
+    if (!handoffFile || consumedHandoffPathRef.current === handoffFile.path) return
+    consumedHandoffPathRef.current = handoffFile.path
+    if (config.inlineConversationModule === 'literature') setSelectedTaskId('single-paper')
+    void addFileFromPath(handoffFile.name, handoffFile.path).finally(() => {
+      onHandoffFileConsumed?.()
+    })
+    // addFileFromPath intentionally stays out of dependencies; this effect is keyed by the incoming file.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoffFile?.path])
+
   if (!taskEntry || !selectedTask) return null
   const activeTaskEntry: ResearchTaskEntryConfig = taskEntry
   const activeSelectedTask: ResearchTaskType = selectedTask
 
-  async function handlePickFile(): Promise<void> {
-    if (!window.dsGui?.pickFile) {
-      setError('当前环境不支持文件选择。')
-      return
-    }
+  async function addFileFromPath(name: string, path: string): Promise<void> {
     setError('')
-    const picked = await window.dsGui.pickFile({ filters: activeTaskEntry.fileFilters })
-    if (picked.canceled || !picked.path) return
-    const name = picked.path.split(/[\\/]/).pop() ?? picked.path
-    const path = picked.path as string
     const extension = extensionFromFileName(name)
     if (!['pdf', 'txt', 'md', 'csv', 'tsv', 'docx', 'xlsx'].includes(extension)) {
       setFiles((current) => {
@@ -422,6 +437,19 @@ function ResearchTaskEntry({
     } finally {
       setIsExtracting(false)
     }
+  }
+
+  async function handlePickFile(): Promise<void> {
+    if (!window.dsGui?.pickFile) {
+      setError('当前环境不支持文件选择。')
+      return
+    }
+    setError('')
+    const picked = await window.dsGui.pickFile({ filters: activeTaskEntry.fileFilters })
+    if (picked.canceled || !picked.path) return
+    const name = picked.path.split(/[\\/]/).pop() ?? picked.path
+    const path = picked.path as string
+    await addFileFromPath(name, path)
   }
 
   function handleSubmit(): void {
@@ -638,6 +666,8 @@ function ModulePageShell({
   config,
   onStartChat,
   onOpenWrite,
+  handoffFile,
+  onHandoffFileConsumed,
   inlineConversation,
   showInlineConversation = false,
   className = ''
@@ -645,6 +675,8 @@ function ModulePageShell({
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
   onOpenWrite?: () => void
+  handoffFile?: FileManagerModuleFile
+  onHandoffFileConsumed?: () => void
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
   className?: string
@@ -683,7 +715,13 @@ function ModulePageShell({
           </div>
         ) : (
           <div className="space-y-8">
-            <ResearchTaskEntry config={config} onStartChat={onStartChat} onOpenWrite={onOpenWrite} />
+            <ResearchTaskEntry
+              config={config}
+              onStartChat={onStartChat}
+              onOpenWrite={onOpenWrite}
+              handoffFile={handoffFile}
+              onHandoffFileConsumed={onHandoffFileConsumed}
+            />
 
             {showInlineConversation && inlineConversation ? (
               <div ref={conversationRef}>{inlineConversation}</div>
@@ -1208,6 +1246,8 @@ export async function loadSyllabusTeacherProfileDefaults(
 
 export function SyllabusPage({
   onStartChat,
+  handoffFile,
+  onHandoffFileConsumed,
   inlineConversation,
   showInlineConversation = false,
   className = ''
@@ -1236,6 +1276,7 @@ export function SyllabusPage({
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const conversationRef = useRef<HTMLDivElement | null>(null)
+  const consumedHandoffPathRef = useRef<string | null>(null)
   const identityTouchedRef = useRef({
     teacher: false,
     school: false,
@@ -1325,6 +1366,21 @@ export function SyllabusPage({
       setIsExtracting(false)
     }
   }
+
+  useEffect(() => {
+    if (!handoffFile || consumedHandoffPathRef.current === handoffFile.path) return
+    consumedHandoffPathRef.current = handoffFile.path
+    setSourceType('file')
+    setSelectedFile({ name: handoffFile.name, path: handoffFile.path })
+    setExtractedContent(null)
+    setExtractError(null)
+    setFormError(null)
+    void extractSyllabusFile({ name: handoffFile.name, path: handoffFile.path }).finally(() => {
+      onHandoffFileConsumed?.()
+    })
+    // extractSyllabusFile intentionally stays out of dependencies; this effect is keyed by the incoming file.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoffFile?.path])
 
   const handlePickFile = async () => {
     const dsGui = (window as any).dsGui
@@ -1865,6 +1921,7 @@ export function FileManagerPage(props: ModulePageProps): ReactElement {
   return (
     <FileManagerWorkspacePage
       onStartChat={props.onStartChat}
+      onUseFileInModule={props.onUseFileInModule}
       inlineConversation={props.inlineConversation}
       showInlineConversation={props.showInlineConversation}
       className={props.className}

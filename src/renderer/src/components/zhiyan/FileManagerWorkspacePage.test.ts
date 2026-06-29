@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { WorkspaceEntry } from '@shared/workspace-file'
-import { buildFileManagerAiPrompt, fileCategory } from './FileManagerWorkspacePage'
+import {
+  buildFileManagerAiPrompt,
+  fileCategory,
+  fileManagerModuleHandoffAvailability
+} from './FileManagerWorkspacePage'
 
 function entry(ext: string, type: WorkspaceEntry['type'] = 'file'): WorkspaceEntry {
   return { name: `sample.${ext}`, path: `C:\\workspace\\sample.${ext}`, type, ext }
@@ -12,6 +16,25 @@ describe('FileManagerWorkspacePage helpers', () => {
     expect(fileCategory(entry('xlsx'))).toBe('data')
     expect(fileCategory(entry('png'))).toBe('images')
     expect(fileCategory(entry('', 'directory'))).toBe('all')
+  })
+
+  it('enables cross-module material handoff only for supported file types', () => {
+    expect(fileManagerModuleHandoffAvailability(entry('pdf'))).toEqual({
+      syllabus: true,
+      literature: true
+    })
+    expect(fileManagerModuleHandoffAvailability(entry('docx'))).toEqual({
+      syllabus: true,
+      literature: true
+    })
+    expect(fileManagerModuleHandoffAvailability(entry('md'))).toEqual({
+      syllabus: false,
+      literature: true
+    })
+    expect(fileManagerModuleHandoffAvailability(entry('csv'))).toEqual({
+      syllabus: false,
+      literature: false
+    })
   })
 
   it('builds a safe AI file-organization prompt with selected files', () => {

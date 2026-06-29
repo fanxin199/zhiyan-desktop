@@ -35,6 +35,7 @@ import {
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
+import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
 import { FloatingComposer, type ComposerFileReference } from './chat/FloatingComposer'
 import {
@@ -72,6 +73,7 @@ type ModuleTaskStartOptions = {
 }
 
 type InlineConversationThreadIds = Partial<Record<InlineModuleId, string>>
+type ModuleHandoffFiles = Partial<Record<FileManagerModuleTarget, FileManagerModuleFile>>
 
 export async function openRecentDashboardThread({
   threadId,
@@ -327,6 +329,7 @@ export function Workbench(): ReactElement {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [inlineConversationThreadIds, setInlineConversationThreadIds] =
     useState<InlineConversationThreadIds>({})
+  const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
   const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
@@ -584,6 +587,22 @@ export function Workbench(): ReactElement {
       }))
     })
   }
+  const handleFileManagerModuleHandoff = (
+    target: FileManagerModuleTarget,
+    file: FileManagerModuleFile
+  ): void => {
+    setModuleHandoffFiles((current) => ({
+      ...current,
+      [target]: file
+    }))
+    if (target === 'syllabus') {
+      void openSyllabus()
+      return
+    }
+    if (target === 'literature') {
+      void openLiterature()
+    }
+  }
   const renderModuleConversation = (
     title: string,
     statusLabels?: { busy: string; ready: string }
@@ -704,6 +723,11 @@ export function Workbench(): ReactElement {
         ) : route === 'syllabus' ? (
           <SyllabusPage
             onStartChat={handleModuleQuickPrompt}
+            handoffFile={moduleHandoffFiles.syllabus}
+            onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
+              ...current,
+              syllabus: undefined
+            }))}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'syllabus',
@@ -735,6 +759,11 @@ export function Workbench(): ReactElement {
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
+            handoffFile={moduleHandoffFiles.literature}
+            onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
+              ...current,
+              literature: undefined
+            }))}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'literature',
@@ -795,6 +824,7 @@ export function Workbench(): ReactElement {
         ) : route === 'file-manager' ? (
           <FileManagerPage
             onStartChat={handleModuleQuickPrompt}
+            onUseFileInModule={handleFileManagerModuleHandoff}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'file-manager',

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactElement } from 'react'
 import {
   ArrowUp,
   Bot,
@@ -22,11 +22,19 @@ import {
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import { useChatStore } from '../../store/chat-store'
 
+export type FileManagerModuleTarget = 'syllabus' | 'literature'
+
+export type FileManagerModuleFile = {
+  name: string
+  path: string
+}
+
 type Props = {
   onStartChat: (
     prompt: string,
     options?: { workspaceRoot?: string; displayText?: string; inlineModule?: 'file-manager' }
   ) => void
+  onUseFileInModule?: (target: FileManagerModuleTarget, file: FileManagerModuleFile) => void
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
   className?: string
@@ -35,6 +43,7 @@ type Props = {
 type FileCategory = 'all' | 'documents' | 'data' | 'images'
 type SidePanelMode = 'preview' | 'ai'
 type FileManagerAiTaskId = 'classify' | 'rename' | 'dedupe' | 'convert' | 'summarize'
+type FileContextMenuState = { x: number; y: number; entry: WorkspaceEntry } | null
 
 type PreviewState =
   | { kind: 'empty' }
@@ -48,6 +57,8 @@ type PreviewState =
 const DOCUMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'md', 'rtf'])
 const DATA_EXTENSIONS = new Set(['csv', 'tsv', 'xlsx', 'xls', 'h5ad', 'rds', 'json'])
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'])
+const SYLLABUS_HANDOFF_EXTENSIONS = new Set(['pdf', 'doc', 'docx'])
+const LITERATURE_HANDOFF_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'txt', 'md'])
 const FILE_MANAGER_AI_TASKS: Array<{
   id: FileManagerAiTaskId
   label: string
@@ -189,6 +200,15 @@ export function fileCategory(entry: WorkspaceEntry): FileCategory {
   return 'all'
 }
 
+export function fileManagerModuleHandoffAvailability(entry: WorkspaceEntry): Record<FileManagerModuleTarget, boolean> {
+  if (entry.type !== 'file') return { syllabus: false, literature: false }
+  const extension = entry.ext.toLowerCase().replace(/^\./u, '')
+  return {
+    syllabus: SYLLABUS_HANDOFF_EXTENSIONS.has(extension),
+    literature: LITERATURE_HANDOFF_EXTENSIONS.has(extension)
+  }
+}
+
 function iconForEntry(entry: WorkspaceEntry): ReactElement {
   if (entry.type === 'directory') return <Folder className="h-4 w-4 text-amber-500" strokeWidth={1.8} />
   const category = fileCategory(entry)
@@ -203,6 +223,7 @@ function iconForEntry(entry: WorkspaceEntry): ReactElement {
 
 export function FileManagerWorkspacePage({
   onStartChat,
+  onUseFileInModule,
   inlineConversation,
   showInlineConversation = false,
   className = ''
@@ -224,6 +245,7 @@ export function FileManagerWorkspacePage({
   const [sidePanelMode, setSidePanelMode] = useState<SidePanelMode>('preview')
   const [aiTaskId, setAiTaskId] = useState<FileManagerAiTaskId>('classify')
   const [aiRequest, setAiRequest] = useState('')
+  const [fileContextMenu, setFileContextMenu] = useState<FileContextMenuState>(null)
 
   const loadDirectory = async (targetDirectory = directory, targetRoot = workspaceRoot): Promise<void> => {
     if (!targetRoot.trim() || !window.dsGui?.listWorkspaceDirectory) return
@@ -263,6 +285,22 @@ export function FileManagerWorkspacePage({
     // Reload only when the active directory or chosen workspace changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceRoot, directory])
+
+  useEffect(() => {
+    if (!fileContextMenu) return undefined
+    const close = (): void => setFileContextMenu(null)
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') close()
+    }
+    window.addEventListener('click', close)
+    window.addEventListener('keydown', closeOnEscape)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('keydown', closeOnEscape)
+      window.removeEventListener('resize', close)
+    }
+  }, [fileContextMenu])
 
   const visibleEntries = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -421,6 +459,26 @@ export function FileManagerWorkspacePage({
     })
   }
 
+  const openFileContextMenu = (event: ReactMouseEvent, entry: WorkspaceEntry): void => {
+    if (entry.type !== 'file') return
+    event.preventDefault()
+    setSelectedEntry(entry)
+    setFileContextMenu({
+      x: Math.min(event.clientX, window.innerWidth - 260),
+      y: Math.min(event.clientY, window.innerHeight - 150),
+      entry
+    })
+  }
+
+  const handleContextFileInModule = (target: FileManagerModuleTarget): void => {
+    if (!fileContextMenu || !onUseFileInModule) return
+    onUseFileInModule(target, {
+      name: fileContextMenu.entry.name,
+      path: fileContextMenu.entry.path
+    })
+    setFileContextMenu(null)
+  }
+
   const parent = workspaceRoot ? parentDirectory(directory, workspaceRoot) : null
   const allVisibleFilesSelected = visibleEntries.filter((entry) => entry.type === 'file').length > 0 &&
     visibleEntries.filter((entry) => entry.type === 'file').every((entry) => selectedPaths.has(entry.path))
@@ -522,7 +580,11 @@ export function FileManagerWorkspacePage({
                 {!loading && visibleEntries.map((entry) => {
                   const fileSelected = entry.type === 'file' && selectedPaths.has(entry.path)
                   const active = selectedEntry?.path === entry.path
-                  return <div key={entry.path} className={`grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] items-center border-b border-ds-border-muted/70 px-3 py-2 text-[12.5px] ${active ? 'bg-accent/8' : 'hover:bg-ds-hover'}`}>
+                  return <div
+                    key={entry.path}
+                    onContextMenu={(event) => openFileContextMenu(event, entry)}
+                    className={`grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] items-center border-b border-ds-border-muted/70 px-3 py-2 text-[12.5px] ${active ? 'bg-accent/10' : 'hover:bg-ds-hover'}`}
+                  >
                     <div className="flex justify-center">{entry.type === 'file' ? <input type="checkbox" checked={fileSelected} onChange={() => toggleFile(entry.path)} aria-label={`选择 ${entry.name}`} /> : null}</div>
                     <button type="button" onClick={() => void selectEntry(entry)} className="flex min-w-0 items-center gap-2 text-left text-ds-text"><span className="shrink-0">{iconForEntry(entry)}</span><span className="truncate font-medium">{entry.name}</span></button>
                     <span className="truncate text-[11.5px] text-ds-muted">{entry.type === 'directory' ? '文件夹' : (entry.ext || '文件').toUpperCase()}</span>
@@ -588,7 +650,7 @@ export function FileManagerWorkspacePage({
                             setAiTaskId(task.id)
                             if (!aiRequest.trim()) setAiRequest(task.defaultRequest)
                           }}
-                          className={`rounded-lg border px-3 py-2 text-left ${aiTaskId === task.id ? 'border-accent bg-accent/8 text-ds-text' : 'border-ds-border-muted text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                          className={`rounded-lg border px-3 py-2 text-left ${aiTaskId === task.id ? 'border-accent bg-accent/10 text-ds-text' : 'border-ds-border-muted text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
                         >
                           <span className="block text-[12.5px] font-semibold">{task.label}</span>
                           <span className="mt-1 block text-[11px] leading-4 text-ds-faint">{task.description}</span>
@@ -628,6 +690,40 @@ export function FileManagerWorkspacePage({
           </div>
         </div>
       )}
+      {fileContextMenu ? (
+        <div
+          role="menu"
+          aria-label="文件用途菜单"
+          className="fixed z-50 w-56 overflow-hidden rounded-xl border border-ds-border bg-ds-card py-1.5 text-ui-body-sm shadow-xl"
+          style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="border-b border-ds-border-muted px-3 py-2">
+            <p className="truncate font-semibold text-ds-text">{fileContextMenu.entry.name}</p>
+            <p className="mt-0.5 truncate text-ui-caption text-ds-muted">选择这个文件的用途</p>
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!fileManagerModuleHandoffAvailability(fileContextMenu.entry).syllabus}
+            onClick={() => handleContextFileInModule('syllabus')}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left font-medium text-ds-text hover:bg-ds-hover disabled:cursor-not-allowed disabled:text-ds-faint disabled:hover:bg-transparent"
+          >
+            <FileText className="h-4 w-4 text-accent" strokeWidth={1.8} />
+            用于生成教案
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!fileManagerModuleHandoffAvailability(fileContextMenu.entry).literature}
+            onClick={() => handleContextFileInModule('literature')}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left font-medium text-ds-text hover:bg-ds-hover disabled:cursor-not-allowed disabled:text-ds-faint disabled:hover:bg-transparent"
+          >
+            <Search className="h-4 w-4 text-accent" strokeWidth={1.8} />
+            用于文献精读
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
