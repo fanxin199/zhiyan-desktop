@@ -48,6 +48,9 @@ export function SettingsSidebar({
           <Globe className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
           {t('general')}
         </button>
+        <p className="px-3 pb-2 pl-10 text-[11.5px] leading-5 text-ds-faint">
+          通用设置中可修改教师信息
+        </p>
         <button type="button" className={catCls('write')} onClick={() => setCategory('write')}>
           <PencilLine className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
           {t('write')}
