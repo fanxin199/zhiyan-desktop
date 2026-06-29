@@ -52,6 +52,61 @@ type CoursewarePageProps = {
 
 type Step = 'request' | 'blueprint' | 'slides'
 type BusyAction = 'source' | 'blueprint' | 'slides' | 'regenerate' | 'figure' | 'export' | null
+type CoursewareWorkflowStepId = 'upload' | 'analysis' | 'visual-review' | 'generation'
+
+type CoursewareWorkflowState = {
+  step: Step
+  busy: BusyAction
+  hasSource: boolean
+  hasBlueprint: boolean
+  hasSlides: boolean
+  hasVisuals: boolean
+}
+
+const COURSEWARE_WORKFLOW_STEPS: Array<{
+  id: CoursewareWorkflowStepId
+  marker: string
+  label: string
+  description: string
+}> = [
+  {
+    id: 'upload',
+    marker: '1',
+    label: '上传教材',
+    description: '选择 PDF 或 PPTX'
+  },
+  {
+    id: 'analysis',
+    marker: '2',
+    label: 'AI 分析',
+    description: '提取文字并生成蓝图'
+  },
+  {
+    id: 'visual-review',
+    marker: '3',
+    label: '图片审核',
+    description: '保留可用于课件的原图'
+  },
+  {
+    id: 'generation',
+    marker: '4',
+    label: '生成课件',
+    description: '逐页复核并导出'
+  }
+]
+
+export function getCoursewareWorkflowStepIndex(state: CoursewareWorkflowState): number {
+  if (state.busy === 'slides' || state.busy === 'export' || state.step === 'slides' || state.hasSlides) {
+    return 3
+  }
+  if (state.hasSource && state.hasVisuals && !state.hasBlueprint && state.busy !== 'blueprint') {
+    return 2
+  }
+  if (state.busy === 'source' || state.busy === 'blueprint' || state.step === 'blueprint' || state.hasBlueprint || state.hasSource) {
+    return 1
+  }
+  return 0
+}
 
 const AUDIENCE_PRESETS: Array<{
   id: CoursewareAudience
@@ -175,7 +230,14 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
   const activeSlide = slides[activeSlideIndex] ?? null
   const totalSlides = sectionSlideTotal(blueprint)
-  const stepIndex = step === 'request' ? 0 : step === 'blueprint' ? 1 : 2
+  const workflowStepIndex = getCoursewareWorkflowStepIndex({
+    step,
+    busy,
+    hasSource: Boolean(sourceDocument || request.sourcePath),
+    hasBlueprint: Boolean(blueprint),
+    hasSlides: slides.length > 0,
+    hasVisuals: sourceVisuals.length > 0
+  })
   const canGenerateBlueprint = Boolean(
     request.sourcePath && request.topic.trim() && request.pageEnd >= request.pageStart
   )
@@ -631,7 +693,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
   return (
     <div className={`h-full overflow-y-auto bg-ds-main ${className}`}>
       <div className="mx-auto w-full max-w-6xl px-5 py-7 sm:px-8">
-        <header className="mb-6 flex flex-col gap-4 border-b border-ds-border-muted pb-5 md:flex-row md:items-end md:justify-between">
+        <header className="mb-5 flex flex-col gap-4 border-b border-ds-border-muted pb-5 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
               <Presentation className="h-4 w-4" />
@@ -653,21 +715,50 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               打开已有课件项目
             </button>
           </div>
-          <div className="flex min-w-[300px] items-center gap-2">
-            {['教学任务', '课件蓝图', '逐页复核'].map((label, index) => (
-              <div key={label} className="flex flex-1 items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${
-                  index <= stepIndex ? 'bg-accent text-white' : 'bg-ds-subtle text-ds-faint'
-                }`}>
-                  {index < stepIndex ? <Check className="h-3.5 w-3.5" /> : index + 1}
-                </span>
-                <span className={`text-[11px] ${index <= stepIndex ? 'text-ds-text' : 'text-ds-faint'}`}>
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
         </header>
+
+        <nav
+          aria-label="课件生成流程"
+          className="mb-6 rounded-2xl border border-ds-border-muted bg-ds-card px-3 py-3 shadow-sm sm:px-4"
+        >
+          <ol className="grid gap-2 md:grid-cols-4">
+            {COURSEWARE_WORKFLOW_STEPS.map((item, index) => {
+              const completed = index < workflowStepIndex
+              const active = index === workflowStepIndex
+              return (
+                <li
+                  key={item.id}
+                  aria-current={active ? 'step' : undefined}
+                  className={`rounded-xl border px-3 py-2.5 transition ${
+                    active
+                      ? 'border-accent/50 bg-accent/10 shadow-sm ring-1 ring-accent/20'
+                      : completed
+                        ? 'border-accent/20 bg-accent/5'
+                        : 'border-transparent bg-ds-subtle/70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ui-meta font-bold ${
+                      completed || active ? 'bg-accent text-white' : 'bg-ds-card text-ds-faint'
+                    }`}>
+                      {completed ? <Check className="h-4 w-4" /> : item.marker}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-ui-body-sm font-semibold ${
+                        completed || active ? 'text-ds-text' : 'text-ds-muted'
+                      }`}>
+                        {item.label}
+                      </span>
+                      <span className="mt-0.5 block truncate text-ui-caption text-ds-faint">
+                        {item.description}
+                      </span>
+                    </span>
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+        </nav>
 
         {(message || warning) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-[13px] ${
