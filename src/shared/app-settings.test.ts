@@ -50,6 +50,7 @@ function settings(): AppSettingsV1 {
       courses: [],
       researchTopics: []
     },
+    teacherProjects: [],
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),
@@ -231,6 +232,46 @@ describe('teacher profile settings', () => {
       courses: ['医学免疫学', '肿瘤免疫学'],
       researchTopics: ['B 细胞亚群', 'TLS']
     })
+  })
+})
+
+describe('teacher project settings', () => {
+  it('defaults to no projects and preserves valid project context entries', () => {
+    const emptyProjects = normalizeAppSettings({
+      ...settings(),
+      teacherProjects: undefined
+    } as unknown as AppSettingsV1).teacherProjects
+    const savedProjects = normalizeAppSettings({
+      ...settings(),
+      teacherProjects: [
+        {
+          id: ' project-1 ',
+          name: ' 免疫学课件2026 ',
+          type: 'teaching',
+          workspacePath: ' J:/courses/immunology ',
+          lastUsedAt: ' 2026-06-29T00:00:00.000Z ',
+          summary: ' 本科医学免疫学课件项目 '
+        },
+        {
+          id: '',
+          name: '无效项目',
+          type: 'research',
+          lastUsedAt: '2026-06-29T00:00:00.000Z'
+        }
+      ]
+    } as unknown as AppSettingsV1).teacherProjects
+
+    expect(emptyProjects).toEqual([])
+    expect(savedProjects).toEqual([
+      {
+        id: 'project-1',
+        name: '免疫学课件2026',
+        type: 'teaching',
+        workspacePath: 'J:/courses/immunology',
+        lastUsedAt: '2026-06-29T00:00:00.000Z',
+        summary: '本科医学免疫学课件项目'
+      }
+    ])
   })
 })
 

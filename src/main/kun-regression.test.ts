@@ -124,6 +124,7 @@ describe('Kun single-agent regression', () => {
         courses: [],
         researchTopics: []
       },
+      teacherProjects: [],
       appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
       write: defaultWriteSettings(),
       claw: defaultClawSettings(),

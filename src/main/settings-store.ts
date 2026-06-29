@@ -19,6 +19,7 @@ import {
   mergeScheduleSettings,
   mergeWriteSettings,
   normalizeAppBehaviorSettings,
+  normalizeTeacherProjectSettings,
   normalizeTeacherProfileSettings,
   migrateLegacyAppSettings,
   normalizeAppSettings,
@@ -299,6 +300,7 @@ const defaultSettings = (): AppSettingsV1 => ({
   },
   showTechnicalMetrics: false,
   teacherProfile: normalizeTeacherProfileSettings(),
+  teacherProjects: normalizeTeacherProjectSettings(),
   appBehavior: normalizeAppBehaviorSettings(),
   guiUpdate: {
     channel: DEFAULT_GUI_UPDATE_CHANNEL
@@ -324,6 +326,7 @@ function buildMergedSettings(parsed: Partial<AppSettingsV1>): AppSettingsV1 {
       ...defaults.teacherProfile,
       ...migrated.teacherProfile
     }),
+    teacherProjects: normalizeTeacherProjectSettings(migrated.teacherProjects),
     appBehavior: normalizeAppBehaviorSettings({
       ...defaults.appBehavior,
       ...migrated.appBehavior
@@ -438,6 +441,9 @@ export class JsonSettingsStore {
         ...cur.teacherProfile,
         ...(partial.teacherProfile ?? {})
       }),
+      teacherProjects: normalizeTeacherProjectSettings(
+        partial.teacherProjects ?? cur.teacherProjects
+      ),
       appBehavior: normalizeAppBehaviorSettings({
         ...cur.appBehavior,
         ...(partial.appBehavior ?? {})

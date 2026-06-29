@@ -7,6 +7,7 @@ import {
   type GuiUpdateConfigV1,
   type NotificationConfigV1,
   type ScheduleSettingsPatchV1,
+  type TeacherProjectSettingsV1,
   type TeacherProfileSettingsV1,
   type WriteSettingsPatchV1
 } from './app-settings-types'
@@ -31,6 +32,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
     appBehavior?: Partial<AppBehaviorConfigV1>
     notifications?: Partial<NotificationConfigV1>
     teacherProfile?: Partial<TeacherProfileSettingsV1>
+    teacherProjects?: Array<Partial<TeacherProjectSettingsV1>>
     provider?: Parameters<typeof normalizeModelProviderSettings>[0]
     write?: WriteSettingsPatchV1
     claw?: ClawSettingsPatchV1
@@ -67,6 +69,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
     },
     showTechnicalMetrics: maybeSettings.showTechnicalMetrics === true,
     teacherProfile: normalizeTeacherProfileSettings(maybeSettings.teacherProfile),
+    teacherProjects: normalizeTeacherProjectSettings(maybeSettings.teacherProjects),
     appBehavior: normalizeAppBehaviorSettings(maybeSettings.appBehavior),
     write: normalizeWriteSettings(maybeSettings.write),
     claw: normalizeClawSettings(maybeSettings.claw),
@@ -89,6 +92,36 @@ export function normalizeTeacherProfileSettings(
     courses: compactStrings(profile?.courses),
     researchTopics: compactStrings(profile?.researchTopics)
   }
+}
+
+export function normalizeTeacherProjectSettings(
+  projects?: Array<Partial<TeacherProjectSettingsV1>>
+): TeacherProjectSettingsV1[] {
+  if (!Array.isArray(projects)) return []
+
+  return projects
+    .slice(0, 200)
+    .map((project) => {
+      const id = typeof project?.id === 'string' ? project.id.trim() : ''
+      const name = typeof project?.name === 'string' ? project.name.trim() : ''
+      if (!id || !name) return null
+
+      const workspacePath = typeof project?.workspacePath === 'string'
+        ? project.workspacePath.trim()
+        : ''
+      const summary = typeof project?.summary === 'string' ? project.summary.trim() : ''
+      const lastUsedAt = typeof project?.lastUsedAt === 'string' ? project.lastUsedAt.trim() : ''
+
+      return {
+        id,
+        name,
+        type: project?.type === 'research' ? 'research' : 'teaching',
+        ...(workspacePath ? { workspacePath } : {}),
+        lastUsedAt,
+        ...(summary ? { summary } : {})
+      }
+    })
+    .filter((project): project is TeacherProjectSettingsV1 => project !== null)
 }
 
 export function normalizeAppBehaviorSettings(

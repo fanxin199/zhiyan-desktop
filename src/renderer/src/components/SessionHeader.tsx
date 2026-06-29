@@ -7,6 +7,7 @@ import { useChatStore } from '../store/chat-store'
 import { formatRelativeTime } from '../lib/format-relative-time'
 import { workspaceLabelFromPath } from '../lib/workspace-label'
 import { formatCompactNumber, formatCost, formatPercent, useThreadUsage } from '../hooks/use-thread-usage'
+import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
 
 type Props = {
   compact?: boolean
@@ -15,6 +16,11 @@ type Props = {
 
 export function shouldShowTechnicalMetrics(compact: boolean, enabled: boolean): boolean {
   return !compact && enabled
+}
+
+export function formatTeacherProjectLabel(project: TeacherProjectSettingsV1): string {
+  const prefix = project.type === 'research' ? '科研' : '教案'
+  return `${prefix} · ${project.name}`
 }
 
 export function SessionHeader({ compact = false, className = '' }: Props): ReactElement {
@@ -26,6 +32,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
   const workspaceLabel = useChatStore((s) => s.workspaceLabel)
   const renameActiveThread = useChatStore((s) => s.renameActiveThread)
   const [showTechnicalMetrics, setShowTechnicalMetrics] = useState(false)
+  const [teacherProjects, setTeacherProjects] = useState<TeacherProjectSettingsV1[]>([])
 
   const active = threads.find((th) => th.id === activeThreadId)
   const activeWorkspaceLabel = active?.workspace
@@ -46,6 +53,10 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
         ? t('sessionForkedFrom', { title: forkedFromTitle })
         : t('sessionForked')
       : ''
+  const activeProject = active?.projectId
+    ? teacherProjects.find((project) => project.id === active.projectId)
+    : undefined
+  const activeProjectLabel = activeProject ? formatTeacherProjectLabel(activeProject) : ''
 
   useEffect(() => {
     if (active) {
@@ -61,7 +72,10 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
     void rendererRuntimeClient
       .getSettings()
       .then((settings) => {
-        if (!cancelled) setShowTechnicalMetrics(settings.showTechnicalMetrics)
+        if (!cancelled) {
+          setShowTechnicalMetrics(settings.showTechnicalMetrics)
+          setTeacherProjects(settings.teacherProjects)
+        }
       })
       .catch(() => undefined)
     return () => {
@@ -97,6 +111,14 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
               {active.title}
             </div>
             <div className="session-header-compact-meta flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10.5px] leading-[15px] text-ds-faint">
+              {activeProjectLabel ? (
+                <>
+                  <span className="session-meta-project max-w-[min(44vw,260px)] truncate font-medium text-ds-muted">
+                    {activeProjectLabel}
+                  </span>
+                  <span className="session-meta-project-separator opacity-70">路</span>
+                </>
+              ) : null}
               <span className="session-meta-workspace max-w-[min(42vw,240px)] truncate">{activeWorkspaceLabel}</span>
               <span className="session-meta-workspace-separator opacity-70">·</span>
               <span className="session-meta-time shrink-0 tabular-nums">

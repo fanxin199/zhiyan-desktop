@@ -51,6 +51,7 @@ function settings(): AppSettingsV1 {
       courses: [],
       researchTopics: []
     },
+    teacherProjects: [],
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

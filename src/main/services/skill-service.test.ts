@@ -132,6 +132,7 @@ describe('skill-service', () => {
         courses: [],
         researchTopics: []
       },
+      teacherProjects: [],
       appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
       write: defaultWriteSettings(),
       claw: defaultClawSettings(),

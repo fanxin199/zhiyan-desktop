@@ -57,6 +57,12 @@ import {
   writeWorkspaceForThreadId
 } from '../write/write-thread-registry'
 import {
+  enrichThreadsWithProjectIds,
+  hydrateThreadProjectRegistry,
+  readThreadProjectRegistry,
+  saveThreadProjectRegistry
+} from '../lib/thread-project-registry'
+import {
   clearBusyWatchdog,
   resetBusyRecoveryAttempts,
   scheduleStartupRuntimeProbe,
@@ -578,6 +584,9 @@ export function createNavigationActions(
         const writeWorkspace = writeWorkspaceForThreadId(thread.id, writeRegistry)
         return writeWorkspace ? { ...thread, workspace: writeWorkspace } : thread
       })
+      const projectRegistry = hydrateThreadProjectRegistry(displayThreads, readThreadProjectRegistry())
+      saveThreadProjectRegistry(projectRegistry)
+      displayThreads = enrichThreadsWithProjectIds(displayThreads, projectRegistry)
       const activeThreadId = get().activeThreadId
       const activeThread = activeThreadId
         ? displayThreads.find((thread) => thread.id === activeThreadId) ?? null

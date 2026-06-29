@@ -292,6 +292,15 @@ const teacherProfilePatchSchema = z.object({
   researchTopics: z.array(z.string().trim().max(200)).max(100).optional()
 }).strict()
 
+const teacherProjectPatchSchema = z.object({
+  id: z.string().trim().min(1).max(MAX_ID_LENGTH),
+  name: z.string().trim().min(1).max(200),
+  type: z.enum(['teaching', 'research']),
+  workspacePath: defaultPathSchema.optional(),
+  lastUsedAt: z.string().trim().max(128),
+  summary: z.string().trim().max(4_000).optional()
+}).strict()
+
 const appBehaviorPatchSchema = z.object({
   openAtLogin: z.boolean().optional(),
   startMinimized: z.boolean().optional(),
@@ -521,6 +530,7 @@ const settingsPatchObjectSchema = z.object({
   notifications: notificationsPatchSchema.optional(),
   showTechnicalMetrics: z.boolean().optional(),
   teacherProfile: teacherProfilePatchSchema.optional(),
+  teacherProjects: z.array(teacherProjectPatchSchema).max(200).optional(),
   appBehavior: appBehaviorPatchSchema.optional(),
   write: writeSettingsPatchSchema.optional(),
   claw: clawSettingsPatchSchema.optional(),

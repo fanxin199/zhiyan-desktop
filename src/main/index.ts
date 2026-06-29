@@ -17,6 +17,7 @@ import {
   mergeWriteSettings,
   normalizeAppSettings,
   normalizeAppBehaviorSettings,
+  normalizeTeacherProjectSettings,
   normalizeTeacherProfileSettings,
   resolveKunRuntimeSettings,
   type AppBehaviorConfigV1,
@@ -698,6 +699,9 @@ app.whenReady().then(async () => {
         ...prev.teacherProfile,
         ...(partial.teacherProfile ?? {})
       }),
+      teacherProjects: normalizeTeacherProjectSettings(
+        partial.teacherProjects ?? prev.teacherProjects
+      ),
       appBehavior: normalizeAppBehaviorSettings({
         ...prev.appBehavior,
         ...(partial.appBehavior ?? {})

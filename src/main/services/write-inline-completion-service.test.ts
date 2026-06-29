@@ -50,6 +50,7 @@ function createSettings(patch: Partial<AppSettingsV1['write']['inlineCompletion'
       courses: [],
       researchTopics: []
     },
+    teacherProjects: [],
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: {
       ...write,

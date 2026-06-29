@@ -71,6 +71,7 @@ export type NormalizedThread = {
   model: string
   mode: string
   workspace?: string
+  projectId?: string
   status?: string
   archived?: boolean
   preview?: string

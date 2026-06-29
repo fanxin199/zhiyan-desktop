@@ -11,6 +11,7 @@ import type {
   UserInputAnswer
 } from '../agent/types'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
+import type { TeacherProjectTypeV1 } from '@shared/app-settings'
 
 export type QueuedUserMessage = {
   id: string
@@ -61,6 +62,13 @@ export type SendMessageOverrides = {
   guiPlan?: GuiPlanMessageContext
   attachmentIds?: string[]
   attachments?: AttachmentReference[]
+}
+
+export type TeacherProjectStartContext = {
+  moduleId: string
+  name: string
+  type: TeacherProjectTypeV1
+  summary?: string
 }
 
 export type InitialSetupMode = 'required' | 'preview'
@@ -177,7 +185,11 @@ export type ChatState = {
   refreshThreads: () => Promise<void>
   setThreadSearch: (query: string) => void
   setShowArchivedThreads: (show: boolean) => void
-  createThread: (options?: { workspaceRoot?: string; forceNew?: boolean }) => Promise<void>
+  createThread: (options?: {
+    workspaceRoot?: string
+    forceNew?: boolean
+    project?: TeacherProjectStartContext
+  }) => Promise<void>
   selectThread: (id: string) => Promise<void>
   recoverActiveTurn: () => Promise<boolean>
   sendMessage: (text: string, mode?: string, overrides?: SendMessageOverrides) => Promise<boolean>

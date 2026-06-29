@@ -11,7 +11,15 @@ type WorkbenchModule = typeof workbench & {
     navigateToChat?: boolean
     inlineModule?: InlineModuleId
     setRoute: (route: 'chat') => void
-    createThread: (options?: { workspaceRoot?: string }) => Promise<void>
+    createThread: (options?: {
+      workspaceRoot?: string
+      project?: {
+        moduleId: InlineModuleId
+        name: string
+        type: 'teaching' | 'research'
+        summary?: string
+      }
+    }) => Promise<void>
     sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
     setInput: (value: string) => void
   }) => Promise<boolean>
@@ -64,6 +72,36 @@ describe('module task launch', () => {
       'agent',
       { displayText: '文献阅读 · 单篇 PDF 精读：paper.pdf' }
     )
+  })
+
+  it('binds inline module tasks to a teacher project context', async () => {
+    const startModuleTask = (workbench as WorkbenchModule).startModuleTask
+    const setRoute = vi.fn()
+    const createThread = vi.fn(async () => undefined)
+    const sendMessage = vi.fn(async () => true)
+    const setInput = vi.fn()
+
+    await startModuleTask?.({
+      prompt: 'Generate lesson plan',
+      workspaceRoot: 'D:\\courses',
+      displayText: '教案生成 · 移植免疫',
+      navigateToChat: false,
+      inlineModule: 'syllabus',
+      setRoute,
+      createThread,
+      sendMessage,
+      setInput
+    })
+
+    expect(createThread).toHaveBeenCalledWith({
+      workspaceRoot: 'D:\\courses',
+      project: {
+        moduleId: 'syllabus',
+        name: '移植免疫',
+        type: 'teaching',
+        summary: '教案生成 · 移植免疫'
+      }
+    })
   })
 })
 

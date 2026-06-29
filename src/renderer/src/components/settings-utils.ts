@@ -14,6 +14,7 @@ import {
   normalizeGuiUpdateChannel,
   normalizeModelProviderSettings,
   normalizeScheduleSettings,
+  normalizeTeacherProjectSettings,
   normalizeTeacherProfileSettings,
   normalizeWriteSettings,
   type AppSettingsPatch,
@@ -61,6 +62,9 @@ export function mergeSettings(current: AppSettingsV1, patch: SettingsPatch): App
       ...safeCurrent.teacherProfile,
       ...(patch.teacherProfile ?? {})
     }),
+    teacherProjects: normalizeTeacherProjectSettings(
+      patch.teacherProjects ?? safeCurrent.teacherProjects
+    ),
     appBehavior: normalizeAppBehaviorSettings({
       ...safeCurrent.appBehavior,
       ...(patch.appBehavior ?? {})
@@ -102,6 +106,7 @@ export function coerceRendererSettings(settings: AppSettingsV1): AppSettingsV1 {
     },
     showTechnicalMetrics: raw.showTechnicalMetrics === true,
     teacherProfile: normalizeTeacherProfileSettings(raw.teacherProfile),
+    teacherProjects: normalizeTeacherProjectSettings(raw.teacherProjects),
     appBehavior: normalizeAppBehaviorSettings(raw.appBehavior),
     write: normalizeWriteSettings(raw.write),
     claw: normalizeClawSettings(raw.claw),

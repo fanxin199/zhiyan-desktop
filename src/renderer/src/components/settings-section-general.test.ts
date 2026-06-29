@@ -103,6 +103,7 @@ function settings(): AppSettingsV1 {
       courses: ['医学免疫学', '肿瘤免疫学'],
       researchTopics: ['B 细胞亚群', 'TLS']
     },
+    teacherProjects: [],
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

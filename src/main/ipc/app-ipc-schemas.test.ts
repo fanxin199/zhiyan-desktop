@@ -223,6 +223,22 @@ describe('app-ipc-schemas', () => {
     expect(payload.schedule?.tasks?.[0]?.reasoningEffort).toBe('high')
   })
 
+  it('accepts teacher project context settings patches', () => {
+    const payload = settingsPatchSchema.parse({
+      teacherProjects: [{
+        id: 'project-1',
+        name: '免疫学课件2026',
+        type: 'teaching',
+        workspacePath: 'J:/courses/immunology',
+        lastUsedAt: '2026-06-29T00:00:00.000Z',
+        summary: '本科医学免疫学课件项目'
+      }]
+    })
+
+    expect(payload.teacherProjects?.[0]?.id).toBe('project-1')
+    expect(payload.teacherProjects?.[0]?.type).toBe('teaching')
+  })
+
   it('strips legacy settings keys before validating settings patches', () => {
     const payload = settingsPatchSchema.parse({
       locale: 'zh',

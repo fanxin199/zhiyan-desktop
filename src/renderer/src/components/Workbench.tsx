@@ -7,7 +7,7 @@ import { DEFAULT_COMPOSER_MODEL_IDS } from '@shared/default-composer-models'
 import type { SkillListItem } from '@shared/ds-gui-api'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
-import type { SendMessageOverrides } from '../store/chat-store-types'
+import type { SendMessageOverrides, TeacherProjectStartContext } from '../store/chat-store-types'
 import type { CoreRuntimeInfoJson, CoreRuntimeSkillJson } from '../agent/kun-contract'
 import { getProvider } from '../agent/registry'
 import { useChatStore } from '../store/chat-store'
@@ -61,8 +61,12 @@ type ModuleTaskStartOptions = {
   workspaceRoot?: string
   displayText?: string
   navigateToChat?: boolean
+  inlineModule?: InlineModuleId
   setRoute: (route: 'chat') => void
-  createThread: (options?: { workspaceRoot?: string }) => Promise<void>
+  createThread: (options?: {
+    workspaceRoot?: string
+    project?: TeacherProjectStartContext
+  }) => Promise<void>
   sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
   setInput: (value: string) => void
 }
@@ -81,18 +85,60 @@ export function isInlineModuleConversationVisible({
   return Boolean(activeThreadId && inlineConversationThreadIds[moduleId] === activeThreadId)
 }
 
+const MODULE_PROJECT_DEFAULTS: Record<InlineModuleId, {
+  name: string
+  type: TeacherProjectStartContext['type']
+}> = {
+  syllabus: { name: '教案生成', type: 'teaching' },
+  literature: { name: '文献解读', type: 'research' },
+  'paper-polish': { name: '科研文本写作', type: 'research' },
+  'review-writing': { name: '综述撰写', type: 'research' },
+  'grant-writing': { name: '自然基金撰写', type: 'research' },
+  bioinformatics: { name: '科研数据分析', type: 'research' }
+}
+
+function teacherProjectNameFromDisplayText(displayText: string | undefined, fallback: string): string {
+  const text = displayText?.trim() ?? ''
+  if (!text) return fallback
+  const parts = text.split(/[·路]/u).map((part) => part.trim()).filter(Boolean)
+  return parts.length > 1 ? parts[parts.length - 1] : text
+}
+
+function buildTeacherProjectStartContext(
+  inlineModule: InlineModuleId | undefined,
+  displayText: string | undefined
+): TeacherProjectStartContext | undefined {
+  if (!inlineModule) return undefined
+  const defaults = MODULE_PROJECT_DEFAULTS[inlineModule]
+  return {
+    moduleId: inlineModule,
+    name: teacherProjectNameFromDisplayText(displayText, defaults.name),
+    type: defaults.type,
+    ...(displayText?.trim() ? { summary: displayText.trim() } : {})
+  }
+}
+
 export async function startModuleTask({
   prompt,
   workspaceRoot,
   displayText,
   navigateToChat = true,
+  inlineModule,
   setRoute,
   createThread,
   sendMessage,
   setInput
 }: ModuleTaskStartOptions): Promise<boolean> {
   if (navigateToChat) setRoute('chat')
-  await createThread(workspaceRoot ? { workspaceRoot } : undefined)
+  const project = buildTeacherProjectStartContext(inlineModule, displayText)
+  await createThread(
+    workspaceRoot || project
+      ? {
+          ...(workspaceRoot ? { workspaceRoot } : {}),
+          ...(project ? { project } : {})
+        }
+      : undefined
+  )
   const sent = displayText
     ? await sendMessage(prompt, 'agent', { displayText })
     : await sendMessage(prompt, 'agent')
@@ -471,6 +517,7 @@ export function Workbench(): ReactElement {
       workspaceRoot: options?.workspaceRoot,
       displayText: options?.displayText,
       navigateToChat: !options?.inlineModule,
+      inlineModule: options?.inlineModule,
       setRoute,
       createThread,
       sendMessage,

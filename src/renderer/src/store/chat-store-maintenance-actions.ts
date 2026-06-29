@@ -89,6 +89,10 @@ import {
   sameTodoWriteItems,
   threadTodoWriteItems
 } from '../plan/plan-todo-sync'
+import {
+  forgetThreadProject,
+  saveThreadProjectRegistry
+} from '../lib/thread-project-registry'
 
 type SseAbortRef = { current: AbortController | null }
 
@@ -554,6 +558,7 @@ export function createMaintenanceActions(
       await p.deleteThread(targetId)
       saveWriteThreadRegistry(forgetWriteThread(targetId))
       saveThreadForkRegistry(forgetThreadFork(targetId))
+      saveThreadProjectRegistry(forgetThreadProject(targetId))
       if (deletingActive) {
         sseAbortRef.current?.abort()
         sseAbortRef.current = null

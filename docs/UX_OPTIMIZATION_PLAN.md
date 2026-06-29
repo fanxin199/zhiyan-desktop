@@ -93,7 +93,7 @@
 
 ### Task 1.3 · 项目绑定机制
 
-- [ ] **1.3.1** 在 `src/shared/app-settings-types.ts` 中增加 `teacherProjects` 数组类型：
+- [x] **1.3.1** 在 `src/shared/app-settings-types.ts` 中增加 `teacherProjects` 数组类型：
   ```ts
   teacherProjects: Array<{
     id: string
@@ -104,9 +104,9 @@
     summary?: string      // AI 自动生成的项目摘要
   }>
   ```
-- [ ] **1.3.2** 在 `NormalizedThread` 类型（`src/renderer/src/agent/types.ts`）中增加可选的 `projectId?: string` 字段，用于将对话绑定到特定项目。
-- [ ] **1.3.3** 在 chat-store 的 `createThread` 流程中，如果当前在某个模块页面（如 SyllabusPage）发起对话，自动关联到对应的项目或创建新项目。
-- [ ] **1.3.4** 在 SessionHeader compact 模式中增加项目标识显示（如"📋 教案 · 移植免疫"）。
+- [x] **1.3.2** 在 `NormalizedThread` 类型（`src/renderer/src/agent/types.ts`）中增加可选的 `projectId?: string` 字段，用于将对话绑定到特定项目。
+- [x] **1.3.3** 在 chat-store 的 `createThread` 流程中，如果当前在某个模块页面（如 SyllabusPage）发起对话，自动关联到对应的项目或创建新项目。
+- [x] **1.3.4** 在 SessionHeader compact 模式中增加项目标识显示（如"📋 教案 · 移植免疫"）。
 
 ### Task 1.4 · 设置页增加教师信息入口
 

@@ -57,6 +57,11 @@ import {
   writeWorkspaceForThreadId
 } from '../write/write-thread-registry'
 import {
+  markThreadProject,
+  saveThreadProjectRegistry,
+  upsertTeacherProject
+} from '../lib/thread-project-registry'
+import {
   clearBusyWatchdog,
   resetBusyRecoveryAttempts,
   scheduleStartupRuntimeProbe,
@@ -154,11 +159,25 @@ export function createThreadActions(
         }
         return
       }
-      const t = await p.createThread({
+      let t = await p.createThread({
         workspace: workspaceRoot,
         title: getDefaultThreadTitle(),
         mode: 'agent'
       })
+      if (options.project) {
+        const { project, projects } = upsertTeacherProject(settings.teacherProjects, {
+          ...options.project,
+          workspacePath: workspaceRoot,
+          now: new Date().toISOString()
+        })
+        try {
+          await rendererRuntimeClient.setSettings({ teacherProjects: projects })
+        } catch {
+          /* Keep local thread binding even if settings persistence fails. */
+        }
+        saveThreadProjectRegistry(markThreadProject(t.id, project.id))
+        t = { ...t, projectId: project.id }
+      }
       // Register + activate optimistically before refreshing. A freshly created
       // Kun thread may not be listed until the first message is written.
       // Setting it active first lets refreshThreads preserve it in the sidebar.
