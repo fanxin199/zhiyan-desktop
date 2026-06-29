@@ -38,6 +38,7 @@ function settingsForPort(port: number): AppSettingsV1 {
       researchTopics: []
     },
     teacherProjects: [],
+    moduleContext: { projects: {}, recent: {} },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

@@ -222,6 +222,46 @@ export type TeacherProjectSettingsV1 = {
   summary?: string
 }
 
+export type SyllabusModuleContextV1 = {
+  courseName: string
+  topic: string
+  hours: string
+  students: string
+  major: string
+  updatedAt: string
+}
+
+export type CoursewareModuleContextV1 = {
+  topic: string
+  durationMinutes: number
+  audience: 'undergraduate' | 'graduate' | 'international'
+  focus: string
+  updatedAt: string
+}
+
+export type WritingBlueprintModuleContextV1 = {
+  sourceModule: 'paper-polish'
+  taskLabel: string
+  userInput: string
+  fileNames: string[]
+  displayText: string
+  updatedAt: string
+}
+
+export type TeacherModuleProjectContextV1 = {
+  syllabus?: SyllabusModuleContextV1
+  courseware?: CoursewareModuleContextV1
+  writingBlueprint?: WritingBlueprintModuleContextV1
+}
+
+export type ModuleContextSettingsV1 = {
+  projects: Record<string, TeacherModuleProjectContextV1>
+  recent: {
+    syllabusProjectId?: string
+    writingBlueprintProjectId?: string
+  }
+}
+
 export type AppBehaviorConfigV1 = {
   openAtLogin: boolean
   startMinimized: boolean
@@ -472,6 +512,7 @@ export type AppSettingsV1 = {
   showTechnicalMetrics: boolean
   teacherProfile: TeacherProfileSettingsV1
   teacherProjects: TeacherProjectSettingsV1[]
+  moduleContext: ModuleContextSettingsV1
   appBehavior: AppBehaviorConfigV1
   write: WriteSettingsV1
   claw: ClawSettingsV1
@@ -480,7 +521,7 @@ export type AppSettingsV1 = {
 }
 
 export type AppSettingsPatch = Partial<
-  Omit<AppSettingsV1, 'provider' | 'agents' | 'log' | 'notifications' | 'teacherProfile' | 'teacherProjects' | 'appBehavior' | 'write' | 'claw' | 'schedule' | 'guiUpdate'>
+  Omit<AppSettingsV1, 'provider' | 'agents' | 'log' | 'notifications' | 'teacherProfile' | 'teacherProjects' | 'moduleContext' | 'appBehavior' | 'write' | 'claw' | 'schedule' | 'guiUpdate'>
 > & {
   provider?: ModelProviderSettingsPatchV1
   agents?: KunSettingsEnvelopePatchV1
@@ -488,6 +529,7 @@ export type AppSettingsPatch = Partial<
   notifications?: Partial<NotificationConfigV1>
   teacherProfile?: Partial<TeacherProfileSettingsV1>
   teacherProjects?: TeacherProjectSettingsV1[]
+  moduleContext?: Partial<ModuleContextSettingsV1>
   appBehavior?: Partial<AppBehaviorConfigV1>
   write?: WriteSettingsPatchV1
   claw?: ClawSettingsPatchV1

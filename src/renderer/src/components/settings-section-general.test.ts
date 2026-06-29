@@ -104,6 +104,7 @@ function settings(): AppSettingsV1 {
       researchTopics: ['B 细胞亚群', 'TLS']
     },
     teacherProjects: [],
+    moduleContext: { projects: {}, recent: {} },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),

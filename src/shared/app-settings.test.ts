@@ -51,6 +51,7 @@ function settings(): AppSettingsV1 {
       researchTopics: []
     },
     teacherProjects: [],
+    moduleContext: { projects: {}, recent: {} },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(),
     claw: defaultClawSettings(),
@@ -272,6 +273,58 @@ describe('teacher project settings', () => {
         summary: '本科医学免疫学课件项目'
       }
     ])
+  })
+})
+
+describe('module context settings', () => {
+  it('defaults to an empty cross-module context', () => {
+    const normalized = normalizeAppSettings({
+      ...settings(),
+      moduleContext: undefined
+    } as unknown as AppSettingsV1)
+
+    expect(normalized.moduleContext).toEqual({ projects: {}, recent: {} })
+  })
+
+  it('preserves valid cross-module context and removes invalid project entries', () => {
+    const normalized = normalizeAppSettings({
+      ...settings(),
+      moduleContext: {
+        projects: {
+          ' project-1 ': {
+            syllabus: {
+              courseName: ' Immunology ',
+              topic: ' B cells ',
+              hours: ' 2 ',
+              students: ' undergraduates ',
+              major: ' clinical medicine ',
+              updatedAt: ' 2026-06-29T00:00:00.000Z '
+            },
+            writingBlueprint: {
+              sourceModule: 'paper-polish',
+              taskLabel: ' Blueprint ',
+              userInput: ' Review TLS and B cells ',
+              fileNames: [' paper.pdf ', ' '],
+              displayText: ' Research writing · Blueprint ',
+              updatedAt: ' 2026-06-29T00:00:00.000Z '
+            }
+          },
+          empty: {}
+        },
+        recent: {
+          syllabusProjectId: ' project-1 ',
+          writingBlueprintProjectId: ' project-1 '
+        }
+      }
+    } as unknown as AppSettingsV1)
+
+    expect(Object.keys(normalized.moduleContext.projects)).toEqual(['project-1'])
+    expect(normalized.moduleContext.projects['project-1']?.syllabus?.topic).toBe('B cells')
+    expect(normalized.moduleContext.projects['project-1']?.writingBlueprint?.fileNames).toEqual(['paper.pdf'])
+    expect(normalized.moduleContext.recent).toEqual({
+      syllabusProjectId: 'project-1',
+      writingBlueprintProjectId: 'project-1'
+    })
   })
 })
 

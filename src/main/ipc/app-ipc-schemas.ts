@@ -301,6 +301,46 @@ const teacherProjectPatchSchema = z.object({
   summary: z.string().trim().max(4_000).optional()
 }).strict()
 
+const syllabusModuleContextPatchSchema = z.object({
+  courseName: z.string().trim().max(200),
+  topic: z.string().trim().max(300),
+  hours: z.string().trim().max(80),
+  students: z.string().trim().max(200),
+  major: z.string().trim().max(200),
+  updatedAt: z.string().trim().max(128)
+}).strict()
+
+const coursewareModuleContextPatchSchema = z.object({
+  topic: z.string().trim().max(300),
+  durationMinutes: z.number().int().min(15).max(480),
+  audience: z.enum(['undergraduate', 'graduate', 'international']),
+  focus: z.string().trim().max(2_000),
+  updatedAt: z.string().trim().max(128)
+}).strict()
+
+const writingBlueprintModuleContextPatchSchema = z.object({
+  sourceModule: z.literal('paper-polish'),
+  taskLabel: z.string().trim().max(200),
+  userInput: z.string().trim().max(MAX_CHANNEL_TEXT_LENGTH),
+  fileNames: z.array(z.string().trim().max(255)).max(20),
+  displayText: z.string().trim().max(500),
+  updatedAt: z.string().trim().max(128)
+}).strict()
+
+const moduleProjectContextPatchSchema = z.object({
+  syllabus: syllabusModuleContextPatchSchema.optional(),
+  courseware: coursewareModuleContextPatchSchema.optional(),
+  writingBlueprint: writingBlueprintModuleContextPatchSchema.optional()
+}).strict()
+
+const moduleContextPatchSchema = z.object({
+  projects: z.record(z.string().trim().min(1).max(MAX_ID_LENGTH), moduleProjectContextPatchSchema).optional(),
+  recent: z.object({
+    syllabusProjectId: z.string().trim().max(MAX_ID_LENGTH).optional(),
+    writingBlueprintProjectId: z.string().trim().max(MAX_ID_LENGTH).optional()
+  }).strict().optional()
+}).strict()
+
 const appBehaviorPatchSchema = z.object({
   openAtLogin: z.boolean().optional(),
   startMinimized: z.boolean().optional(),
@@ -531,6 +571,7 @@ const settingsPatchObjectSchema = z.object({
   showTechnicalMetrics: z.boolean().optional(),
   teacherProfile: teacherProfilePatchSchema.optional(),
   teacherProjects: z.array(teacherProjectPatchSchema).max(200).optional(),
+  moduleContext: moduleContextPatchSchema.optional(),
   appBehavior: appBehaviorPatchSchema.optional(),
   write: writeSettingsPatchSchema.optional(),
   claw: clawSettingsPatchSchema.optional(),

@@ -17,6 +17,7 @@ import {
   mergeWriteSettings,
   normalizeAppSettings,
   normalizeAppBehaviorSettings,
+  normalizeModuleContextSettings,
   normalizeTeacherProjectSettings,
   normalizeTeacherProfileSettings,
   resolveKunRuntimeSettings,
@@ -702,6 +703,16 @@ app.whenReady().then(async () => {
       teacherProjects: normalizeTeacherProjectSettings(
         partial.teacherProjects ?? prev.teacherProjects
       ),
+      moduleContext: normalizeModuleContextSettings({
+        projects: {
+          ...prev.moduleContext.projects,
+          ...(partial.moduleContext?.projects ?? {})
+        },
+        recent: {
+          ...prev.moduleContext.recent,
+          ...(partial.moduleContext?.recent ?? {})
+        }
+      }),
       appBehavior: normalizeAppBehaviorSettings({
         ...prev.appBehavior,
         ...(partial.appBehavior ?? {})

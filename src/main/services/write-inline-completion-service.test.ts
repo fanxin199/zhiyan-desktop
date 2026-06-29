@@ -51,6 +51,7 @@ function createSettings(patch: Partial<AppSettingsV1['write']['inlineCompletion'
       researchTopics: []
     },
     teacherProjects: [],
+    moduleContext: { projects: {}, recent: {} },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: {
       ...write,

@@ -239,6 +239,40 @@ describe('app-ipc-schemas', () => {
     expect(payload.teacherProjects?.[0]?.type).toBe('teaching')
   })
 
+  it('accepts cross-module context settings patches', () => {
+    const payload = settingsPatchSchema.parse({
+      moduleContext: {
+        projects: {
+          'project-1': {
+            syllabus: {
+              courseName: 'Immunology',
+              topic: 'B cells',
+              hours: '2',
+              students: 'undergraduates',
+              major: 'clinical medicine',
+              updatedAt: '2026-06-29T00:00:00.000Z'
+            },
+            writingBlueprint: {
+              sourceModule: 'paper-polish',
+              taskLabel: 'Blueprint',
+              userInput: 'Write a TLS review blueprint.',
+              fileNames: ['paper.pdf'],
+              displayText: 'Research writing · Blueprint',
+              updatedAt: '2026-06-29T00:00:00.000Z'
+            }
+          }
+        },
+        recent: {
+          syllabusProjectId: 'project-1',
+          writingBlueprintProjectId: 'project-1'
+        }
+      }
+    })
+
+    expect(payload.moduleContext?.projects?.['project-1']?.syllabus?.topic).toBe('B cells')
+    expect(payload.moduleContext?.recent?.writingBlueprintProjectId).toBe('project-1')
+  })
+
   it('strips legacy settings keys before validating settings patches', () => {
     const payload = settingsPatchSchema.parse({
       locale: 'zh',

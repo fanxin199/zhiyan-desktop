@@ -17,7 +17,13 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
-import type { AppSettingsV1 } from '@shared/app-settings'
+import type { AppSettingsV1, WritingBlueprintModuleContextV1 } from '@shared/app-settings'
+import {
+  buildImportedWritingBlueprintText,
+  loadRecentWritingBlueprint,
+  moduleProjectIdFromDisplayText,
+  persistModuleProjectContext
+} from '../../lib/module-context'
 import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
@@ -345,13 +351,30 @@ function ResearchTaskEntry({
   const [files, setFiles] = useState<ResearchTaskFile[]>([])
   const [error, setError] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
+  const [importableBlueprint, setImportableBlueprint] = useState<WritingBlueprintModuleContextV1 | null>(null)
 
-  if (!entry) return null
   const taskEntry = entry
+  const selectedTask = taskEntry?.taskTypes.find((task) => task.id === selectedTaskId)
+    ?? taskEntry?.taskTypes[0]
+  const canSubmit = Boolean(selectedTask && (userInput.trim() || files.length > 0))
 
-  const selectedTask = taskEntry.taskTypes.find((task) => task.id === selectedTaskId)
-    ?? taskEntry.taskTypes[0]
-  const canSubmit = Boolean(userInput.trim() || files.length > 0)
+  useEffect(() => {
+    if (config.inlineConversationModule !== 'review-writing') {
+      setImportableBlueprint(null)
+      return
+    }
+    let cancelled = false
+    void loadRecentWritingBlueprint().then((blueprint) => {
+      if (!cancelled) setImportableBlueprint(blueprint)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [config.inlineConversationModule])
+
+  if (!taskEntry || !selectedTask) return null
+  const activeTaskEntry: ResearchTaskEntryConfig = taskEntry
+  const activeSelectedTask: ResearchTaskType = selectedTask
 
   async function handlePickFile(): Promise<void> {
     if (!window.dsGui?.pickFile) {
@@ -359,7 +382,7 @@ function ResearchTaskEntry({
       return
     }
     setError('')
-    const picked = await window.dsGui.pickFile({ filters: taskEntry.fileFilters })
+    const picked = await window.dsGui.pickFile({ filters: activeTaskEntry.fileFilters })
     if (picked.canceled || !picked.path) return
     const name = picked.path.split(/[\\/]/).pop() ?? picked.path
     const path = picked.path as string
@@ -403,9 +426,9 @@ function ResearchTaskEntry({
 
   function handleSubmit(): void {
     if (isExtracting) return
-    const displayText = buildResearchTaskDisplayText(config, selectedTask, files)
-    const prompt = buildResearchTaskPrompt(config, selectedTask, userInput, files, {
-      name: `${config.title} · ${selectedTask.label}`,
+    const displayText = buildResearchTaskDisplayText(config, activeSelectedTask, files)
+    const prompt = buildResearchTaskPrompt(config, activeSelectedTask, userInput, files, {
+      name: `${config.title} · ${activeSelectedTask.label}`,
       type: config.inlineConversationModule === 'syllabus' ? 'teaching' : 'research',
       summary: displayText
     })
@@ -415,6 +438,23 @@ function ResearchTaskEntry({
     }
     setError('')
     const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
+    if (config.inlineConversationModule === 'paper-polish' && activeSelectedTask.id === 'blueprint') {
+      const projectId = moduleProjectIdFromDisplayText('paper-polish', displayText, config.title)
+      void persistModuleProjectContext(
+        projectId,
+        {
+          writingBlueprint: {
+            sourceModule: 'paper-polish',
+            taskLabel: activeSelectedTask.label,
+            userInput: userInput.trim(),
+            fileNames: files.map((file) => file.name),
+            displayText,
+            updatedAt: new Date().toISOString()
+          }
+        },
+        { writingBlueprintProjectId: projectId }
+      ).catch(() => {})
+    }
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
       displayText,
@@ -427,6 +467,14 @@ function ResearchTaskEntry({
     setError('')
   }
 
+  function importWritingBlueprint(): void {
+    if (!importableBlueprint) return
+    const imported = buildImportedWritingBlueprintText(importableBlueprint)
+    setUserInput((current) => current.trim() ? `${current.trim()}\n\n${imported}` : imported)
+    setSelectedTaskId('blueprint')
+    setError('')
+  }
+
   return (
     <section
       className="rounded-xl border border-accent/20 bg-ds-card p-5 shadow-sm"
@@ -434,10 +482,10 @@ function ResearchTaskEntry({
     >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-[15px] font-bold text-ds-text">{taskEntry.title}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-ds-muted">{taskEntry.description}</p>
+          <h2 className="text-[15px] font-bold text-ds-text">{activeTaskEntry.title}</h2>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-ds-muted">{activeTaskEntry.description}</p>
         </div>
-        {taskEntry.allowWriteWorkbench && onOpenWrite ? (
+        {activeTaskEntry.allowWriteWorkbench && onOpenWrite ? (
           <button
             type="button"
             onClick={onOpenWrite}
@@ -453,8 +501,8 @@ function ResearchTaskEntry({
         <div>
           <div className="mb-2 text-[12px] font-semibold text-ds-muted">选择任务类型</div>
           <div className="flex flex-wrap gap-2">
-            {taskEntry.taskTypes.map((task) => {
-              const selected = task.id === selectedTask.id
+            {activeTaskEntry.taskTypes.map((task) => {
+              const selected = task.id === activeSelectedTask.id
               return (
                 <button
                   key={task.id}
@@ -472,7 +520,7 @@ function ResearchTaskEntry({
               )
             })}
           </div>
-          <p className="mt-2 text-[12px] leading-relaxed text-ds-muted">{selectedTask.description}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-ds-muted">{activeSelectedTask.description}</p>
         </div>
 
         <ResizableTextArea
@@ -480,8 +528,25 @@ function ResearchTaskEntry({
           onChange={(event) => setUserInput(event.target.value)}
           rows={6}
           className="min-h-[160px] rounded-xl border border-ds-border bg-ds-main px-3 py-2 text-[13px] text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
-          placeholder={taskEntry.placeholder}
+          placeholder={activeTaskEntry.placeholder}
         />
+
+        {config.inlineConversationModule === 'review-writing' && importableBlueprint ? (
+          <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[12.5px] font-semibold text-ds-text">已有写作蓝图可导入</p>
+              <p className="truncate text-[11.5px] text-ds-muted">{importableBlueprint.displayText}</p>
+            </div>
+            <button
+              type="button"
+              onClick={importWritingBlueprint}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-[12.5px] font-semibold text-accent transition hover:bg-accent/15"
+            >
+              <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
+              导入已有蓝图
+            </button>
+          </div>
+        ) : null}
 
         {files.length > 0 ? (
           <div className="space-y-2">
@@ -543,7 +608,7 @@ function ResearchTaskEntry({
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Check className="h-4 w-4" strokeWidth={2} />
-            {taskEntry.submitLabel}
+            {activeTaskEntry.submitLabel}
           </button>
         </div>
 
@@ -1418,13 +1483,30 @@ export function SyllabusPage({
 
     const prompt = promptParts.join('\n')
 
+    const displayText = buildSyllabusTaskDisplayText({
+      courseName,
+      topic,
+      fileName: selectedFile?.name
+    })
+    const syllabusProjectId = moduleProjectIdFromDisplayText('syllabus', displayText, '智能教案生成')
+    void persistModuleProjectContext(
+      syllabusProjectId,
+      {
+        syllabus: {
+          courseName: courseName.trim(),
+          topic: topic.trim(),
+          hours: hours.trim(),
+          students: students.trim(),
+          major: major.trim(),
+          updatedAt: new Date().toISOString()
+        }
+      },
+      { syllabusProjectId }
+    ).catch(() => {})
+
     onStartChat(prompt, {
       ...(sourceDir ? { workspaceRoot: sourceDir } : {}),
-      displayText: buildSyllabusTaskDisplayText({
-        courseName,
-        topic,
-        fileName: selectedFile?.name
-      }),
+      displayText,
       inlineModule: 'syllabus'
     })
   }

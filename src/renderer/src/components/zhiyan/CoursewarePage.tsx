@@ -43,6 +43,7 @@ import {
   renderPdfPageDataUrl,
   type NormalizedCrop
 } from '../../lib/pdf-page-image'
+import { loadCoursewareContextDefaults } from '../../lib/module-context'
 import { ResizableTextArea } from './ResizableTextArea'
 
 type CoursewarePageProps = {
@@ -197,6 +198,23 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
       })
       setStep('slides')
     })
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void loadCoursewareContextDefaults().then((defaults) => {
+      if (cancelled || !defaults) return
+      setRequest((current) => ({
+        ...current,
+        topic: current.topic.trim() ? current.topic : defaults.topic,
+        durationMinutes: current.durationMinutes === 90 ? defaults.durationMinutes : current.durationMinutes,
+        audience: current.audience === 'undergraduate' ? defaults.audience : current.audience,
+        focus: current.focus.trim() ? current.focus : defaults.focus
+      }))
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   async function chooseSource(): Promise<void> {
