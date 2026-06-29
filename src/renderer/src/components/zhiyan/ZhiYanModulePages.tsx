@@ -482,14 +482,14 @@ function ResearchTaskEntry({
     >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-[15px] font-bold text-ds-text">{activeTaskEntry.title}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-ds-muted">{activeTaskEntry.description}</p>
+          <h2 className="text-sm font-bold text-ds-text">{activeTaskEntry.title}</h2>
+          <p className="mt-1 text-ui-body-sm leading-relaxed text-ds-muted">{activeTaskEntry.description}</p>
         </div>
         {activeTaskEntry.allowWriteWorkbench && onOpenWrite ? (
           <button
             type="button"
             onClick={onOpenWrite}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[12.5px] font-semibold text-ds-text transition hover:bg-ds-hover"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover"
           >
             <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
             打开写作工作台
@@ -499,7 +499,7 @@ function ResearchTaskEntry({
 
       <div className="space-y-4">
         <div>
-          <div className="mb-2 text-[12px] font-semibold text-ds-muted">选择任务类型</div>
+          <div className="mb-2 text-ui-meta font-semibold text-ds-muted">选择任务类型</div>
           <div className="flex flex-wrap gap-2">
             {activeTaskEntry.taskTypes.map((task) => {
               const selected = task.id === activeSelectedTask.id
@@ -508,7 +508,7 @@ function ResearchTaskEntry({
                   key={task.id}
                   type="button"
                   onClick={() => setSelectedTaskId(task.id)}
-                  className={`rounded-lg border px-3 py-2 text-left text-[12.5px] font-semibold transition ${
+                  className={`rounded-lg border px-3 py-2 text-left text-ui-body-sm font-semibold transition ${
                     selected
                       ? 'border-accent bg-accent text-white'
                       : 'border-ds-border bg-ds-card text-ds-text hover:bg-ds-hover'
@@ -520,27 +520,27 @@ function ResearchTaskEntry({
               )
             })}
           </div>
-          <p className="mt-2 text-[12px] leading-relaxed text-ds-muted">{activeSelectedTask.description}</p>
+          <p className="mt-2 text-ui-meta leading-relaxed text-ds-muted">{activeSelectedTask.description}</p>
         </div>
 
         <ResizableTextArea
           value={userInput}
           onChange={(event) => setUserInput(event.target.value)}
           rows={6}
-          className="min-h-[160px] rounded-xl border border-ds-border bg-ds-main px-3 py-2 text-[13px] text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
+          className="min-h-[160px] rounded-xl border border-ds-border bg-ds-main px-3 py-2 text-ui-body-sm text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
           placeholder={activeTaskEntry.placeholder}
         />
 
         {config.inlineConversationModule === 'review-writing' && importableBlueprint ? (
           <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[12.5px] font-semibold text-ds-text">已有写作蓝图可导入</p>
-              <p className="truncate text-[11.5px] text-ds-muted">{importableBlueprint.displayText}</p>
+              <p className="text-ui-body-sm font-semibold text-ds-text">已有写作蓝图可导入</p>
+              <p className="truncate text-ui-caption text-ds-muted">{importableBlueprint.displayText}</p>
             </div>
             <button
               type="button"
               onClick={importWritingBlueprint}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-[12.5px] font-semibold text-accent transition hover:bg-accent/15"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-ui-body-sm font-semibold text-accent transition hover:bg-accent/15"
             >
               <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
               导入已有蓝图
@@ -556,19 +556,19 @@ function ResearchTaskEntry({
                 className="flex items-center justify-between gap-3 rounded-lg border border-ds-border-muted bg-ds-main px-3 py-2"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-[12.5px] font-semibold text-ds-text">{file.name}</p>
-                  <p className="truncate text-[11.5px] text-ds-muted">{file.path}</p>
+                  <p className="truncate text-ui-body-sm font-semibold text-ds-text">{file.name}</p>
+                  <p className="truncate text-ui-caption text-ds-muted">{file.path}</p>
                   {file.pageCount ? (
-                    <p className="mt-1 text-[11.5px] text-ds-muted">
+                    <p className="mt-1 text-ui-caption text-ds-muted">
                       已提取 {file.extractedPages ?? file.pageCount}/{file.pageCount} 页
                       {file.truncated ? '，正文已截断' : ''}
                     </p>
                   ) : null}
                   {file.extractedText && !file.pageCount ? (
-                    <p className="mt-1 text-[11.5px] text-ds-muted">已提取可读文本</p>
+                    <p className="mt-1 text-ui-caption text-ds-muted">已提取可读文本</p>
                   ) : null}
                   {file.requiresWorkspaceRead ? (
-                    <p className="mt-1 text-[11.5px] text-ds-muted">将由智能体在工作区中检查文件结构</p>
+                    <p className="mt-1 text-ui-caption text-ds-muted">将由智能体在工作区中检查文件结构</p>
                   ) : null}
                 </div>
                 <button
@@ -585,7 +585,7 @@ function ResearchTaskEntry({
         ) : null}
 
         {error ? (
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12.5px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-ui-body-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
             <span>{error}</span>
           </div>
@@ -596,7 +596,7 @@ function ResearchTaskEntry({
             type="button"
             onClick={() => void handlePickFile()}
             disabled={isExtracting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-4 py-2.5 text-[13px] font-semibold text-ds-text transition hover:bg-ds-hover"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-4 py-2.5 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover"
           >
             {isExtracting ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.8} /> : <Upload className="h-4 w-4" strokeWidth={1.8} />}
             {isExtracting ? '正在解析 PDF' : '添加本地文件'}
@@ -605,7 +605,7 @@ function ResearchTaskEntry({
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit || isExtracting}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-ui-body-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Check className="h-4 w-4" strokeWidth={2} />
             {activeTaskEntry.submitLabel}
@@ -614,14 +614,14 @@ function ResearchTaskEntry({
 
         {config.quickPrompts.length > 0 ? (
           <div className="border-t border-ds-border-muted pt-3">
-            <div className="mb-2 text-[12px] font-semibold text-ds-muted">可点选示例填入上方输入框</div>
+            <div className="mb-2 text-ui-meta font-semibold text-ds-muted">可点选示例填入上方输入框</div>
             <div className="flex flex-wrap gap-2">
               {config.quickPrompts.map((prompt, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => applyQuickPrompt(prompt)}
-                  className="max-w-full rounded-full border border-ds-border-muted bg-ds-main px-3 py-1.5 text-left text-[12px] text-ds-muted transition hover:border-accent/40 hover:text-ds-text"
+                  className="max-w-full rounded-full border border-ds-border-muted bg-ds-main px-3 py-1.5 text-left text-ui-meta text-ds-muted transition hover:border-accent/40 hover:text-ds-text"
                 >
                   <span className="line-clamp-1">{prompt}</span>
                 </button>
@@ -666,8 +666,8 @@ function ModulePageShell({
             <Icon className="h-7 w-7 text-white" strokeWidth={1.8} />
           </div>
           <div>
-            <h1 className="text-[24px] font-bold text-ds-text">{config.title}</h1>
-            <p className="text-[14px] text-ds-muted">{config.subtitle}</p>
+            <h1 className="text-ui-title font-bold text-ds-text">{config.title}</h1>
+            <p className="text-sm text-ds-muted">{config.subtitle}</p>
           </div>
         </div>
 
@@ -676,8 +676,8 @@ function ModulePageShell({
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-ds-card shadow-sm border border-ds-border-muted">
               <Icon className="h-10 w-10 text-ds-faint" strokeWidth={1.5} />
             </div>
-            <h2 className="text-[18px] font-semibold text-ds-text">功能即将开放</h2>
-            <p className="mt-2 max-w-md text-[14px] text-ds-muted">
+            <h2 className="text-lg font-semibold text-ds-text">功能即将开放</h2>
+            <p className="mt-2 max-w-md text-sm text-ds-muted">
               此模块正在开发中，敬请期待。您可以先通过 AI 对话来使用相关功能。
             </p>
           </div>
@@ -692,7 +692,7 @@ function ModulePageShell({
             {/* Features Grid */}
             {config.features && config.features.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-accent flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
                   核心功能特点
                 </h3>
@@ -702,8 +702,8 @@ function ModulePageShell({
                       key={idx}
                       className="rounded-xl border border-ds-border-muted bg-ds-card p-4 space-y-1 hover:border-accent/30 hover:shadow-sm transition-all"
                     >
-                      <h4 className="text-[13.5px] font-semibold text-ds-text">{feature.title}</h4>
-                      <p className="text-[12.5px] text-ds-muted">{feature.description}</p>
+                      <h4 className="text-ui-body font-semibold text-ds-text">{feature.title}</h4>
+                      <p className="text-ui-body-sm text-ds-muted">{feature.description}</p>
                     </div>
                   ))}
                 </div>
@@ -713,7 +713,7 @@ function ModulePageShell({
             {/* Quick Prompts */}
             {!config.taskEntry && config.quickPrompts && config.quickPrompts.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-accent flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
                   快捷任务入口
                 </h3>
@@ -723,10 +723,10 @@ function ModulePageShell({
                       key={idx}
                       type="button"
                       onClick={() => onStartChat(prompt)}
-                      className="w-full text-left rounded-xl border border-ds-border-muted bg-ds-card px-4 py-3 text-[13.5px] text-ds-text hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm flex items-center justify-between group"
+                      className="w-full text-left rounded-xl border border-ds-border-muted bg-ds-card px-4 py-3 text-ui-body text-ds-text hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm flex items-center justify-between group"
                     >
                       <span className="truncate pr-4">{prompt}</span>
-                      <span className="text-ds-faint group-hover:text-accent font-medium text-[12px] shrink-0 transition-colors flex items-center gap-1">
+                      <span className="text-ds-faint group-hover:text-accent font-medium text-ui-meta shrink-0 transition-colors flex items-center gap-1">
                         立即执行 &rarr;
                       </span>
                     </button>
@@ -1520,14 +1520,14 @@ export function SyllabusPage({
             <GraduationCap className="h-7 w-7 text-white" strokeWidth={1.8} />
           </div>
           <div>
-            <h1 className="text-[24px] font-bold text-ds-text">智能教案生成</h1>
-            <p className="text-[14px] text-ds-muted">AI 辅助生成符合规范的课程教案，可直接导出为 Word 文档</p>
+            <h1 className="text-ui-title font-bold text-ds-text">智能教案生成</h1>
+            <p className="text-sm text-ds-muted">AI 辅助生成符合规范的课程教案，可直接导出为 Word 文档</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {formError ? (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[13px] leading-relaxed text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-ui-body-sm leading-relaxed text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
               <span>{formError}</span>
             </div>
@@ -1535,13 +1535,13 @@ export function SyllabusPage({
 
           {/* Section 1: Basic Info */}
           <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5 space-y-4">
-            <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-accent flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
               基本课程信息
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">授课教师</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">授课教师</label>
                 <input
                   type="text"
                   value={teacher}
@@ -1549,57 +1549,57 @@ export function SyllabusPage({
                     identityTouchedRef.current.teacher = true
                     setTeacher(e.target.value)
                   }}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：张三"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">课程名称</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">课程名称</label>
                 <input
                   type="text"
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：医学免疫学"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">授课题目</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">授课题目</label>
                 <input
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：第二十三章 移植免疫"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">计划学时</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">计划学时</label>
                 <input
                   type="text"
                   value={hours}
                   onChange={(e) => setHours(e.target.value)}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：1学时（50分钟）"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">授课对象</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">授课对象</label>
                 <input
                   type="text"
                   value={students}
                   onChange={(e) => setStudents(e.target.value)}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：2022级本科生"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">专 业</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">专 业</label>
                 <input
                   type="text"
                   value={major}
                   onChange={(e) => setMajor(e.target.value)}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：临床医学"
                 />
               </div>
@@ -1607,7 +1607,7 @@ export function SyllabusPage({
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2 border-t border-ds-border-muted/50">
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">学校名称</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">学校名称</label>
                 <input
                   type="text"
                   value={school}
@@ -1615,12 +1615,12 @@ export function SyllabusPage({
                     identityTouchedRef.current.school = true
                     setSchool(e.target.value)
                   }}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：仙交大"
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ds-text mb-1">学科系 / 院系</label>
+                <label className="block text-ui-body-sm font-semibold text-ds-text mb-1">学科系 / 院系</label>
                 <input
                   type="text"
                   value={department}
@@ -1628,7 +1628,7 @@ export function SyllabusPage({
                     identityTouchedRef.current.department = true
                     setDepartment(e.target.value)
                   }}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                   placeholder="如：基础医学院病原生物学与免疫学系"
                 />
               </div>
@@ -1640,7 +1640,7 @@ export function SyllabusPage({
           {/* Section 3: Preferences */}
           <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5 space-y-4">
             <div>
-              <h4 className="text-[13px] font-semibold text-ds-text mb-2">教学方法选择</h4>
+              <h4 className="text-ui-body-sm font-semibold text-ds-text mb-2">教学方法选择</h4>
               <div className="flex flex-wrap gap-2">
                 {METHODS.map((method) => {
                   const selected = methods.includes(method)
@@ -1649,7 +1649,7 @@ export function SyllabusPage({
                       key={method}
                       type="button"
                       onClick={() => toggleMethod(method)}
-                      className={`px-3 py-1.5 rounded-full text-[12.5px] font-medium border transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-ui-body-sm font-medium border transition-all ${
                         selected
                           ? 'bg-accent text-white border-accent'
                           : 'bg-ds-card text-ds-text border-ds-border-muted hover:border-accent/40 hover:bg-accent/5'
@@ -1663,7 +1663,7 @@ export function SyllabusPage({
             </div>
 
             <div>
-              <h4 className="text-[13px] font-semibold text-ds-text mb-2">教学拓展与侧重</h4>
+              <h4 className="text-ui-body-sm font-semibold text-ds-text mb-2">教学拓展与侧重</h4>
               <div className="flex flex-wrap gap-2">
                 {FOCUS_AREAS.map((area) => {
                   const selected = focusAreas.includes(area)
@@ -1672,7 +1672,7 @@ export function SyllabusPage({
                       key={area}
                       type="button"
                       onClick={() => toggleFocusArea(area)}
-                      className={`px-3 py-1.5 rounded-full text-[12.5px] font-medium border transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-ui-body-sm font-medium border transition-all ${
                         selected
                           ? 'bg-accent text-white border-accent'
                           : 'bg-ds-card text-ds-text border-ds-border-muted hover:border-accent/40 hover:bg-accent/5'
@@ -1689,7 +1689,7 @@ export function SyllabusPage({
           {/* Section 4: Content Source */}
           <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-ds-border-muted/50 pb-3">
-              <h3 className="text-[14px] font-semibold text-accent flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-accent flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
                 教案生成内容源
               </h3>
@@ -1697,7 +1697,7 @@ export function SyllabusPage({
                 <button
                   type="button"
                   onClick={() => setSourceType('text')}
-                  className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${
+                  className={`px-3 py-1 rounded-md text-ui-meta font-medium transition-all ${
                     sourceType === 'text'
                       ? 'bg-ds-card text-ds-text shadow-sm'
                       : 'text-ds-muted hover:text-ds-text'
@@ -1708,7 +1708,7 @@ export function SyllabusPage({
                 <button
                   type="button"
                   onClick={() => setSourceType('file')}
-                  className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${
+                  className={`px-3 py-1 rounded-md text-ui-meta font-medium transition-all ${
                     sourceType === 'file'
                       ? 'bg-ds-card text-ds-text shadow-sm'
                       : 'text-ds-muted hover:text-ds-text'
@@ -1725,7 +1725,7 @@ export function SyllabusPage({
                   value={textSource}
                   onChange={(e) => setTextSource(e.target.value)}
                   rows={4}
-                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13.5px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 resize-y"
+                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 resize-y"
                   placeholder="请在此处粘贴本章的大纲结构、核心知识点、PPT大纲或要求生成教案的简短描述（例如：第一节 移植免疫概述；第二节 同种异型移植排斥反应机制；第三节 移植排斥反应的临床类型与特点）..."
                   required={sourceType === 'text'}
                 />
@@ -1745,8 +1745,8 @@ export function SyllabusPage({
                     className="flex flex-col items-center justify-center border border-dashed border-ds-border-muted rounded-xl p-8 bg-ds-card hover:border-accent/40 hover:bg-accent/5 transition-all cursor-pointer group"
                   >
                     <Upload className="h-8 w-8 text-ds-faint mb-2 group-hover:text-accent transition-colors" />
-                    <p className="text-[13.5px] text-ds-text font-medium">点击选择本地 PDF 或 Word 章节文件</p>
-                    <p className="text-[11.5px] text-ds-muted mt-1">AI 将自动读取并根据文件内容为您制作规范教案</p>
+                    <p className="text-ui-body text-ds-text font-medium">点击选择本地 PDF 或 Word 章节文件</p>
+                    <p className="text-ui-caption text-ds-muted mt-1">AI 将自动读取并根据文件内容为您制作规范教案</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1756,8 +1756,8 @@ export function SyllabusPage({
                           <FileText className="h-5 w-5 text-accent" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[13.5px] font-semibold text-ds-text truncate">{selectedFile.name}</p>
-                          <p className="text-[11.5px] text-ds-muted truncate">{selectedFile.path}</p>
+                          <p className="text-ui-body font-semibold text-ds-text truncate">{selectedFile.name}</p>
+                          <p className="text-ui-caption text-ds-muted truncate">{selectedFile.path}</p>
                         </div>
                       </div>
                       <button
@@ -1776,19 +1776,19 @@ export function SyllabusPage({
 
                     {/* 文件正文提取状态 */}
                     {isExtracting && (
-                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[12.5px] text-blue-600">
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-ui-body-sm text-blue-600">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span>正在提取文件正文，请稍候...</span>
                       </div>
                     )}
                     {extractError && (
-                      <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-[12.5px] text-red-600">
+                      <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-ui-body-sm text-red-600">
                         <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                         <span>{extractError}</span>
                       </div>
                     )}
                     {extractedContent && !extractError && (
-                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-[12.5px] text-green-600">
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-ui-body-sm text-green-600">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>
                           已成功提取文件正文：
@@ -1811,7 +1811,7 @@ export function SyllabusPage({
             <button
               type="submit"
               disabled={isExtracting}
-              className={`w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium py-3 px-4 shadow hover:opacity-95 hover:shadow-md transition-all text-[15px] ${isExtracting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium py-3 px-4 shadow hover:opacity-95 hover:shadow-md transition-all text-sm ${isExtracting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isExtracting ? (
                 <><Loader2 className="h-5 w-5 animate-spin" /> 文件正文提取中...</>
@@ -1819,7 +1819,7 @@ export function SyllabusPage({
                 <><Check className="h-5 w-5" strokeWidth={2} /> 开始生成智能教案</>
               )}
             </button>
-            <p className="text-center text-[12px] text-ds-muted mt-2">
+            <p className="text-center text-ui-meta text-ds-muted mt-2">
               系统将根据您填写的参数与上传内容在本页生成教案，您可继续补充或修改要求
             </p>
           </div>

@@ -58,6 +58,13 @@ export default {
         shell: 'var(--ds-shadow-shell)',
         panel: 'var(--ds-shadow-panel)'
       },
+      fontSize: {
+        'ui-caption': '11.5px',
+        'ui-meta': '12px',
+        'ui-body-sm': '12.5px',
+        'ui-body': '13.5px',
+        'ui-title': '24px'
+      },
       borderRadius: {
         xl: '14px',
         '2xl': '18px',

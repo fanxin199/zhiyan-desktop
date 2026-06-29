@@ -154,9 +154,9 @@
 
 ### Task 2.4 · 字号层级规范化
 
-- [ ] **2.4.1** 在 `tailwind.config.js` 中定义 5 个语义化字号 token：
+- [x] **2.4.1** 在 `tailwind.config.js` 中定义 5 个语义化字号 token：
   - `text-heading-1`：28px、`text-heading-2`：20px、`text-body`：14px、`text-caption`：12px、`text-micro`：10.5px
-- [ ] **2.4.2** 逐步将 ZhiYanDashboard、ZhiYanModulePages、SessionHeader 中的裸字号（`text-[Xpx]`）替换为语义化 token。可分多次提交，每次处理一个组件。
+- [x] **2.4.2** 逐步将 ZhiYanDashboard、ZhiYanModulePages、SessionHeader 中的裸字号（`text-[Xpx]`）替换为语义化 token。可分多次提交，每次处理一个组件。
 
 ---
 

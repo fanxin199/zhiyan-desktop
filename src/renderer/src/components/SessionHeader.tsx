@@ -105,12 +105,12 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
         {active ? (
           <div className="min-w-0 flex-1">
             <div
-              className="truncate text-[13px] font-semibold leading-[18px] tracking-[-0.01em] text-ds-ink opacity-95"
+              className="truncate text-ui-body-sm font-semibold leading-[18px] tracking-[-0.01em] text-ds-ink opacity-95"
               title={active.title}
             >
               {active.title}
             </div>
-            <div className="session-header-compact-meta flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10.5px] leading-[15px] text-ds-faint">
+            <div className="session-header-compact-meta flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-ui-caption leading-[15px] text-ds-faint">
               {activeProjectLabel ? (
                 <>
                   <span className="session-meta-project max-w-[min(44vw,260px)] truncate font-medium text-ds-muted">
@@ -128,7 +128,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
           </div>
         ) : (
           <div className="min-w-0 pt-0.5">
-            <div className="truncate text-[12.5px] font-medium text-ds-faint">{workspaceLabel}</div>
+            <div className="truncate text-ui-body-sm font-medium text-ds-faint">{workspaceLabel}</div>
           </div>
         )}
       </div>
@@ -140,7 +140,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
       {active ? (
         <>
           <div className="min-w-0 flex-1">
-            <div className="mb-1 flex min-w-0 items-center gap-2 text-[12.5px] font-medium text-ds-faint">
+            <div className="mb-1 flex min-w-0 items-center gap-2 text-ui-body-sm font-medium text-ds-faint">
               <span>{activeWorkspaceLabel}</span>
               <span>·</span>
               {showFullTechnicalMetrics ? (
@@ -154,7 +154,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
             <div className="flex min-w-0 items-center gap-2.5">
               {editing ? (
                 <input
-                  className="min-w-0 flex-1 rounded-2xl border border-ds-border bg-ds-elevated px-3.5 py-2 text-[21px] font-semibold tracking-[-0.02em] text-ds-ink focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
+                  className="min-w-0 flex-1 rounded-2xl border border-ds-border bg-ds-elevated px-3.5 py-2 text-xl font-semibold tracking-[-0.02em] text-ds-ink focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
                   value={draftTitle}
                   onChange={(e) => setDraftTitle(e.target.value)}
                   onBlur={() => commitTitle()}
@@ -174,7 +174,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
               ) : (
                 <button
                   type="button"
-                  className="min-w-0 truncate text-left text-[22px] font-semibold tracking-[-0.03em] text-ds-ink transition hover:text-accent"
+                  className="min-w-0 truncate text-left text-xl font-semibold tracking-[-0.03em] text-ds-ink transition hover:text-accent"
                   title={t('renameThreadHint')}
                   onClick={() => setEditing(true)}
                 >
@@ -182,7 +182,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
                 </button>
               )}
             </div>
-            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-[12.5px] text-ds-faint">
+            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-ui-body-sm text-ds-faint">
               {showFullTechnicalMetrics ? (
                 <span className="inline-flex items-center rounded-full border border-ds-border bg-ds-subtle px-2.5 py-1 font-medium capitalize text-ds-muted">
                   {active.mode}
@@ -233,17 +233,17 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
         </>
       ) : (
         <div className="min-w-0">
-          <div className="text-[12.5px] font-medium uppercase tracking-[0.16em] text-ds-faint">
+          <div className="text-ui-body-sm font-medium uppercase tracking-[0.16em] text-ds-faint">
             {workspaceLabel}
           </div>
-          <div className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-ds-ink">
+          <div className="mt-1 text-xl font-semibold tracking-[-0.02em] text-ds-ink">
             {t('noSessionSelected')}
           </div>
-          <div className="mt-1 text-[13.5px] text-ds-faint">{t('sessionHeaderHint')}</div>
+          <div className="mt-1 text-ui-body text-ds-faint">{t('sessionHeaderHint')}</div>
         </div>
       )}
       {busy ? (
-        <span className="ml-auto shrink-0 rounded-full bg-amber-500/18 px-3 py-1.5 text-[12.5px] font-semibold text-amber-950 dark:text-amber-100">
+        <span className="ml-auto shrink-0 rounded-full bg-amber-500/18 px-3 py-1.5 text-ui-body-sm font-semibold text-amber-950 dark:text-amber-100">
           {t('running')}
         </span>
       ) : null}

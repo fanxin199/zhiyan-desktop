@@ -119,8 +119,8 @@ function QuickActionCard({
         <Icon className="h-5.5 w-5.5 text-white" strokeWidth={1.8} />
       </div>
       <div>
-        <h3 className="text-[15px] font-semibold text-white">{title}</h3>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-white/70">{description}</p>
+        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <p className="mt-1 text-ui-body-sm leading-relaxed text-white/70">{description}</p>
       </div>
     </button>
   )
@@ -139,10 +139,10 @@ function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): Re
         <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13.5px] font-semibold text-ds-text">
+        <span className="block truncate text-ui-body font-semibold text-ds-text">
           {thread.title}
         </span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-ds-faint">
+        <span className="mt-0.5 flex items-center gap-1.5 text-ui-caption text-ds-faint">
           <Clock3 className="h-3 w-3" strokeWidth={1.8} />
           <span>{formatRelativeTime(thread.updatedAt, locale)}</span>
         </span>
@@ -318,10 +318,10 @@ export function ZhiYanDashboard({
       <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-8 md:px-12 lg:py-12">
         {/* Greeting */}
         <div className="mb-8">
-          <h1 className="text-[28px] font-bold tracking-tight text-ds-text">
+          <h1 className="text-3xl font-bold tracking-tight text-ds-text">
             {getGreeting()}
           </h1>
-          <p className="mt-2 text-[15px] text-ds-muted">
+          <p className="mt-2 text-sm text-ds-muted">
             智研助手已就绪，请选择您需要的功能，或直接在下方输入需求
           </p>
         </div>
@@ -335,7 +335,7 @@ export function ZhiYanDashboard({
               onChange={(event) => setSearchQuery(event.target.value)}
               onKeyDown={handleSearchKeyDown}
               placeholder="输入关键词搜索功能，或直接描述需求…"
-              className="w-full rounded-2xl border border-ds-border bg-ds-card py-3 pl-11 pr-4 text-[14px] text-ds-text shadow-sm outline-none transition placeholder:text-ds-faint focus:border-accent/50 focus:ring-2 focus:ring-accent/10"
+              className="w-full rounded-2xl border border-ds-border bg-ds-card py-3 pl-11 pr-4 text-sm text-ds-text shadow-sm outline-none transition placeholder:text-ds-faint focus:border-accent/50 focus:ring-2 focus:ring-accent/10"
               aria-label="搜索功能"
             />
           </div>
@@ -343,7 +343,7 @@ export function ZhiYanDashboard({
 
         {visibleRecentThreads.length > 0 && onOpenRecentThread ? (
           <div className="mb-8">
-            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+            <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
               最近使用
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -364,7 +364,7 @@ export function ZhiYanDashboard({
             <div className="space-y-8">
               {visibleTeachingCards.length > 0 ? (
                 <div>
-                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
                     教学工具
                   </h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -377,7 +377,7 @@ export function ZhiYanDashboard({
 
               {visibleResearchCards.length > 0 ? (
                 <div>
-                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
                     科研工具
                   </h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -390,7 +390,7 @@ export function ZhiYanDashboard({
 
               {visibleCapabilityCards.length > 0 ? (
                 <div>
-                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
                     能力中心
                   </h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -403,8 +403,8 @@ export function ZhiYanDashboard({
             </div>
           ) : (
             <div className="rounded-2xl border border-ds-border-muted bg-ds-card px-5 py-8 text-center">
-              <p className="text-[14px] font-semibold text-ds-text">没有找到匹配的功能</p>
-              <p className="mt-1 text-[12.5px] text-ds-muted">可以换一个关键词，或直接打开 AI 对话描述需求。</p>
+              <p className="text-sm font-semibold text-ds-text">没有找到匹配的功能</p>
+              <p className="mt-1 text-ui-body-sm text-ds-muted">可以换一个关键词，或直接打开 AI 对话描述需求。</p>
             </div>
           )
         ) : null}
@@ -413,7 +413,7 @@ export function ZhiYanDashboard({
           <>
         {/* Quick Action Cards */}
         <div className="mb-8">
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
             教学工具
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -442,7 +442,7 @@ export function ZhiYanDashboard({
         </div>
 
         <div className="mb-8">
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
             科研工具
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -485,7 +485,7 @@ export function ZhiYanDashboard({
         </div>
 
         <div>
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
             能力中心
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
