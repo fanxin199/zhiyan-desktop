@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import {
   Award,
   BookOpen,
+  Clock3,
   FileText,
   GraduationCap,
   MessageCircle,
@@ -13,6 +14,8 @@ import {
   Search,
   type LucideIcon
 } from 'lucide-react'
+import type { NormalizedThread } from '../../agent/types'
+import { formatRelativeTime } from '../../lib/format-relative-time'
 
 type QuickActionCardProps = {
   icon: LucideIcon
@@ -20,6 +23,43 @@ type QuickActionCardProps = {
   description: string
   gradient: string
   onClick: () => void
+}
+
+type RecentThreadCardProps = {
+  thread: NormalizedThread
+  locale: string
+  onOpen: (threadId: string) => void
+}
+
+const RECENT_THREAD_LIMIT = 5
+
+const RECENT_THREAD_ICONS: Record<string, LucideIcon> = {
+  syllabus: GraduationCap,
+  literature: Search,
+  'paper-polish': PenTool,
+  'review-writing': ScrollText,
+  'grant-writing': Award,
+  bioinformatics: Microscope
+}
+
+function moduleIdFromProjectId(projectId: string | undefined): string {
+  const match = /^teacher-project:([^:]+):/u.exec(projectId ?? '')
+  return match?.[1] ?? ''
+}
+
+function recentThreadIcon(thread: NormalizedThread): LucideIcon {
+  return RECENT_THREAD_ICONS[moduleIdFromProjectId(thread.projectId)] ?? MessageCircle
+}
+
+export function getRecentDashboardThreads(threads: NormalizedThread[]): NormalizedThread[] {
+  return [...threads]
+    .filter((thread) => !thread.archived && thread.status !== 'archived')
+    .sort((left, right) => {
+      const leftTime = new Date(left.updatedAt).getTime()
+      const rightTime = new Date(right.updatedAt).getTime()
+      return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0)
+    })
+    .slice(0, RECENT_THREAD_LIMIT)
 }
 
 function QuickActionCard({
@@ -46,6 +86,31 @@ function QuickActionCard({
   )
 }
 
+function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): ReactElement {
+  const Icon = recentThreadIcon(thread)
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(thread.id)}
+      className="group flex min-w-0 items-center gap-3 rounded-xl border border-ds-border-muted bg-ds-card px-3.5 py-3 text-left shadow-sm transition hover:border-accent/30 hover:bg-ds-hover"
+      aria-label={`继续会话：${thread.title}`}
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ds-subtle text-ds-muted transition group-hover:text-accent">
+        <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13.5px] font-semibold text-ds-text">
+          {thread.title}
+        </span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-ds-faint">
+          <Clock3 className="h-3 w-3" strokeWidth={1.8} />
+          <span>{formatRelativeTime(thread.updatedAt, locale)}</span>
+        </span>
+      </span>
+    </button>
+  )
+}
+
 type ZhiYanDashboardProps = {
   onOpenSyllabus: () => void
   onOpenPptGen: () => void
@@ -57,6 +122,8 @@ type ZhiYanDashboardProps = {
   onOpenBioinformatics: () => void
   onOpenChat: () => void
   onOpenWrite: () => void
+  recentThreads?: NormalizedThread[]
+  onOpenRecentThread?: (threadId: string) => void
   className?: string
 }
 
@@ -71,9 +138,12 @@ export function ZhiYanDashboard({
   onOpenBioinformatics,
   onOpenChat,
   onOpenWrite,
+  recentThreads = [],
+  onOpenRecentThread,
   className = ''
 }: ZhiYanDashboardProps): ReactElement {
-  const { t } = useTranslation('common')
+  const { i18n } = useTranslation('common')
+  const visibleRecentThreads = getRecentDashboardThreads(recentThreads)
 
   const getGreeting = (): string => {
     const hour = new Date().getHours()
@@ -96,6 +166,24 @@ export function ZhiYanDashboard({
             智研助手已就绪，请选择您需要的功能，或直接在下方输入需求
           </p>
         </div>
+
+        {visibleRecentThreads.length > 0 && onOpenRecentThread ? (
+          <div className="mb-8">
+            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+              最近使用
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {visibleRecentThreads.map((thread) => (
+                <RecentThreadCard
+                  key={thread.id}
+                  thread={thread}
+                  locale={i18n.language}
+                  onOpen={onOpenRecentThread}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* Quick Action Cards */}
         <div className="mb-8">

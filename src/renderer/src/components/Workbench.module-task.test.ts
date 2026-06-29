@@ -23,6 +23,11 @@ type WorkbenchModule = typeof workbench & {
     sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
     setInput: (value: string) => void
   }) => Promise<boolean>
+  openRecentDashboardThread?: (options: {
+    threadId: string
+    setRoute: (route: 'chat') => void
+    selectThread: (id: string) => Promise<void>
+  }) => Promise<void>
 }
 
 describe('module task launch', () => {
@@ -102,6 +107,29 @@ describe('module task launch', () => {
         summary: '教案生成 · 移植免疫'
       }
     })
+  })
+})
+
+describe('dashboard recent conversations', () => {
+  it('opens a recent dashboard thread in the chat route', async () => {
+    const openRecentDashboardThread = (workbench as WorkbenchModule).openRecentDashboardThread
+    const calls: string[] = []
+    const setRoute = vi.fn((route: 'chat') => {
+      calls.push(`route:${route}`)
+    })
+    const selectThread = vi.fn(async (id: string) => {
+      calls.push(`thread:${id}`)
+    })
+
+    await openRecentDashboardThread?.({
+      threadId: 'thread-literature',
+      setRoute,
+      selectThread
+    })
+
+    expect(setRoute).toHaveBeenCalledWith('chat')
+    expect(selectThread).toHaveBeenCalledWith('thread-literature')
+    expect(calls).toEqual(['route:chat', 'thread:thread-literature'])
   })
 })
 

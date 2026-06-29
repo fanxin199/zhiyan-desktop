@@ -22,7 +22,7 @@ import {
 import { composeWritePrompt } from '../write/quoted-selection'
 import { useWriteWorkspaceStore } from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
-import { ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
+import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
   BioinformaticsPage,
   FileManagerPage,
@@ -72,6 +72,19 @@ type ModuleTaskStartOptions = {
 }
 
 type InlineConversationThreadIds = Partial<Record<InlineModuleId, string>>
+
+export async function openRecentDashboardThread({
+  threadId,
+  setRoute,
+  selectThread
+}: {
+  threadId: string
+  setRoute: (route: 'chat') => void
+  selectThread: (id: string) => Promise<void>
+}): Promise<void> {
+  setRoute('chat')
+  await selectThread(threadId)
+}
 
 export function isInlineModuleConversationVisible({
   inlineConversationThreadIds,
@@ -229,6 +242,7 @@ export function Workbench(): ReactElement {
     removeQueuedMessage,
     route,
     runtimeConnection,
+    selectThread,
     sendMessage,
     setComposerModel,
     setError,
@@ -266,6 +280,7 @@ export function Workbench(): ReactElement {
     removeQueuedMessage: state.removeQueuedMessage,
     route: state.route,
     runtimeConnection: state.runtimeConnection,
+    selectThread: state.selectThread,
     sendMessage: state.sendMessage,
     setComposerModel: state.setComposerModel,
     setError: state.setError,
@@ -504,6 +519,9 @@ export function Workbench(): ReactElement {
   const openWriteMode = (): void => {
     void openWrite()
   }
+  const openRecentThread = (threadId: string): void => {
+    void openRecentDashboardThread({ threadId, setRoute, selectThread })
+  }
   const handleModuleQuickPrompt = (
     prompt: string,
     options?: {
@@ -643,6 +661,8 @@ export function Workbench(): ReactElement {
             onOpenBioinformatics={openBioinformatics}
             onOpenChat={() => setRoute('chat')}
             onOpenWrite={openWriteMode}
+            recentThreads={getRecentDashboardThreads(threads)}
+            onOpenRecentThread={openRecentThread}
             className="ds-no-drag"
           />
         ) : route === 'syllabus' ? (
