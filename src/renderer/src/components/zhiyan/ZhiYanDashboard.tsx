@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Award,
@@ -25,6 +25,11 @@ type QuickActionCardProps = {
   onClick: () => void
 }
 
+type DashboardActionCard = QuickActionCardProps & {
+  id: string
+  keywords: string[]
+}
+
 type RecentThreadCardProps = {
   thread: NormalizedThread
   locale: string
@@ -40,6 +45,41 @@ const RECENT_THREAD_ICONS: Record<string, LucideIcon> = {
   'review-writing': ScrollText,
   'grant-writing': Award,
   bioinformatics: Microscope
+}
+
+function normalizeDashboardSearchText(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+export function dashboardActionCardMatches(
+  card: Pick<DashboardActionCard, 'title' | 'description' | 'keywords'>,
+  query: string
+): boolean {
+  const normalizedQuery = normalizeDashboardSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableValues = [
+    card.title,
+    card.description,
+    ...card.keywords
+  ].map(normalizeDashboardSearchText).filter(Boolean)
+
+  if (searchableValues.some((value) => value.includes(normalizedQuery))) return true
+  const titleAndKeywords = [card.title, ...card.keywords].map(normalizeDashboardSearchText).filter(Boolean)
+  if (titleAndKeywords.some((value) => value.length >= 2 && normalizedQuery.includes(value))) return true
+
+  const terms = normalizedQuery.split(/\s+/u).filter(Boolean)
+  return terms.length > 0 && terms.every((term) =>
+    searchableValues.some((value) => value.includes(term)) ||
+    titleAndKeywords.some((value) => value.length >= 2 && term.includes(value))
+  )
+}
+
+export function filterDashboardActionCards<T extends Pick<DashboardActionCard, 'title' | 'description' | 'keywords'>>(
+  cards: T[],
+  query: string
+): T[] {
+  return cards.filter((card) => dashboardActionCardMatches(card, query))
 }
 
 function moduleIdFromProjectId(projectId: string | undefined): string {
@@ -124,6 +164,7 @@ type ZhiYanDashboardProps = {
   onOpenWrite: () => void
   recentThreads?: NormalizedThread[]
   onOpenRecentThread?: (threadId: string) => void
+  onSubmitPrompt?: (prompt: string) => void
   className?: string
 }
 
@@ -140,9 +181,11 @@ export function ZhiYanDashboard({
   onOpenWrite,
   recentThreads = [],
   onOpenRecentThread,
+  onSubmitPrompt,
   className = ''
 }: ZhiYanDashboardProps): ReactElement {
   const { i18n } = useTranslation('common')
+  const [searchQuery, setSearchQuery] = useState('')
   const visibleRecentThreads = getRecentDashboardThreads(recentThreads)
 
   const getGreeting = (): string => {
@@ -152,6 +195,122 @@ export function ZhiYanDashboard({
     if (hour < 14) return '中午好，老师！'
     if (hour < 18) return '下午好，老师！'
     return '晚上好，老师！'
+  }
+
+  const teachingCards: DashboardActionCard[] = [
+    {
+      id: 'syllabus',
+      icon: GraduationCap,
+      title: '智能教案',
+      description: '根据课程信息或章节内容，AI 辅助生成规范教案',
+      keywords: ['教案', '教学设计', '课程', '授课', '章节', 'Word', 'DOCX'],
+      gradient: 'bg-gradient-to-br from-blue-600 to-blue-800',
+      onClick: onOpenSyllabus
+    },
+    {
+      id: 'ppt-gen',
+      icon: Presentation,
+      title: '制作课件 PPT',
+      description: '上传教材 PDF，自动生成教学课件',
+      keywords: ['课件', 'PPT', '幻灯片', '教材', 'PDF', '讲稿', '教学'],
+      gradient: 'bg-gradient-to-br from-purple-600 to-purple-800',
+      onClick: onOpenPptGen
+    },
+    {
+      id: 'textbook',
+      icon: BookOpen,
+      title: '教材编写',
+      description: 'AI 辅助撰写教材章节，保持教学主线和术语一致',
+      keywords: ['教材', '章节', '编写', '讲义', '课程建设', '教学材料'],
+      gradient: 'bg-gradient-to-br from-teal-600 to-teal-800',
+      onClick: onOpenTextbook
+    }
+  ]
+
+  const researchCards: DashboardActionCard[] = [
+    {
+      id: 'paper-polish',
+      icon: PenTool,
+      title: '文本写作',
+      description: '自然基金、论文润色和长文档分段写作，先锁定项目主线',
+      keywords: ['论文', '基金', '写作', '润色', '文本', '英文', '中文', 'Discussion', 'Results', '蓝图'],
+      gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
+      onClick: onOpenPaperPolish
+    },
+    {
+      id: 'literature',
+      icon: Search,
+      title: '文献阅读',
+      description: '文献精读、关键图解读和组会汇报 PPT 制作',
+      keywords: ['文献', 'PDF', '论文', '精读', '阅读', '图表', '组会', 'Journal Club', 'PMID', 'DOI'],
+      gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
+      onClick: onOpenLiterature
+    },
+    {
+      id: 'bioinformatics',
+      icon: Microscope,
+      title: '科研数据分析',
+      description: '基于整理后数据生成 bulk 和单细胞可视化分析',
+      keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
+      gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
+      onClick: onOpenBioinformatics
+    },
+    {
+      id: 'review-writing',
+      icon: ScrollText,
+      title: '综述撰写',
+      description: '围绕科研问题组织文献、框架和初稿',
+      keywords: ['综述', '文献', '框架', '证据矩阵', '章节', '初稿', 'review'],
+      gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+      onClick: onOpenReviewWriting
+    },
+    {
+      id: 'grant-writing',
+      icon: Award,
+      title: '自然基金撰写',
+      description: '辅助立项依据、研究内容与技术路线成稿',
+      keywords: ['自然基金', '基金', '国自然', 'NSFC', '立项依据', '技术路线', '研究内容'],
+      gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
+      onClick: onOpenGrantWriting
+    }
+  ]
+
+  const capabilityCards: DashboardActionCard[] = [
+    {
+      id: 'write',
+      icon: FileText,
+      title: '写作工作台',
+      description: 'Markdown 编辑器 + AI 写作助手，支持导出 DOCX/PDF',
+      keywords: ['写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档'],
+      gradient: 'bg-gradient-to-br from-indigo-600 to-indigo-800',
+      onClick: onOpenWrite
+    },
+    {
+      id: 'chat',
+      icon: MessageCircle,
+      title: 'AI 对话',
+      description: '自由对话，让 AI 助手帮您处理任何教学科研任务',
+      keywords: ['对话', '聊天', 'AI', '助手', '问答', '任务'],
+      gradient: 'bg-gradient-to-br from-slate-600 to-slate-800',
+      onClick: onOpenChat
+    }
+  ]
+
+  const visibleTeachingCards = filterDashboardActionCards(teachingCards, searchQuery)
+  const visibleResearchCards = filterDashboardActionCards(researchCards, searchQuery)
+  const visibleCapabilityCards = filterDashboardActionCards(capabilityCards, searchQuery)
+  const hasSearchQuery = searchQuery.trim().length > 0
+  const hasSearchResults =
+    visibleTeachingCards.length > 0 ||
+    visibleResearchCards.length > 0 ||
+    visibleCapabilityCards.length > 0
+
+  const handleSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
+    if (event.key !== 'Enter') return
+    const prompt = searchQuery.trim()
+    if (!prompt || !onSubmitPrompt) return
+    event.preventDefault()
+    onSubmitPrompt(prompt)
   }
 
   return (
@@ -165,6 +324,21 @@ export function ZhiYanDashboard({
           <p className="mt-2 text-[15px] text-ds-muted">
             智研助手已就绪，请选择您需要的功能，或直接在下方输入需求
           </p>
+        </div>
+
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-ds-faint" strokeWidth={1.8} />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="输入关键词搜索功能，或直接描述需求…"
+              className="w-full rounded-2xl border border-ds-border bg-ds-card py-3 pl-11 pr-4 text-[14px] text-ds-text shadow-sm outline-none transition placeholder:text-ds-faint focus:border-accent/50 focus:ring-2 focus:ring-accent/10"
+              aria-label="搜索功能"
+            />
+          </div>
         </div>
 
         {visibleRecentThreads.length > 0 && onOpenRecentThread ? (
@@ -185,6 +359,58 @@ export function ZhiYanDashboard({
           </div>
         ) : null}
 
+        {hasSearchQuery ? (
+          hasSearchResults ? (
+            <div className="space-y-8">
+              {visibleTeachingCards.length > 0 ? (
+                <div>
+                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                    教学工具
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleTeachingCards.map((card) => (
+                      <QuickActionCard key={card.id} {...card} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {visibleResearchCards.length > 0 ? (
+                <div>
+                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                    科研工具
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleResearchCards.map((card) => (
+                      <QuickActionCard key={card.id} {...card} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {visibleCapabilityCards.length > 0 ? (
+                <div>
+                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
+                    能力中心
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {visibleCapabilityCards.map((card) => (
+                      <QuickActionCard key={card.id} {...card} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-ds-border-muted bg-ds-card px-5 py-8 text-center">
+              <p className="text-[14px] font-semibold text-ds-text">没有找到匹配的功能</p>
+              <p className="mt-1 text-[12.5px] text-ds-muted">可以换一个关键词，或直接打开 AI 对话描述需求。</p>
+            </div>
+          )
+        ) : null}
+
+        {!hasSearchQuery ? (
+          <>
         {/* Quick Action Cards */}
         <div className="mb-8">
           <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-ds-faint">
@@ -279,6 +505,8 @@ export function ZhiYanDashboard({
             />
           </div>
         </div>
+          </>
+        ) : null}
       </div>
     </div>
   )

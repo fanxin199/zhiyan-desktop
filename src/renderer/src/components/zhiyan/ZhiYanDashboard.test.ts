@@ -2,7 +2,12 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { NormalizedThread } from '../../agent/types'
-import { getRecentDashboardThreads, ZhiYanDashboard } from './ZhiYanDashboard'
+import {
+  dashboardActionCardMatches,
+  filterDashboardActionCards,
+  getRecentDashboardThreads,
+  ZhiYanDashboard
+} from './ZhiYanDashboard'
 
 const noop = vi.fn()
 
@@ -74,5 +79,49 @@ describe('ZhiYanDashboard recent use', () => {
     expect(html).toContain('最近使用')
     expect(html).toContain('文献解读：B 细胞 TLS')
     expect(html.indexOf('最近使用')).toBeLessThan(html.indexOf('教学工具'))
+  })
+})
+
+describe('ZhiYanDashboard quick search', () => {
+  const cards = [
+    {
+      title: '制作课件 PPT',
+      description: '上传教材 PDF，自动生成教学课件',
+      keywords: ['课件', 'PPT', '教材', 'PDF']
+    },
+    {
+      title: '文献阅读',
+      description: '文献精读、关键图解读和组会汇报 PPT 制作',
+      keywords: ['文献', '论文', 'PDF', '精读']
+    },
+    {
+      title: '科研数据分析',
+      description: '基于整理后数据生成 bulk 和单细胞可视化分析',
+      keywords: ['数据', '分析', '单细胞', 'RNA-seq']
+    }
+  ]
+
+  it('matches cards by direct keywords and natural demand text', () => {
+    expect(dashboardActionCardMatches(cards[0], 'PPT')).toBe(true)
+    expect(dashboardActionCardMatches(cards[1], '帮我读一篇论文')).toBe(true)
+    expect(dashboardActionCardMatches(cards[2], '单细胞数据')).toBe(true)
+    expect(dashboardActionCardMatches(cards[0], '单细胞数据')).toBe(false)
+  })
+
+  it('filters dashboard action cards without backend calls', () => {
+    expect(filterDashboardActionCards(cards, 'PDF').map((card) => card.title)).toEqual([
+      '制作课件 PPT',
+      '文献阅读'
+    ])
+    expect(filterDashboardActionCards(cards, 'RNA-seq').map((card) => card.title)).toEqual([
+      '科研数据分析'
+    ])
+  })
+
+  it('renders the lightweight search input below the greeting', () => {
+    const html = renderToStaticMarkup(dashboard())
+
+    expect(html).toContain('输入关键词搜索功能，或直接描述需求…')
+    expect(html.indexOf('输入关键词搜索功能，或直接描述需求…')).toBeLessThan(html.indexOf('教学工具'))
   })
 })

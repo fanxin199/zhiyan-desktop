@@ -160,6 +160,31 @@ export async function startModuleTask({
   return sent
 }
 
+export async function startDashboardPrompt({
+  prompt,
+  setRoute,
+  createThread,
+  sendMessage,
+  setInput
+}: {
+  prompt: string
+  setRoute: (route: 'chat') => void
+  createThread: () => Promise<void>
+  sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
+  setInput: (value: string) => void
+}): Promise<boolean> {
+  const trimmedPrompt = prompt.trim()
+  if (!trimmedPrompt) return false
+  return startModuleTask({
+    prompt: trimmedPrompt,
+    displayText: trimmedPrompt,
+    setRoute,
+    createThread,
+    sendMessage,
+    setInput
+  })
+}
+
 function mergeSkillCommands(
   runtimeSkills: CoreRuntimeSkillJson[],
   localSkills: SkillListItem[]
@@ -523,6 +548,15 @@ export function Workbench(): ReactElement {
   const openRecentThread = (threadId: string): void => {
     void openRecentDashboardThread({ threadId, setRoute, selectThread })
   }
+  const handleDashboardPrompt = (prompt: string): void => {
+    void startDashboardPrompt({
+      prompt,
+      setRoute,
+      createThread,
+      sendMessage,
+      setInput
+    })
+  }
   const handleModuleQuickPrompt = (
     prompt: string,
     options?: {
@@ -664,6 +698,7 @@ export function Workbench(): ReactElement {
             onOpenWrite={openWriteMode}
             recentThreads={getRecentDashboardThreads(threads)}
             onOpenRecentThread={openRecentThread}
+            onSubmitPrompt={handleDashboardPrompt}
             className="ds-no-drag"
           />
         ) : route === 'syllabus' ? (

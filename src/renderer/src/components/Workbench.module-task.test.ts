@@ -23,6 +23,13 @@ type WorkbenchModule = typeof workbench & {
     sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
     setInput: (value: string) => void
   }) => Promise<boolean>
+  startDashboardPrompt?: (options: {
+    prompt: string
+    setRoute: (route: 'chat') => void
+    createThread: () => Promise<void>
+    sendMessage: (prompt: string, mode: string, overrides?: SendMessageOverrides) => Promise<boolean>
+    setInput: (value: string) => void
+  }) => Promise<boolean>
   openRecentDashboardThread?: (options: {
     threadId: string
     setRoute: (route: 'chat') => void
@@ -111,6 +118,51 @@ describe('module task launch', () => {
 })
 
 describe('dashboard recent conversations', () => {
+  it('sends a dashboard natural language prompt to the chat route', async () => {
+    const startDashboardPrompt = (workbench as WorkbenchModule).startDashboardPrompt
+    const setRoute = vi.fn()
+    const createThread = vi.fn(async () => undefined)
+    const sendMessage = vi.fn(async () => true)
+    const setInput = vi.fn()
+
+    await expect(startDashboardPrompt?.({
+      prompt: '  帮我做一份B细胞课件  ',
+      setRoute,
+      createThread,
+      sendMessage,
+      setInput
+    })).resolves.toBe(true)
+
+    expect(setRoute).toHaveBeenCalledWith('chat')
+    expect(createThread).toHaveBeenCalledTimes(1)
+    expect(sendMessage).toHaveBeenCalledWith(
+      '帮我做一份B细胞课件',
+      'agent',
+      { displayText: '帮我做一份B细胞课件' }
+    )
+    expect(setInput).not.toHaveBeenCalled()
+  })
+
+  it('does not create a chat thread for an empty dashboard prompt', async () => {
+    const startDashboardPrompt = (workbench as WorkbenchModule).startDashboardPrompt
+    const setRoute = vi.fn()
+    const createThread = vi.fn(async () => undefined)
+    const sendMessage = vi.fn(async () => true)
+    const setInput = vi.fn()
+
+    await expect(startDashboardPrompt?.({
+      prompt: '   ',
+      setRoute,
+      createThread,
+      sendMessage,
+      setInput
+    })).resolves.toBe(false)
+
+    expect(setRoute).not.toHaveBeenCalled()
+    expect(createThread).not.toHaveBeenCalled()
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
   it('opens a recent dashboard thread in the chat route', async () => {
     const openRecentDashboardThread = (workbench as WorkbenchModule).openRecentDashboardThread
     const calls: string[] = []
