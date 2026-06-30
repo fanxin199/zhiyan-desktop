@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { DsGuiApi } from '../shared/ds-gui-api'
 
 const api = {
@@ -13,6 +13,8 @@ const api = {
     ipcRenderer.invoke('workspace:pick-directory', defaultPath),
   pickFile: (options) =>
     ipcRenderer.invoke('file:pick-file', options),
+  getPathForFile: (file) =>
+    webUtils.getPathForFile(file as never),
   readFileBinary: (filePath) =>
     ipcRenderer.invoke('file:read-binary', filePath),
   extractLegacyWordText: (path) =>

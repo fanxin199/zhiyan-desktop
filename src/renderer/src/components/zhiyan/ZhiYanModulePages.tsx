@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type DragEvent as ReactDragEvent, type ReactElement } from 'react'
 import JSZip from 'jszip'
 import {
   GraduationCap,
@@ -265,6 +265,24 @@ function dirname(filePath: string): string {
   return lastIndex > 0 ? filePath.slice(0, lastIndex) : ''
 }
 
+function basename(filePath: string): string {
+  return filePath.split(/[\\/]/).pop() ?? filePath
+}
+
+function allowedExtensionsForTaskEntry(entry: ResearchTaskEntryConfig): Set<string> {
+  return new Set(entry.fileFilters.flatMap((filter) => filter.extensions.map((extension) => extension.toLowerCase())))
+}
+
+function draggedFilePath(file: File): string {
+  const legacyPath = (file as File & { path?: string }).path?.trim()
+  if (legacyPath) return legacyPath
+  try {
+    return window.dsGui?.getPathForFile?.(file)?.trim() ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export function buildResearchTaskPrompt(
   config: ModuleConfig,
   selectedTask: ResearchTaskType,
@@ -376,6 +394,7 @@ function ResearchTaskEntry({
   const [files, setFiles] = useState<ResearchTaskFile[]>([])
   const [error, setError] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
+  const [isDraggingFileOver, setIsDraggingFileOver] = useState(false)
   const [importableBlueprint, setImportableBlueprint] = useState<WritingBlueprintModuleContextV1 | null>(null)
   const consumedHandoffPathRef = useRef<string | null>(null)
 
@@ -383,6 +402,8 @@ function ResearchTaskEntry({
   const selectedTask = taskEntry?.taskTypes.find((task) => task.id === selectedTaskId)
     ?? taskEntry?.taskTypes[0]
   const canSubmit = Boolean(selectedTask && (userInput.trim() || files.length > 0))
+  const isLiteratureDropEnabled = config.inlineConversationModule === 'literature'
+  const canDropFiles = isLiteratureDropEnabled && !isExtracting
 
   useEffect(() => {
     if (config.inlineConversationModule !== 'review-writing') {
@@ -464,6 +485,62 @@ function ResearchTaskEntry({
     const name = picked.path.split(/[\\/]/).pop() ?? picked.path
     const path = picked.path as string
     await addFileFromPath(name, path)
+  }
+
+  function handleFileDragOver(event: ReactDragEvent<HTMLDivElement>): void {
+    if (!isLiteratureDropEnabled) return
+    event.preventDefault()
+    event.stopPropagation()
+    if (!canDropFiles) {
+      event.dataTransfer.dropEffect = 'none'
+      return
+    }
+    event.dataTransfer.dropEffect = 'copy'
+    setIsDraggingFileOver(true)
+  }
+
+  function handleFileDragLeave(event: ReactDragEvent<HTMLDivElement>): void {
+    if (!isLiteratureDropEnabled) return
+    const nextTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null
+    if (nextTarget && event.currentTarget.contains(nextTarget)) return
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDraggingFileOver(false)
+  }
+
+  async function handleFileDrop(event: ReactDragEvent<HTMLDivElement>): Promise<void> {
+    if (!isLiteratureDropEnabled) return
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDraggingFileOver(false)
+    if (!canDropFiles) return
+
+    const droppedFiles = Array.from(event.dataTransfer.files)
+    if (droppedFiles.length === 0) return
+
+    const allowedExtensions = allowedExtensionsForTaskEntry(activeTaskEntry)
+    const rejectedNames: string[] = []
+    const acceptedFiles: Array<{ name: string; path: string }> = []
+
+    for (const file of droppedFiles) {
+      const path = draggedFilePath(file)
+      const name = file.name || basename(path)
+      const extension = extensionFromFileName(name || path)
+      if (!path || (allowedExtensions.size > 0 && !allowedExtensions.has(extension))) {
+        rejectedNames.push(name || '未命名文件')
+        continue
+      }
+      acceptedFiles.push({ name, path })
+    }
+
+    for (const file of acceptedFiles) {
+      await addFileFromPath(file.name, file.path)
+    }
+
+    if (rejectedNames.length > 0) {
+      const shown = rejectedNames.slice(0, 3).join('、')
+      setError(`已跳过不支持或无法读取路径的文件：${shown}${rejectedNames.length > 3 ? ' 等' : ''}。请拖入 PDF、DOC、DOCX、TXT 或 MD，或点击“添加本地文件”。`)
+    }
   }
 
   function handleSubmit(): void {
@@ -633,6 +710,30 @@ function ResearchTaskEntry({
           </div>
         ) : null}
 
+        {isLiteratureDropEnabled ? (
+          <div
+            data-testid="literature-file-dropzone"
+            onDragOver={handleFileDragOver}
+            onDragLeave={handleFileDragLeave}
+            onDrop={(event) => void handleFileDrop(event)}
+            className={`rounded-xl border border-dashed px-4 py-3 transition ${
+              isDraggingFileOver
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-ds-border bg-ds-main text-ds-muted hover:border-accent/40 hover:bg-accent/5'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <Upload className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
+              <div className="min-w-0">
+                <p className="text-ui-body-sm font-semibold text-ds-text">拖拽文献材料到这里</p>
+                <p className="mt-1 text-ui-caption leading-relaxed text-ds-muted">
+                  支持 PDF、DOC、DOCX、TXT、MD；也可以点击下方按钮选择文件。
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
@@ -641,7 +742,7 @@ function ResearchTaskEntry({
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-4 py-2.5 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover"
           >
             {isExtracting ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.8} /> : <Upload className="h-4 w-4" strokeWidth={1.8} />}
-            {isExtracting ? '正在解析 PDF' : '添加本地文件'}
+            {isExtracting ? '正在解析文件' : '添加本地文件'}
           </button>
           <button
             type="button"

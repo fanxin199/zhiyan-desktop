@@ -107,6 +107,15 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(grant).not.toContain('如需专门撰写国自然申请书')
   })
 
+  it('renders the drag-and-drop file area only for literature tasks', () => {
+    const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
+    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
+
+    expect(literature).toContain('拖拽文献材料到这里')
+    expect(literature).toContain('支持 PDF、DOC、DOCX、TXT、MD')
+    expect(paper).not.toContain('拖拽文献材料到这里')
+  })
+
   it('renders local conversation slots for research writing tasks when active', () => {
     const pages = [
       renderToStaticMarkup(createElement(PaperPolishPage, {
