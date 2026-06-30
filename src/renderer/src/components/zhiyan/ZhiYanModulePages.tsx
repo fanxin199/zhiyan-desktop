@@ -867,6 +867,7 @@ export const PAPER_CONFIG: ModuleConfig = {
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
   gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
   inlineConversationModule: 'paper-polish',
+  moduleNotice: '如需专门撰写国自然申请书，推荐使用「自然基金撰写」模块，内置国自然各模块模板。',
   taskEntry: {
     title: '开始一项写作任务',
     description: '输入研究主题、已有段落或修改要求；也可以添加论文、基金草稿或参考材料。',

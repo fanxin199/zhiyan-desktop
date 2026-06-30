@@ -98,6 +98,15 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(paper).not.toContain('本模块专注于综述文章撰写')
   })
 
+  it('renders the paper writing module grant recommendation notice', () => {
+    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
+    const grant = renderToStaticMarkup(createElement(GrantWritingPage, { onStartChat: noop }))
+
+    expect(paper).toContain('如需专门撰写国自然申请书')
+    expect(paper).toContain('推荐使用「自然基金撰写」模块')
+    expect(grant).not.toContain('如需专门撰写国自然申请书')
+  })
+
   it('renders local conversation slots for research writing tasks when active', () => {
     const pages = [
       renderToStaticMarkup(createElement(PaperPolishPage, {
