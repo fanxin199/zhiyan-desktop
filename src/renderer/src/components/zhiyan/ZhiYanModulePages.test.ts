@@ -89,6 +89,15 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(literature).not.toContain('数据格式说明')
   })
 
+  it('renders the review writing module purpose notice', () => {
+    const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
+    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
+
+    expect(review).toContain('本模块专注于综述文章撰写')
+    expect(review).toContain('请使用「文本写作」模块')
+    expect(paper).not.toContain('本模块专注于综述文章撰写')
+  })
+
   it('renders local conversation slots for research writing tasks when active', () => {
     const pages = [
       renderToStaticMarkup(createElement(PaperPolishPage, {

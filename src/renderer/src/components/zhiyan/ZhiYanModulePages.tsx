@@ -248,6 +248,7 @@ type ModuleConfig = {
   title: string
   subtitle: string
   gradient: string
+  moduleNotice?: string
   features: Array<{
     title: string
     description: string
@@ -758,6 +759,9 @@ function ModulePageShell({
           <div>
             <h1 className="text-ui-title font-bold text-ds-text">{config.title}</h1>
             <p className="text-sm text-ds-muted">{config.subtitle}</p>
+            {config.moduleNotice ? (
+              <p className="mt-2 text-ui-caption leading-relaxed text-ds-muted">{config.moduleNotice}</p>
+            ) : null}
           </div>
         </div>
 
@@ -980,6 +984,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
   gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
   inlineConversationModule: 'review-writing',
+  moduleNotice: '本模块专注于综述文章撰写。如需修改已有论文或基金，请使用「文本写作」模块。',
   taskEntry: {
     title: '开始综述撰写任务',
     description: '输入综述主题、中心论点或已有文献列表，先形成论证主线，再分节写作。',
