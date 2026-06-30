@@ -77,6 +77,18 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(bioinformatics).not.toContain('打开写作工作台')
   })
 
+  it('renders a collapsible data format guide only for bioinformatics tasks', () => {
+    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
+    const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
+
+    expect(bioinformatics).toContain('数据格式说明')
+    expect(bioinformatics).toContain('表达矩阵')
+    expect(bioinformatics).toContain('分组表')
+    expect(bioinformatics).toContain('差异结果 / marker 表')
+    expect(bioinformatics).toContain('上传前先看这几项')
+    expect(literature).not.toContain('数据格式说明')
+  })
+
   it('renders local conversation slots for research writing tasks when active', () => {
     const pages = [
       renderToStaticMarkup(createElement(PaperPolishPage, {

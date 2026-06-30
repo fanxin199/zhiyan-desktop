@@ -11,6 +11,7 @@ import {
   Trash2,
   Check,
   FileText,
+  Info,
   Loader2,
   AlertCircle,
   CheckCircle2,
@@ -231,6 +232,17 @@ type ResearchTaskProjectContext = {
   summary?: string
 }
 
+type ModuleDataGuide = {
+  title: string
+  summary: string
+  items: Array<{
+    term: string
+    description: string
+    example: string
+  }>
+  checklist: string[]
+}
+
 type ModuleConfig = {
   icon: LucideIcon
   title: string
@@ -241,6 +253,7 @@ type ModuleConfig = {
     description: string
   }>
   quickPrompts: string[]
+  dataGuide?: ModuleDataGuide
   taskEntry?: ResearchTaskEntryConfig
   inlineConversationModule?: InlineModuleId
   comingSoon?: boolean
@@ -662,6 +675,51 @@ function ResearchTaskEntry({
   )
 }
 
+function ModuleDataGuidePanel({ guide }: { guide: ModuleDataGuide }): ReactElement {
+  return (
+    <details
+      className="group rounded-xl border border-ds-border-muted bg-ds-card p-4 shadow-sm"
+      data-testid="module-data-guide"
+    >
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+        <span className="flex min-w-0 items-start gap-3">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <Info className="h-4 w-4" strokeWidth={1.8} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-ui-body-sm font-semibold text-ds-text">{guide.title}</span>
+            <span className="mt-1 block text-ui-caption leading-relaxed text-ds-muted">{guide.summary}</span>
+          </span>
+        </span>
+        <span className="mt-1 shrink-0 text-ui-meta font-semibold text-accent group-open:hidden">展开</span>
+        <span className="mt-1 hidden shrink-0 text-ui-meta font-semibold text-ds-muted group-open:block">收起</span>
+      </summary>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {guide.items.map((item) => (
+          <div key={item.term} className="rounded-lg border border-ds-border-muted bg-ds-main p-3">
+            <h3 className="text-ui-body-sm font-semibold text-ds-text">{item.term}</h3>
+            <p className="mt-1 text-ui-caption leading-relaxed text-ds-muted">{item.description}</p>
+            <p className="mt-2 text-ui-caption leading-relaxed text-ds-faint">例如：{item.example}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 rounded-lg border border-accent/15 bg-accent/5 p-3">
+        <p className="text-ui-body-sm font-semibold text-ds-text">上传前先看这几项</p>
+        <ul className="mt-2 space-y-1.5 text-ui-caption leading-relaxed text-ds-muted">
+          {guide.checklist.map((item) => (
+            <li key={item} className="flex gap-2">
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.8} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
+  )
+}
+
 function ModulePageShell({
   config,
   onStartChat,
@@ -715,6 +773,8 @@ function ModulePageShell({
           </div>
         ) : (
           <div className="space-y-8">
+            {config.dataGuide ? <ModuleDataGuidePanel guide={config.dataGuide} /> : null}
+
             <ResearchTaskEntry
               config={config}
               onStartChat={onStartChat}
@@ -1062,6 +1122,32 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
   gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
   inlineConversationModule: 'bioinformatics',
+  dataGuide: {
+    title: '数据格式说明',
+    summary: '不需要上传原始测序文件。这里更适合放整理后的表格或分析结果，让智能体先检查格式，再生成图表方案和免疫学解释。',
+    items: [
+      {
+        term: '表达矩阵',
+        description: '一张“基因 × 样本”或“细胞 × 基因”的数值表，用来比较哪些基因在不同样本或细胞中更高。',
+        example: '第一列是 gene symbol，后面每列是一个样本的 TPM、FPKM、counts 或标准化表达值'
+      },
+      {
+        term: '分组表',
+        description: '说明每个样本属于哪个组，常用于差异分析、PCA、热图注释和免疫治疗响应比较。',
+        example: 'sample_id、group、treatment、response、batch 等列'
+      },
+      {
+        term: '差异结果 / marker 表',
+        description: '已经计算好的结果表，通常包含基因、变化方向、显著性和细胞亚群 marker，可直接用于可视化和生物学解释。',
+        example: 'gene、logFC、p_val_adj、cluster、avg_log2FC、pct.1、pct.2 等列'
+      }
+    ],
+    checklist: [
+      '文件名和列名尽量保留清楚含义，避免只写 Sheet1、A、B、C。',
+      '请在输入框补充分组设计和想回答的免疫学问题，例如 B 细胞亚群、TLS 或治疗响应。',
+      'H5AD、RDS 等对象文件可以先上传，但需要让智能体检查对象结构后再决定能做哪些分析。'
+    ]
+  },
   taskEntry: {
     title: '开始科研数据分析任务',
     description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的免疫学问题。',
