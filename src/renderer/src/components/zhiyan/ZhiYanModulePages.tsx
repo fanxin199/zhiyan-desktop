@@ -951,7 +951,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
       },
       {
         id: 'journal-club',
-        label: '文献汇报 PPT 大纲',
+        label: '组会汇报 PPT 大纲',
         description: '生成适合研究生组会汇报的页面结构。',
         instruction: '请把文献转化为组会汇报大纲，包含背景、科学问题、主图讲解、创新点、局限性和讨论问题。'
       }

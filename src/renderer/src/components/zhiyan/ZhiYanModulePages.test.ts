@@ -228,6 +228,13 @@ describe('buildResearchTaskPrompt', () => {
     expect(GRANT_CONFIG.taskEntry!.taskTypes[0].label).toBe('项目蓝图')
     expect(BIOINFORMATICS_CONFIG.title).toBe('科研数据分析')
   })
+
+  it('uses teacher-facing journal club wording for literature presentation outlines', () => {
+    const journalClubTask = LITERATURE_CONFIG.taskEntry!.taskTypes.find((task) => task.id === 'journal-club')
+
+    expect(journalClubTask?.label).toBe('组会汇报 PPT 大纲')
+    expect(journalClubTask?.label).not.toBe('文献汇报 PPT 大纲')
+  })
 })
 
 describe('SyllabusPage task handoff', () => {
