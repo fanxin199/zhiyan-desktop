@@ -1,5 +1,4 @@
 import {
-  DEFAULT_APPROVAL_POLICY,
   DEFAULT_DEEPSEEK_BASE_URL,
   DEFAULT_KUN_DATA_DIR,
   DEFAULT_KUN_MODEL,
@@ -28,6 +27,13 @@ import {
 const LEGACY_COREAGENT_DATA_DIR = '~/.deepseekgui/coreagent'
 const LEGACY_KUN_DEFAULT_MODEL = 'deepseek-chat'
 const LEGACY_LOCAL_HTTP_DEFAULT_PORT = 7878
+
+/**
+ * ZhiYan is used by non-technical teachers, so file changes and command
+ * execution should ask before running unless the teacher explicitly opts
+ * into automatic execution. Kun's standalone CLI keeps its own default.
+ */
+export const DEFAULT_GUI_APPROVAL_POLICY: ApprovalPolicy = 'on-request'
 
 type LegacyLocalHttpRuntimeSettingsV1 = {
   binaryPath: string
@@ -68,7 +74,7 @@ function legacyLocalHttpRuntimeDefaults(port = 7878): LegacyLocalHttpRuntimeSett
     baseUrl: DEFAULT_DEEPSEEK_BASE_URL,
     runtimeToken: '',
     extraCorsOrigins: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-    approvalPolicy: DEFAULT_APPROVAL_POLICY,
+    approvalPolicy: DEFAULT_GUI_APPROVAL_POLICY,
     sandboxMode: 'workspace-write'
   }
 }
@@ -98,7 +104,7 @@ export function defaultKunRuntimeSettings(
     runtimeToken: '',
     dataDir: DEFAULT_KUN_DATA_DIR,
     model: DEFAULT_KUN_MODEL,
-    approvalPolicy: DEFAULT_APPROVAL_POLICY,
+    approvalPolicy: DEFAULT_GUI_APPROVAL_POLICY,
     sandboxMode: DEFAULT_SANDBOX_MODE,
     tokenEconomyMode: false,
     tokenEconomy: defaultKunTokenEconomySettings(),

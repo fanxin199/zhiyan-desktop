@@ -292,7 +292,7 @@
   "approvalPolicy": "工具执行前确认",
   "approvalPolicyDesc": "控制 AI 助手在修改文件、运行命令等操作前是否需要先问你。修改后会在助手服务重启或重连时生效。",
   "approvalAuto": "自动执行",
-  "approvalOnRequest": "需要时询问",
+  "approvalOnRequest": "需要时询问（推荐）",
   "approvalUntrusted": "敏感操作询问",
   "approvalSuggest": "只给建议，不动文件",
   "approvalNever": "不执行工具",

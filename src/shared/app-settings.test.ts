@@ -5,7 +5,7 @@ import {
   kunSettingsPatch,
   DEFAULT_KUN_DATA_DIR,
   DEFAULT_KUN_MODEL,
-  DEFAULT_APPROVAL_POLICY,
+  DEFAULT_GUI_APPROVAL_POLICY,
   DEFAULT_WEIXIN_BRIDGE_RPC_URL,
   DEFAULT_SCHEDULE_INTERNAL_PORT,
   buildClawRuntimePrompt,
@@ -93,9 +93,9 @@ describe('kun defaults', () => {
     expect(defaultKunRuntimeSettings().model).toBe(DEFAULT_KUN_MODEL)
   })
 
-  it('defaults approval policy to auto', () => {
-    expect(defaultKunRuntimeSettings().approvalPolicy).toBe(DEFAULT_APPROVAL_POLICY)
-    expect(defaultKunRuntimeSettings().approvalPolicy).toBe('auto')
+  it('defaults the GUI approval policy to on-request', () => {
+    expect(defaultKunRuntimeSettings().approvalPolicy).toBe(DEFAULT_GUI_APPROVAL_POLICY)
+    expect(defaultKunRuntimeSettings().approvalPolicy).toBe('on-request')
   })
 
   it('defaults token economy mode to off', () => {
@@ -573,7 +573,20 @@ describe('legacy Kun defaults migration', () => {
       deepseek: {}
     } as unknown as Parameters<typeof migrateLegacyAppSettings>[0])
 
-    expect(migrated.agents?.kun?.approvalPolicy).toBe(DEFAULT_APPROVAL_POLICY)
+    expect(migrated.agents?.kun?.approvalPolicy).toBe(DEFAULT_GUI_APPROVAL_POLICY)
+  })
+
+  it('preserves an explicitly selected automatic approval policy', () => {
+    const migrated = migrateLegacyAppSettings({
+      version: 1,
+      agents: {
+        kun: {
+          approvalPolicy: 'auto'
+        }
+      }
+    } as Parameters<typeof migrateLegacyAppSettings>[0])
+
+    expect(migrated.agents?.kun?.approvalPolicy).toBe('auto')
   })
 
   it('upgrades old persisted Kun defaults to the current defaults', () => {
