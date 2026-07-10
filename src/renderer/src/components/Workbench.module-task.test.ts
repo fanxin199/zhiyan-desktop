@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import * as workbench from './Workbench'
 import type { SendMessageOverrides } from '../store/chat-store-types'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
+import type { ChatBlock } from '../agent/types'
 
 type WorkbenchModule = typeof workbench & {
   startModuleTask?: (options: {
@@ -35,6 +36,14 @@ type WorkbenchModule = typeof workbench & {
     setRoute: (route: 'chat') => void
     selectThread: (id: string) => Promise<void>
   }) => Promise<void>
+  latestAssistantDraftText?: (blocks: ChatBlock[], liveAssistant?: string) => string
+  moduleWriteDraftFileName?: (title: string, now?: Date) => string
+  buildModuleWriteDraftMarkdown?: (seed: {
+    title: string
+    content: string
+    sourceModule: InlineModuleId
+    createdAtLabel?: string
+  }) => string
 }
 
 describe('module task launch', () => {
@@ -242,5 +251,44 @@ describe('module conversation isolation', () => {
         activeThreadId: null
       })).toBe(false)
     }
+  })
+})
+
+describe('module output to free writing draft', () => {
+  it('uses the latest assistant answer as draft content', () => {
+    const latestAssistantDraftText = (workbench as WorkbenchModule).latestAssistantDraftText
+
+    expect(latestAssistantDraftText?.([
+      { kind: 'user', id: 'user-1', text: '请写立项依据' },
+      { kind: 'assistant', id: 'assistant-1', text: '第一版内容' },
+      { kind: 'assistant', id: 'assistant-2', text: '最终版内容' }
+    ] as ChatBlock[])).toBe('最终版内容')
+
+    expect(latestAssistantDraftText?.([], ' 正在生成的内容 ')).toBe('正在生成的内容')
+  })
+
+  it('builds a Markdown draft with source metadata', () => {
+    const buildModuleWriteDraftMarkdown = (workbench as WorkbenchModule).buildModuleWriteDraftMarkdown
+
+    const markdown = buildModuleWriteDraftMarkdown?.({
+      title: '自然基金撰写结果',
+      content: '## 立项依据\n\n围绕 TLS 中 B 细胞亚群展开。',
+      sourceModule: 'grant-writing',
+      createdAtLabel: '2026/6/30 10:00:00'
+    })
+
+    expect(markdown).toContain('# 自然基金撰写结果')
+    expect(markdown).toContain('> 来源：自然基金撰写')
+    expect(markdown).toContain('> 生成时间：2026/6/30 10:00:00')
+    expect(markdown).toContain('## 立项依据')
+  })
+
+  it('creates a safe Markdown file name for module drafts', () => {
+    const moduleWriteDraftFileName = (workbench as WorkbenchModule).moduleWriteDraftFileName
+
+    expect(moduleWriteDraftFileName?.(
+      '自然基金: B/TLS 项目?',
+      new Date('2026-06-30T02:03:04.005Z')
+    )).toBe('自然基金 B TLS 项目-2026-06-30T02-03-04-005Z.md')
   })
 })

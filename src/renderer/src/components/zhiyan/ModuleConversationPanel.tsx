@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Loader2, MessageSquareText } from 'lucide-react'
+import { FilePenLine, Loader2, MessageSquareText } from 'lucide-react'
 import type { RuntimeConnectionStatus, ChatBlock } from '../../agent/types'
 import type { QueuedUserMessage } from '../../store/chat-store-types'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
@@ -29,6 +29,9 @@ type Props = {
   setComposerReasoningEffort: (effort: ComposerReasoningEffort) => void
   queuedMessages: QueuedUserMessage[]
   removeQueuedMessage: (id: string) => void
+  writeDraftActionLabel?: string
+  canCreateWriteDraft?: boolean
+  onCreateWriteDraft?: () => void
   onSend: () => void
   onInterrupt: (options?: { discard?: boolean }) => void
   onRetryConnection: () => void
@@ -57,6 +60,9 @@ export function ModuleConversationPanel({
   setComposerReasoningEffort,
   queuedMessages,
   removeQueuedMessage,
+  writeDraftActionLabel = '整理到自由写作台',
+  canCreateWriteDraft = false,
+  onCreateWriteDraft,
   onSend,
   onInterrupt,
   onRetryConnection,
@@ -69,10 +75,22 @@ export function ModuleConversationPanel({
           <MessageSquareText className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.9} />
           <h2 className="truncate text-[14px] font-semibold text-ds-text">{title}</h2>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-[12px] text-ds-muted">
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" strokeWidth={1.9} /> : null}
-          {busy ? busyLabel : readyLabel}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {onCreateWriteDraft && canCreateWriteDraft ? (
+            <button
+              type="button"
+              onClick={onCreateWriteDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-[12px] font-semibold text-accent transition hover:bg-accent/20"
+            >
+              <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
+              {writeDraftActionLabel}
+            </button>
+          ) : null}
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-ds-muted">
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" strokeWidth={1.9} /> : null}
+            {busy ? busyLabel : readyLabel}
+          </span>
+        </div>
       </header>
       <div className="min-h-0 flex-1 bg-ds-main/35 dark:bg-transparent">
         <MessageTimeline
