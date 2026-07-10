@@ -14,6 +14,7 @@ import {
   LiteraturePage,
   loadSyllabusTeacherProfileDefaults,
   buildSyllabusIdentityPromptSections,
+  buildSyllabusOutputInstructions,
   PAPER_CONFIG,
   PaperPolishPage,
   REVIEW_CONFIG,
@@ -291,6 +292,15 @@ describe('SyllabusPage task handoff', () => {
     expect(displayText).toBe('智能教案生成：移植免疫')
     expect(displayText).not.toContain('chapter.pdf')
     expect(displayText).not.toContain('教案模板')
+  })
+
+  it('uses the native writing export path instead of Python or shell commands', () => {
+    const instructions = buildSyllabusOutputInstructions().join('\n')
+
+    expect(instructions).toContain('编辑并导出 Word')
+    expect(instructions).toContain('应用原生导出 DOCX')
+    expect(instructions).not.toContain('python-docx')
+    expect(instructions).toContain('不要调用 bash、write')
   })
 })
 

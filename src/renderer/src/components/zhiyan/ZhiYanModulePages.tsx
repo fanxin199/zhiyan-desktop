@@ -1356,6 +1356,17 @@ export function buildSyllabusTaskDisplayText(input: {
   return `智能教案生成：${label.slice(0, 80)}`
 }
 
+export function buildSyllabusOutputInstructions(): string[] {
+  return [
+    '### 4. 输出要求：',
+    '',
+    '1. 在当前对话中直接输出完整、可编辑的 Markdown 教案。',
+    '2. 不要调用 bash、write 或其他文件工具，不要声称已经保存 DOCX 文件。',
+    '3. 智研助手会在生成完成后提供“编辑并导出 Word”按钮，由应用原生导出 DOCX。',
+    '4. 最终回复只呈现教案正文和必要的教师复核提示，不展示内部执行步骤。'
+  ]
+}
+
 export type SyllabusTeacherProfileDefaults = {
   teacher: string
   school: string
@@ -1594,9 +1605,7 @@ export function SyllabusPage({
     setFormError(null)
 
     let sourceDetail = ''
-    let targetDocxPath = ''
     let sourceDir = ''
-    const cleanTopic = (topic || '未命名').replace(/[\\/:*?"<>|]/g, '_')
 
     if (sourceType === 'file') {
       if (!selectedFile) {
@@ -1608,11 +1617,7 @@ export function SyllabusPage({
         return
       }
       sourceDetail = '本地文件路径：' + selectedFile.path
-      // 源文件所在目录 = 教案输出目录
       sourceDir = getDirectoryPath(selectedFile.path)
-      targetDocxPath = sourceDir
-        ? sourceDir + '\\' + cleanTopic + '教案.docx'
-        : cleanTopic + '教案.docx'
     } else {
       if (!textSource.trim()) {
         setFormError('请填写章节大纲或核心内容描述！')
@@ -1620,7 +1625,6 @@ export function SyllabusPage({
       }
       sourceDetail = textSource.trim()
       sourceDir = ''
-      targetDocxPath = cleanTopic + '教案.docx'
     }
 
     // 构建内容源部分
@@ -1643,11 +1647,6 @@ export function SyllabusPage({
       department,
       teacher
     })
-
-    // 输出目录说明
-    const outputDirNote = sourceDir
-      ? '所有文件必须保存到源文件所在目录：' + sourceDir
-      : '保存到当前工作目录'
 
     const promptParts: string[] = []
     promptParts.push('你是一个高校教学辅助AI，专门为大学教师生成标准教案。')
@@ -1682,26 +1681,7 @@ export function SyllabusPage({
     promptParts.push('### 3. 格式模板（仅参考排版结构）：')
     promptParts.push(REFERENCE_LESSON_PLAN_TEMPLATE)
     promptParts.push('')
-    promptParts.push('### 4. 文件输出目录与 DOCX 导出（极其重要，必须严格执行）：')
-    promptParts.push('')
-    if (sourceDir) {
-      promptParts.push('**输出目录（绝对路径）：' + sourceDir + '**')
-      promptParts.push('')
-      promptParts.push('操作步骤：')
-      promptParts.push('1. 所有中间文件（.md）和最终文件（.docx）都必须保存到上述绝对路径目录，禁止保存到其他任何目录。')
-      promptParts.push('2. 先用 write 工具将教案 Markdown 保存为：' + sourceDir + '\\' + cleanTopic + '教案.md')
-      promptParts.push('3. 然后用 bash 工具执行 python-docx 脚本，将 .md 转为 .docx。')
-      promptParts.push('4. 最终 DOCX 的完整绝对路径必须是：' + targetDocxPath)
-      promptParts.push('5. 使用 bash 工具时，先 cd 到输出目录：cd "' + sourceDir + '"')
-      promptParts.push('6. 成功后在回复开头写：已为您生成教案并保存为 Word 文件，路径为 ' + targetDocxPath)
-      promptParts.push('')
-      promptParts.push('WARNING: 不要将文件保存到 workspace 默认目录或任何其他目录，必须保存到 ' + sourceDir)
-    } else {
-      promptParts.push('1. 最终教案必须保存为 .docx 文件。')
-      promptParts.push('2. 先用 write 工具保存 Markdown 为临时 .md 文件，再用 bash 执行 python-docx 脚本转为 .docx。')
-      promptParts.push('3. 保存路径为 ' + targetDocxPath)
-      promptParts.push('4. 成功后在回复开头写：已为您生成教案并保存为 Word 文件，路径为 ' + targetDocxPath)
-    }
+    promptParts.push(...buildSyllabusOutputInstructions())
     promptParts.push('')
     promptParts.push('### 5. 内容编写指令：')
     promptParts.push('1. 从内容源中提炼核心知识点，用教学语言重新组织，不要照搬原文。')

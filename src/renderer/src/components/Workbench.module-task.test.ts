@@ -281,6 +281,14 @@ describe('module output to free writing draft', () => {
     expect(markdown).toContain('> 来源：自然基金撰写')
     expect(markdown).toContain('> 生成时间：2026/6/30 10:00:00')
     expect(markdown).toContain('## 立项依据')
+
+    const lessonPlanMarkdown = buildModuleWriteDraftMarkdown?.({
+      title: '智能教案',
+      content: '## 教学目标\n\n解释抗原递呈过程。',
+      sourceModule: 'syllabus',
+      createdAtLabel: '2026/6/30 10:00:00'
+    })
+    expect(lessonPlanMarkdown).toContain('> 来源：智能教案')
   })
 
   it('creates a safe Markdown file name for module drafts', () => {

@@ -121,6 +121,7 @@ const MODULE_PROJECT_DEFAULTS: Record<InlineModuleId, {
 }
 
 const MODULE_WRITE_DRAFT_SOURCE_LABELS: Partial<Record<InlineModuleId, string>> = {
+  syllabus: '智能教案',
   'paper-polish': '文本写作',
   'review-writing': '综述撰写',
   'grant-writing': '自然基金撰写'
@@ -685,7 +686,7 @@ export function Workbench(): ReactElement {
   const renderModuleConversation = (
     title: string,
     statusLabels?: { busy: string; ready: string },
-    writeDraft?: { moduleId: InlineModuleId; title: string }
+    writeDraft?: { moduleId: InlineModuleId; title: string; actionLabel?: string }
   ): ReactElement => (
     <ModuleConversationPanel
       title={title}
@@ -709,7 +710,7 @@ export function Workbench(): ReactElement {
       setComposerReasoningEffort={setComposerReasoningEffort}
       queuedMessages={queuedMessages}
       removeQueuedMessage={removeQueuedMessage}
-      writeDraftActionLabel="整理到自由写作台"
+      writeDraftActionLabel={writeDraft?.actionLabel ?? '整理到自由写作台'}
       canCreateWriteDraft={Boolean(
         writeDraft &&
         !busy &&
@@ -829,6 +830,10 @@ export function Workbench(): ReactElement {
             inlineConversation={renderModuleConversation('教案生成', {
               busy: '正在生成教案',
               ready: '教案已生成'
+            }, {
+              moduleId: 'syllabus',
+              title: '智能教案',
+              actionLabel: '编辑并导出 Word'
             })}
             className="ds-no-drag"
           />
