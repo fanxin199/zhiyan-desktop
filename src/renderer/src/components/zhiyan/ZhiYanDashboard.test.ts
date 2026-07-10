@@ -124,4 +124,11 @@ describe('ZhiYanDashboard quick search', () => {
     expect(html).toContain('输入关键词搜索功能，或直接描述需求…')
     expect(html.indexOf('输入关键词搜索功能，或直接描述需求…')).toBeLessThan(html.indexOf('教学工具'))
   })
+
+  it('positions the writing capability as a free writing desk', () => {
+    const html = renderToStaticMarkup(dashboard())
+
+    expect(html).toContain('自由写作台')
+    expect(html).toContain('自由草稿、长文编辑、局部润色和 DOCX/PDF 导出')
+  })
 })

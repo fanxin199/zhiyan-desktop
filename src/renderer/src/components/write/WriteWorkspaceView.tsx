@@ -606,6 +606,7 @@ export function WriteWorkspaceView({
             previewPaneRef={previewPaneRef}
             onAskAssistant={() => setAssistantPrompt(t('writeStartAskAiPrompt'))}
             onCreateDraft={() => void createDraftFile()}
+            onOrganizeMaterial={() => setAssistantPrompt(t('writeStartOrganizeMaterialPrompt'))}
             onPickWorkspace={() => void pickWriteWorkspace()}
             onRefreshWorkspace={() => void refreshWorkspace(workspaceRoot)}
             onContentChange={setFileContent}

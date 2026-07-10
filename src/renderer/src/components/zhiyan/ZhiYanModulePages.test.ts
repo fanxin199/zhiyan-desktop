@@ -48,31 +48,16 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(pages[4]).toContain('发送分析任务')
   })
 
-  it('renders write workbench entry only for writing-oriented research modules', () => {
-    const paper = renderToStaticMarkup(createElement(PaperPolishPage, {
-      onStartChat: noop,
-      onOpenWrite: noop
-    }))
-    const literature = renderToStaticMarkup(createElement(LiteraturePage, {
-      onStartChat: noop,
-      onOpenWrite: noop
-    }))
-    const review = renderToStaticMarkup(createElement(ReviewWritingPage, {
-      onStartChat: noop,
-      onOpenWrite: noop
-    }))
-    const grant = renderToStaticMarkup(createElement(GrantWritingPage, {
-      onStartChat: noop,
-      onOpenWrite: noop
-    }))
-    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, {
-      onStartChat: noop,
-      onOpenWrite: noop
-    }))
+  it('does not render a duplicate write desk entry in research task cards', () => {
+    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
+    const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
+    const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
+    const grant = renderToStaticMarkup(createElement(GrantWritingPage, { onStartChat: noop }))
+    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
 
-    expect(paper).toContain('打开写作工作台')
-    expect(review).toContain('打开写作工作台')
-    expect(grant).toContain('打开写作工作台')
+    expect(paper).not.toContain('打开写作工作台')
+    expect(review).not.toContain('打开写作工作台')
+    expect(grant).not.toContain('打开写作工作台')
     expect(literature).not.toContain('打开写作工作台')
     expect(bioinformatics).not.toContain('打开写作工作台')
   })

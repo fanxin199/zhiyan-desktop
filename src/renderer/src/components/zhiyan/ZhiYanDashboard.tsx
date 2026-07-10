@@ -279,9 +279,9 @@ export function ZhiYanDashboard({
     {
       id: 'write',
       icon: FileText,
-      title: '写作工作台',
-      description: 'Markdown 编辑器 + AI 写作助手，支持导出 DOCX/PDF',
-      keywords: ['写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档'],
+      title: '自由写作台',
+      description: '自由草稿、长文编辑、局部润色和 DOCX/PDF 导出',
+      keywords: ['自由写作台', '写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档', '草稿'],
       gradient: 'bg-gradient-to-br from-indigo-600 to-indigo-800',
       onClick: onOpenWrite
     },
@@ -491,8 +491,8 @@ export function ZhiYanDashboard({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <QuickActionCard
               icon={FileText}
-              title="写作工作台"
-              description="Markdown 编辑器 + AI 写作助手，支持导出 DOCX/PDF"
+              title="自由写作台"
+              description="自由草稿、长文编辑、局部润色和 DOCX/PDF 导出"
               gradient="bg-gradient-to-br from-indigo-600 to-indigo-800"
               onClick={onOpenWrite}
             />

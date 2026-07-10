@@ -62,7 +62,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'grant-writing', icon: Award, label: '自然基金撰写', section: 'research' },
   { id: 'bioinformatics', icon: Microscope, label: '科研数据分析', section: 'research' },
   // Capabilities
-  { id: 'write', icon: FileText, label: '写作工作台', section: 'capabilities' },
+  { id: 'write', icon: FileText, label: '自由写作台', section: 'capabilities' },
   { id: 'chat', icon: MessageCircle, label: 'AI 对话', section: 'capabilities' },
   { id: 'file-manager', icon: FolderOpen, label: '文件管理', section: 'capabilities' },
 ]

@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react'
-import { FilePenLine, FilePlus2, FolderOpen, ListTodo, RefreshCw, Sparkles } from 'lucide-react'
+import { ClipboardPaste, FilePenLine, FilePlus2, FolderOpen, ListTodo, RefreshCw, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export function WriteWorkspaceStart({
   onAskAssistant,
   onCreateDraft,
+  onOrganizeMaterial,
   onPickWorkspace,
   onRefreshWorkspace,
   workspaceName,
@@ -12,6 +13,7 @@ export function WriteWorkspaceStart({
 }: {
   onAskAssistant: () => void
   onCreateDraft: () => void
+  onOrganizeMaterial: () => void
   onPickWorkspace: () => void
   onRefreshWorkspace: () => void
   workspaceName: string
@@ -44,11 +46,19 @@ export function WriteWorkspaceStart({
             </button>
             <button
               type="button"
-              onClick={onAskAssistant}
+              onClick={onOrganizeMaterial}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-[14px] font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
             >
-              <ListTodo className="h-4 w-4 text-emerald-600 dark:text-emerald-300" strokeWidth={1.9} />
-              {t('writeStartAskAi')}
+              <ClipboardPaste className="h-4 w-4 text-sky-600 dark:text-sky-300" strokeWidth={1.9} />
+              {t('writeStartOrganizeMaterial')}
+            </button>
+            <button
+              type="button"
+              onClick={onPickWorkspace}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-[14px] font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
+            >
+              <FolderOpen className="h-4 w-4 text-violet-600 dark:text-violet-300" strokeWidth={1.9} />
+              {t('writeStartChangeWorkspace')}
             </button>
           </div>
 
@@ -72,18 +82,18 @@ export function WriteWorkspaceStart({
             </button>
             <button
               type="button"
-              onClick={onPickWorkspace}
+              onClick={onAskAssistant}
               className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-ds-border-muted bg-white/52 px-4 py-3 text-left transition hover:border-accent/25 hover:bg-white/78 dark:bg-white/[0.035] dark:hover:bg-white/[0.07]"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
-                <FolderOpen className="h-5 w-5" strokeWidth={1.9} />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                <ListTodo className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
                 <span className="block text-[14px] font-semibold text-ds-ink">
-                  {t('writeStartChangeWorkspace')}
+                  {t('writeStartAskAi')}
                 </span>
-                <span className="mt-1 block truncate text-[12.5px] leading-5 text-ds-faint">
-                  {workspaceName}
+                <span className="mt-1 block text-[12.5px] leading-5 text-ds-faint">
+                  {t('writeStartAskAiSub')}
                 </span>
               </span>
             </button>

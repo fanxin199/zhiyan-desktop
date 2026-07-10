@@ -10,6 +10,7 @@ import type { AttachmentReference } from '../agent/types'
 import type { SendMessageOverrides, TeacherProjectStartContext } from '../store/chat-store-types'
 import type { CoreRuntimeInfoJson, CoreRuntimeSkillJson } from '../agent/kun-contract'
 import { getProvider } from '../agent/registry'
+import type { ChatBlock } from '../agent/types'
 import { useChatStore } from '../store/chat-store'
 import { prepareImageAttachmentUpload } from '../lib/image-attachment-upload'
 import { isChatAttachmentUploadEnabled } from '../lib/attachment-upload-availability'
@@ -20,7 +21,7 @@ import {
   type ComposerFileContextEntry
 } from '../lib/composer-file-references'
 import { composeWritePrompt } from '../write/quoted-selection'
-import { useWriteWorkspaceStore } from '../write/write-workspace-store'
+import { useWriteWorkspaceStore, writeJoinPath } from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
 import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
@@ -74,6 +75,12 @@ type ModuleTaskStartOptions = {
 
 type InlineConversationThreadIds = Partial<Record<InlineModuleId, string>>
 type ModuleHandoffFiles = Partial<Record<FileManagerModuleTarget, FileManagerModuleFile>>
+export type ModuleWriteDraftSeed = {
+  title: string
+  content: string
+  sourceModule: InlineModuleId
+  createdAtLabel?: string
+}
 
 export async function openRecentDashboardThread({
   threadId,
@@ -111,6 +118,52 @@ const MODULE_PROJECT_DEFAULTS: Record<InlineModuleId, {
   'grant-writing': { name: '自然基金撰写', type: 'research' },
   bioinformatics: { name: '科研数据分析', type: 'research' },
   'file-manager': { name: '文件管理', type: 'teaching' }
+}
+
+const MODULE_WRITE_DRAFT_SOURCE_LABELS: Partial<Record<InlineModuleId, string>> = {
+  'paper-polish': '文本写作',
+  'review-writing': '综述撰写',
+  'grant-writing': '自然基金撰写'
+}
+
+export function latestAssistantDraftText(blocks: ChatBlock[], liveAssistant = ''): string {
+  const liveText = liveAssistant.trim()
+  if (liveText) return liveText
+  for (let index = blocks.length - 1; index >= 0; index -= 1) {
+    const block = blocks[index]
+    if (block?.kind === 'assistant' && block.text.trim()) return block.text.trim()
+  }
+  return ''
+}
+
+export function moduleWriteDraftFileName(title: string, now = new Date()): string {
+  const stamp = now.toISOString().replace(/[:.]/g, '-')
+  const base = title
+    .trim()
+    .split('')
+    .map((character) => character.charCodeAt(0) <= 31 ? ' ' : character)
+    .join('')
+    .replace(/[<>:"/\\|?*]/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .slice(0, 48)
+    .trim() || '自由写作草稿'
+  return `${base}-${stamp}.md`
+}
+
+export function buildModuleWriteDraftMarkdown(seed: ModuleWriteDraftSeed): string {
+  const title = seed.title.trim() || '自由写作草稿'
+  const content = seed.content.trim()
+  const source = MODULE_WRITE_DRAFT_SOURCE_LABELS[seed.sourceModule] ?? '模块生成结果'
+  const createdAtLabel = seed.createdAtLabel ?? new Date().toLocaleString('zh-CN', { hour12: false })
+  return [
+    `# ${title}`,
+    '',
+    `> 来源：${source}`,
+    `> 生成时间：${createdAtLabel}`,
+    '',
+    content,
+    ''
+  ].join('\n')
 }
 
 function teacherProjectNameFromDisplayText(displayText: string | undefined, fallback: string): string {
@@ -548,6 +601,32 @@ export function Workbench(): ReactElement {
   const openWriteMode = (): void => {
     void openWrite()
   }
+  const openWriteWithDraft = (seed: ModuleWriteDraftSeed): void => {
+    const content = seed.content.trim()
+    void (async () => {
+      await openWrite()
+      if (!content) return
+
+      const writeState = useWriteWorkspaceStore.getState()
+      await writeState.loadWriteSettings()
+      const loadedState = useWriteWorkspaceStore.getState()
+      const targetWorkspace = loadedState.workspaceRoot || loadedState.defaultWorkspaceRoot
+      if (!targetWorkspace.trim()) {
+        loadedState.setFileError('请先选择写作空间，然后再整理模块结果。')
+        return
+      }
+
+      if (!loadedState.rootDirectory) {
+        await loadedState.initializeWorkspace(targetWorkspace)
+      }
+
+      const readyState = useWriteWorkspaceStore.getState()
+      const root = readyState.rootDirectory || targetWorkspace
+      const draftPath = writeJoinPath(root, moduleWriteDraftFileName(seed.title))
+      const markdown = buildModuleWriteDraftMarkdown(seed)
+      await readyState.createFile(targetWorkspace, draftPath, markdown)
+    })()
+  }
   const openRecentThread = (threadId: string): void => {
     void openRecentDashboardThread({ threadId, setRoute, selectThread })
   }
@@ -605,7 +684,8 @@ export function Workbench(): ReactElement {
   }
   const renderModuleConversation = (
     title: string,
-    statusLabels?: { busy: string; ready: string }
+    statusLabels?: { busy: string; ready: string },
+    writeDraft?: { moduleId: InlineModuleId; title: string }
   ): ReactElement => (
     <ModuleConversationPanel
       title={title}
@@ -629,6 +709,19 @@ export function Workbench(): ReactElement {
       setComposerReasoningEffort={setComposerReasoningEffort}
       queuedMessages={queuedMessages}
       removeQueuedMessage={removeQueuedMessage}
+      writeDraftActionLabel="整理到自由写作台"
+      canCreateWriteDraft={Boolean(
+        writeDraft &&
+        !busy &&
+        latestAssistantDraftText(blocks, liveAssistant)
+      )}
+      onCreateWriteDraft={writeDraft
+        ? () => openWriteWithDraft({
+            title: writeDraft.title,
+            sourceModule: writeDraft.moduleId,
+            content: latestAssistantDraftText(blocks, liveAssistant)
+          })
+        : undefined}
       onSend={handleSend}
       onInterrupt={(options) => void interrupt(options)}
       onRetryConnection={() => void probeRuntime('user')}
@@ -744,7 +837,6 @@ export function Workbench(): ReactElement {
         ) : route === 'paper-polish' ? (
           <PaperPolishPage
             onStartChat={handleModuleQuickPrompt}
-            onOpenWrite={openWriteMode}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'paper-polish',
@@ -753,6 +845,9 @@ export function Workbench(): ReactElement {
             inlineConversation={renderModuleConversation('文本写作', {
               busy: '正在处理写作任务',
               ready: '写作任务已完成'
+            }, {
+              moduleId: 'paper-polish',
+              title: '文本写作结果'
             })}
             className="ds-no-drag"
           />
@@ -778,7 +873,6 @@ export function Workbench(): ReactElement {
         ) : route === 'review-writing' ? (
           <ReviewWritingPage
             onStartChat={handleModuleQuickPrompt}
-            onOpenWrite={openWriteMode}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'review-writing',
@@ -787,13 +881,15 @@ export function Workbench(): ReactElement {
             inlineConversation={renderModuleConversation('综述撰写', {
               busy: '正在处理综述任务',
               ready: '综述任务已完成'
+            }, {
+              moduleId: 'review-writing',
+              title: '综述撰写结果'
             })}
             className="ds-no-drag"
           />
         ) : route === 'grant-writing' ? (
           <GrantWritingPage
             onStartChat={handleModuleQuickPrompt}
-            onOpenWrite={openWriteMode}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'grant-writing',
@@ -802,6 +898,9 @@ export function Workbench(): ReactElement {
             inlineConversation={renderModuleConversation('自然基金撰写', {
               busy: '正在处理基金任务',
               ready: '基金任务已完成'
+            }, {
+              moduleId: 'grant-writing',
+              title: '自然基金撰写结果'
             })}
             className="ds-no-drag"
           />

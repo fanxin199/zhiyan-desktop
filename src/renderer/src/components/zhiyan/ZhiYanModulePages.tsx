@@ -49,7 +49,6 @@ type ModulePageProps = {
     displayText?: string
     inlineModule?: InlineModuleId
   }) => void
-  onOpenWrite?: () => void
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
   onUseFileInModule?: (target: FileManagerModuleTarget, file: FileManagerModuleFile) => void
@@ -222,7 +221,6 @@ type ResearchTaskEntryConfig = {
   placeholder: string
   fileFilters: Array<{ name: string; extensions: string[] }>
   submitLabel: string
-  allowWriteWorkbench?: boolean
   constraints: string[]
 }
 
@@ -378,13 +376,11 @@ export function buildResearchTaskDisplayText(
 function ResearchTaskEntry({
   config,
   onStartChat,
-  onOpenWrite,
   handoffFile,
   onHandoffFileConsumed
 }: {
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
-  onOpenWrite?: () => void
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
 }): ReactElement | null {
@@ -604,16 +600,6 @@ function ResearchTaskEntry({
           <h2 className="text-sm font-bold text-ds-text">{activeTaskEntry.title}</h2>
           <p className="mt-1 text-ui-body-sm leading-relaxed text-ds-muted">{activeTaskEntry.description}</p>
         </div>
-        {activeTaskEntry.allowWriteWorkbench && onOpenWrite ? (
-          <button
-            type="button"
-            onClick={onOpenWrite}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover"
-          >
-            <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
-            打开写作工作台
-          </button>
-        ) : null}
       </div>
 
       <div className="space-y-4">
@@ -825,7 +811,6 @@ function ModuleDataGuidePanel({ guide }: { guide: ModuleDataGuide }): ReactEleme
 function ModulePageShell({
   config,
   onStartChat,
-  onOpenWrite,
   handoffFile,
   onHandoffFileConsumed,
   inlineConversation,
@@ -834,7 +819,6 @@ function ModulePageShell({
 }: {
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
-  onOpenWrite?: () => void
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
   inlineConversation?: ReactElement
@@ -883,7 +867,6 @@ function ModulePageShell({
             <ResearchTaskEntry
               config={config}
               onStartChat={onStartChat}
-              onOpenWrite={onOpenWrite}
               handoffFile={handoffFile}
               onHandoffFileConsumed={onHandoffFileConsumed}
             />
@@ -1001,7 +984,6 @@ export const PAPER_CONFIG: ModuleConfig = {
     placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于 B 细胞亚群与 TLS 影响免疫治疗反应的论文 Discussion，请先帮我建立写作蓝图。',
     fileFilters: [{ name: '科研写作材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送写作任务',
-    allowWriteWorkbench: true,
     constraints: [
       '先判断文本功能和全文位置，再开始写作或修改。',
       '保留科学含义和作者语气，不把推测写成事实。',
@@ -1119,7 +1101,6 @@ export const REVIEW_CONFIG: ModuleConfig = {
     placeholder: '请给出综述主题、中心论点、目标期刊/读者或已有文献列表。例如：我想写 B 细胞亚群在肿瘤免疫中的作用，重点围绕 TLS、浆细胞和免疫治疗反应。',
     fileFilters: [{ name: '综述材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送综述任务',
-    allowWriteWorkbench: true,
     constraints: [
       '先形成清晰论证主线，再进入分节写作。',
       '明确每个小节的论证功能和边界，避免材料堆叠。',
@@ -1184,7 +1165,6 @@ export const GRANT_CONFIG: ModuleConfig = {
     placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“肿瘤 TLS 中 B 细胞亚群调控免疫治疗反应的机制研究”，请先建立项目蓝图。',
     fileFilters: [{ name: '基金材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送基金任务',
-    allowWriteWorkbench: true,
     constraints: [
       '所有模块必须围绕同一科学问题和核心假说展开。',
       '创新点必须具体对应研究内容，避免空泛表述。',
