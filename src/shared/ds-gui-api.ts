@@ -75,6 +75,17 @@ import type {
   TextbookSectionGenerationInput,
   TextbookSectionRevisionInput
 } from './textbook'
+export type {
+  PythonArchitecture,
+  PythonCapabilityPackId,
+  PythonCapabilityPackState,
+  PythonCapabilityPackStatus,
+  PythonInterpreterInfo,
+  PythonRuntimeSource,
+  PythonRuntimeState,
+  PythonRuntimeStatusV1,
+  PythonRuntimeTeacherSummary
+} from './python-runtime'
 
 export type RuntimeRequestResult = { ok: boolean; status: number; body: string }
 export type WorkspacePickResult = { canceled: boolean; path: string | null }
