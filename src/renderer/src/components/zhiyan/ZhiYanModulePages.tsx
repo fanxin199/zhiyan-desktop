@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
 import type { AppSettingsV1, WritingBlueprintModuleContextV1 } from '@shared/app-settings'
+import { wrapUntrustedPromptMaterial } from '@shared/prompt-boundary'
 import {
   buildImportedWritingBlueprintText,
   loadRecentWritingBlueprint,
@@ -330,9 +331,7 @@ export function buildResearchTaskPrompt(
           ? `，已提取 ${file.extractedPages ?? file.pageCount}/${file.pageCount} 页`
           : ''
         lines.push(`### ${file.name}${pageDetail}${truncated ? '（正文已截断）' : ''}`)
-        lines.push('```text')
-        lines.push(text)
-        lines.push('```')
+        lines.push(wrapUntrustedPromptMaterial(text, file.name))
       }
     }
     lines.push('')
@@ -1636,9 +1635,9 @@ export function SyllabusPage({
       const pageNote = extractedContent.pageCount
         ? `（共 ${extractedContent.pageCount} 页，已提取 ${extractedContent.extractedPages ?? extractedContent.pageCount} 页）`
         : ''
-      contentSourceSection = '以下是从用户上传的文件「' + (selectedFile?.name || '') + '」中自动提取的教学内容' + pageNote + '：' + truncationNote + '\n\n' + extractedContent.text + '\n\n请基于上述提取内容编写教案。'
+      contentSourceSection = '以下是从用户上传的文件「' + (selectedFile?.name || '') + '」中自动提取的教学内容' + pageNote + '：' + truncationNote + '\n\n' + wrapUntrustedPromptMaterial(extractedContent.text, selectedFile?.name || '教案内容源') + '\n\n请基于上述提取内容编写教案。'
     } else {
-      contentSourceSection = '直接使用以下内容源进行编写：\n' + sourceDetail
+      contentSourceSection = '直接使用以下内容源进行编写：\n' + wrapUntrustedPromptMaterial(sourceDetail, '老师粘贴的教案内容源')
     }
 
     // 学校、院系、教师：优先使用表单当前值，表单可由教师档案自动填充，也可手动覆盖。

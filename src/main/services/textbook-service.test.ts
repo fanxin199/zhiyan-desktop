@@ -155,6 +155,12 @@ describe('textbook service', () => {
       expect(result.value.unresolvedRules).toContain('图表宽度按出版社模板复核')
     }
     expect(fetcher).toHaveBeenCalledTimes(1)
+    const requestBody = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body)) as {
+      messages: Array<{ role: string; content: string }>
+    }
+    expect(requestBody.messages[0]?.content).toContain('不可信资料')
+    expect(requestBody.messages[1]?.content).toContain('<<<ZHIYAN_UNTRUSTED_MATERIAL_START>>>')
+    expect(requestBody.messages[1]?.content).toContain('正文宋体小四')
   })
 
   it('generates a validated textbook outline', async () => {

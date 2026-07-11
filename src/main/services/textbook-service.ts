@@ -8,6 +8,10 @@ import {
 } from '../../shared/app-settings'
 import { upstreamOpenAiChatCompletionsUrl } from '../../shared/openai-compat-url'
 import {
+  UNTRUSTED_MATERIAL_INSTRUCTION_ZH,
+  wrapUntrustedPromptMaterial
+} from '../../shared/prompt-boundary'
+import {
   createSectionsFromOutline,
   inferTextbookFormatRulesFromGuidelines,
   parseTextbookProject,
@@ -287,7 +291,8 @@ export async function parseTextbookFormatRules(
           '只能依据原文和已有规则抽取，不要编造出版社没有提出的要求。',
           '明确可执行的字体、字号、行距、标题层级、符号/标点规则要写入对应字段。',
           '无法可靠机器执行或需要出版社模板人工确认的内容，放入 unresolvedRules。',
-          '只返回 JSON 对象，不解释，不使用 Markdown。'
+          '只返回 JSON 对象，不解释，不使用 Markdown。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
@@ -297,7 +302,7 @@ export async function parseTextbookFormatRules(
           `本地初步解析结果：${JSON.stringify(baseline)}`,
           '',
           '出版社要求原文：',
-          input.publisherGuidelines || '未提供',
+          wrapUntrustedPromptMaterial(input.publisherGuidelines || '未提供', '出版社要求原文'),
           '',
           '返回字段：fontFamily, fontSizePt, lineSpacing, headingPattern, symbolRules, unresolvedRules。'
         ].join('\n')
@@ -324,7 +329,8 @@ export async function generateTextbookOutline(
           audienceInstruction(input.metadata.audience),
           '必须遵守出版社要求；如果要求中有字体、间距、标点、编号或符号规范，要把它们转化为章节写作约束。',
           '大纲必须服务后续逐节写作，每一节都要有明确写作目标、预计字数和关键概念。',
-          '只返回 JSON 对象，不解释，不使用 Markdown。'
+          '只返回 JSON 对象，不解释，不使用 Markdown。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
@@ -334,7 +340,7 @@ export async function generateTextbookOutline(
           `可编辑格式规则：${JSON.stringify(input.formatRules)}`,
           '',
           '出版社要求原文：',
-          input.publisherGuidelines || '未提供',
+          wrapUntrustedPromptMaterial(input.publisherGuidelines || '未提供', '出版社要求原文'),
           '',
           '教师补充说明：',
           input.teacherBrief || '无',
@@ -367,20 +373,24 @@ export async function generateTextbookSection(
           '正文使用 Markdown：节标题用二级标题，必要的小标题用三级标题。',
           '可以只引用项目参考文献库中已有 key，引用格式使用 [@key]，不得编造 PMID、DOI 或文献。',
           '涉及免疫机制时区分已证实事实、合理推断和需要验证的问题。',
-          '只返回 JSON 对象，字段为 content 和 referenceKeys。'
+          '只返回 JSON 对象，字段为 content 和 referenceKeys。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
         role: 'user',
         content: [
-          `当前节：${JSON.stringify(section)}`,
+          `当前节：${wrapUntrustedPromptMaterial(JSON.stringify(section), '当前教材小节')}`,
           `教师本次要求：${input.instruction || '无'}`,
           '',
           '项目上下文：',
-          clipText(projectContext(input.project), MAX_SECTION_CONTEXT_CHARS),
+          wrapUntrustedPromptMaterial(
+            clipText(projectContext(input.project), MAX_SECTION_CONTEXT_CHARS),
+            '教材项目上下文'
+          ),
           '',
           '项目参考文献库：',
-          referencesPrompt(input.project.references)
+          wrapUntrustedPromptMaterial(referencesPrompt(input.project.references), '项目参考文献库')
         ].join('\n')
       }
     ],
@@ -419,21 +429,25 @@ export async function reviseTextbookSection(
           audienceInstruction(input.project.metadata.audience),
           '保留教师原意和教材风格，按教师指令完成重写、扩展、压缩或规范检查后的修订。',
           '严格遵守出版社要求。只能使用项目参考文献库中的引用 key。',
-          '只返回 JSON 对象，字段为 content 和 referenceKeys。'
+          '只返回 JSON 对象，字段为 content 和 referenceKeys。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
         role: 'user',
         content: [
           `教师修订指令：${input.instruction}`,
-          `选中文本：${input.selection || '未指定，处理整节'}`,
-          `当前节：${JSON.stringify(section)}`,
+          `选中文本：${wrapUntrustedPromptMaterial(input.selection || '未指定，处理整节', '教师选中的教材文本')}`,
+          `当前节：${wrapUntrustedPromptMaterial(JSON.stringify(section), '当前教材小节')}`,
           '',
           '项目上下文：',
-          clipText(projectContext(input.project), MAX_SECTION_CONTEXT_CHARS),
+          wrapUntrustedPromptMaterial(
+            clipText(projectContext(input.project), MAX_SECTION_CONTEXT_CHARS),
+            '教材项目上下文'
+          ),
           '',
           '项目参考文献库：',
-          referencesPrompt(input.project.references)
+          wrapUntrustedPromptMaterial(referencesPrompt(input.project.references), '项目参考文献库')
         ].join('\n')
       }
     ],
@@ -470,12 +484,13 @@ export async function checkTextbookProject(
           '你是医学教材审稿人与编辑规范检查员。',
           '检查范围：出版社格式要求、术语一致性、章节衔接、引用缺失、证据边界、教材语体。',
           '无法可靠机器判断的出版社规则必须作为 warning 提出，不要假装已经完成。',
-          '只返回 JSON 对象，字段为 summary 和 items。'
+          '只返回 JSON 对象，字段为 summary 和 items。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
         role: 'user',
-        content: projectContext(input.project)
+        content: wrapUntrustedPromptMaterial(projectContext(input.project), '待检查的教材项目')
       }
     ],
     fetcher,

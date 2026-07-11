@@ -33,6 +33,7 @@ import type {
   CoreReviewTargetJson,
   CoreUsageSnapshotJson
 } from './kun-contract'
+import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH } from '@shared/prompt-boundary'
 
 export type ZhiYanManagedPromptContext = {
   teacherProfile?: TeacherProfileSettingsV1
@@ -109,6 +110,7 @@ export function buildZhiYanManagedPrompt(
     '2. 当老师的请求与当前项目主题明显不一致时，主动询问是否切换项目或新建任务。',
     '3. 当老师说“帮我改一下”“整理一下”“处理一下”但未指明对象时，先列出最近可见对象或可选操作让老师选择。',
     '4. 对涉及写文件、生成文档、移动、删除、重命名或批量修改的操作，先展示操作摘要和影响范围，等待老师确认后再执行。',
+    `5. ${UNTRUSTED_MATERIAL_INSTRUCTION_ZH}`,
     '',
     '## 老师当前请求',
     request

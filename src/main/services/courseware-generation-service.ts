@@ -18,6 +18,10 @@ import {
 } from '../../shared/courseware'
 import { upstreamOpenAiChatCompletionsUrl } from '../../shared/openai-compat-url'
 import {
+  UNTRUSTED_MATERIAL_INSTRUCTION_ZH,
+  wrapUntrustedPromptMaterial
+} from '../../shared/prompt-boundary'
+import {
   isRetryableHttpStatus,
   RetryableHttpResponseError,
   withProviderRetry
@@ -271,7 +275,8 @@ export async function generateCoursewareBlueprint(
           '无论教材多长，全部 section 的 slideCount 总和不得超过 35 页。',
           '输出必须是符合指定字段的 JSON，不得包含解释。',
           '蓝图要有清晰机制主线、合理页数、重点难点、互动节点和可视化建议。',
-          '不能把转录特征直接当作功能结论，涉及前沿证据时标清证据边界。'
+          '不能把转录特征直接当作功能结论，涉及前沿证据时标清证据边界。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
@@ -283,10 +288,10 @@ export async function generateCoursewareBlueprint(
           `教师强调：${input.request.focus || '无额外要求'}`,
           '',
           '教材页段内容：',
-          clipSourceText(input.sourceText),
+          wrapUntrustedPromptMaterial(clipSourceText(input.sourceText), '教材页段内容'),
           '',
           '可用前沿证据：',
-          evidencePrompt(input.evidence),
+          wrapUntrustedPromptMaterial(evidencePrompt(input.evidence), '可用前沿证据'),
           '',
           '返回字段：title, audience, durationMinutes, teachingGoal, sections。',
           '每个 section 包含 id, title, objective, summary, slideCount, emphasis, interactionPrompt, visualSuggestion。'
@@ -525,7 +530,8 @@ async function generateSlideBatch(
           'speakerNotes 提供逐页讲授逻辑、过渡、易错点和提问方式，但关键知识不能只藏在备注中。',
           '机制页优先使用可编辑 flow/comparison 图，互动页必须给出问题与参考答案。',
           '只能引用提供的 evidence id，不能编造 PMID、DOI 或论文。',
-          '只返回一个 JSON 对象，顶层字段固定为 slides。'
+          '只返回一个 JSON 对象，顶层字段固定为 slides。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
@@ -548,10 +554,13 @@ async function generateSlideBatch(
             batch.tasks.map((task) => [task.sectionId, task.section])
           ).values()])}`,
           `课程请求：${JSON.stringify(input.request)}`,
-          `证据：${evidencePrompt(input.evidence)}`,
+          `证据：${wrapUntrustedPromptMaterial(evidencePrompt(input.evidence), '课件证据')}`,
           '',
           '教材内容（当前批次对应片段）：',
-          sourceExcerptForBatch(input.sourceText, batch)
+          wrapUntrustedPromptMaterial(
+            sourceExcerptForBatch(input.sourceText, batch),
+            `教材内容第 ${batch.index + 1}/${batch.total} 批`
+          )
         ].join('\n')
       }
     ],
@@ -690,7 +699,8 @@ export async function regenerateCoursewareSlide(
           '你只重写一页医学免疫学课件。',
           audienceInstruction(input.request.audience),
           '保持 slide id 与 sectionId 不变，只按教师指令修改当前页。',
-          '只返回单个合法 JSON 对象。'
+          '只返回单个合法 JSON 对象。',
+          UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')
       },
       {
@@ -699,8 +709,8 @@ export async function regenerateCoursewareSlide(
           `教师修改指令：${input.instruction}`,
           `当前页：${JSON.stringify(input.slide)}`,
           `蓝图：${JSON.stringify(input.blueprint)}`,
-          `可用证据：${evidencePrompt(input.evidence)}`,
-          `教材内容：${clipSourceText(input.sourceText)}`
+          `可用证据：${wrapUntrustedPromptMaterial(evidencePrompt(input.evidence), '课件证据')}`,
+          `教材内容：${wrapUntrustedPromptMaterial(clipSourceText(input.sourceText), '教材内容')}`
         ].join('\n')
       }
     ],
