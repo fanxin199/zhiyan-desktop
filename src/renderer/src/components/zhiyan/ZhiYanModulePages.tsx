@@ -30,6 +30,11 @@ import { CoursewarePage } from './CoursewarePage'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import {
+  AnalysisEnvironmentPreflight,
+  useAnalysisEnvironmentPreflight,
+  type AnalysisRequirement
+} from './analysis-environment-preflight'
+import {
   FileManagerWorkspacePage,
   type FileManagerModuleFile,
   type FileManagerModuleTarget
@@ -396,9 +401,21 @@ function ResearchTaskEntry({
   const taskEntry = entry
   const selectedTask = taskEntry?.taskTypes.find((task) => task.id === selectedTaskId)
     ?? taskEntry?.taskTypes[0]
-  const canSubmit = Boolean(selectedTask && (userInput.trim() || files.length > 0))
   const isLiteratureDropEnabled = config.inlineConversationModule === 'literature'
   const canDropFiles = isLiteratureDropEnabled && !isExtracting
+  const requiresAnalysisEnvironment = config.inlineConversationModule === 'bioinformatics'
+  const analysisRequirement: AnalysisRequirement = selectedTask?.id === 'single-cell'
+    ? 'bioinformatics'
+    : 'base'
+  const analysisEnvironment = useAnalysisEnvironmentPreflight(
+    requiresAnalysisEnvironment,
+    analysisRequirement
+  )
+  const canSubmit = Boolean(
+    selectedTask
+    && (userInput.trim() || files.length > 0)
+    && (!requiresAnalysisEnvironment || analysisEnvironment.model.ready)
+  )
 
   useEffect(() => {
     if (config.inlineConversationModule !== 'review-writing') {
@@ -540,6 +557,10 @@ function ResearchTaskEntry({
 
   function handleSubmit(): void {
     if (isExtracting) return
+    if (requiresAnalysisEnvironment && !analysisEnvironment.model.ready) {
+      setError('请先完成上方的分析环境准备，再开始当前任务。')
+      return
+    }
     const displayText = buildResearchTaskDisplayText(config, activeSelectedTask, files)
     const prompt = buildResearchTaskPrompt(config, activeSelectedTask, userInput, files, {
       name: `${config.title} · ${activeSelectedTask.label}`,
@@ -626,6 +647,10 @@ function ResearchTaskEntry({
           </div>
           <p className="mt-2 text-ui-meta leading-relaxed text-ds-muted">{activeSelectedTask.description}</p>
         </div>
+
+        {requiresAnalysisEnvironment ? (
+          <AnalysisEnvironmentPreflight {...analysisEnvironment} />
+        ) : null}
 
         <ResizableTextArea
           value={userInput}

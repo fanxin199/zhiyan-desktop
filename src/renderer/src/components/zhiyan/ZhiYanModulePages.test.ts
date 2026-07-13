@@ -75,6 +75,15 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(literature).not.toContain('数据格式说明')
   })
 
+  it('checks the analysis environment only in the bioinformatics module', () => {
+    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
+    const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
+
+    expect(bioinformatics).toContain('data-testid="analysis-environment-preflight"')
+    expect(bioinformatics).toContain('正在检查分析环境')
+    expect(literature).not.toContain('analysis-environment-preflight')
+  })
+
   it('renders the review writing module purpose notice', () => {
     const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
     const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
