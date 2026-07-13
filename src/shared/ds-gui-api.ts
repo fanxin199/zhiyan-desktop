@@ -185,6 +185,10 @@ export type DsGuiApi = {
   onBaseSciencePackInstallProgress: (
     handler: (phase: PythonCapabilityPackInstallPhase) => void
   ) => () => void
+  installBioinformaticsPack: (confirmed: boolean) => Promise<PythonCapabilityPackInstallResult>
+  onBioinformaticsPackInstallProgress: (
+    handler: (phase: PythonCapabilityPackInstallPhase) => void
+  ) => () => void
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   getPathForFile: (file: unknown) => string

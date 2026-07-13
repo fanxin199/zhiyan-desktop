@@ -153,6 +153,9 @@ type RegisterAppIpcHandlersOptions = {
   installBaseScienceCapabilityPack: (
     onProgress: (phase: PythonCapabilityPackInstallPhase) => void
   ) => Promise<PythonCapabilityPackInstallResult>
+  installBioinformaticsCapabilityPack: (
+    onProgress: (phase: PythonCapabilityPackInstallPhase) => void
+  ) => Promise<PythonCapabilityPackInstallResult>
   resolveKunConfigPath: () => string
   showTurnCompleteNotification: (
     payload: TurnCompleteNotificationPayload
@@ -246,6 +249,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     installManagedPythonRuntime,
     uninstallManagedPythonRuntime,
     installBaseScienceCapabilityPack,
+    installBioinformaticsCapabilityPack,
     resolveKunConfigPath,
     showTurnCompleteNotification,
     getAppVersion,
@@ -386,6 +390,12 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     parseIpcPayload('python:base-science-install', explicitConfirmationSchema, payload)
     return installBaseScienceCapabilityPack((phase) => {
       if (!event.sender.isDestroyed()) event.sender.send('python:base-science-install-progress', phase)
+    })
+  })
+  ipcMain.handle('python:bioinformatics-install', async (event, payload: unknown) => {
+    parseIpcPayload('python:bioinformatics-install', explicitConfirmationSchema, payload)
+    return installBioinformaticsCapabilityPack((phase) => {
+      if (!event.sender.isDestroyed()) event.sender.send('python:bioinformatics-install-progress', phase)
     })
   })
 

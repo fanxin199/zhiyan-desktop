@@ -30,7 +30,13 @@ function success(data = probe()): PythonCandidateRunResult {
 describe('inspectPythonRuntime', () => {
   it('prefers a working application-managed interpreter', async () => {
     const runCandidate = vi.fn(async () => success(probe({
-      executable: 'C:\\ZhiYan\\runtimes\\python\\python.exe'
+      executable: 'C:\\ZhiYan\\runtimes\\python\\python.exe',
+      packages: [
+        ...probe().packages,
+        { id: 'scanpy', available: true, version: '1.12.1' },
+        { id: 'python-igraph', available: true, version: '1.0.0' },
+        { id: 'leidenalg', available: true, version: '0.12.0' }
+      ]
     })))
 
     const status = await inspectPythonRuntime({
@@ -39,6 +45,7 @@ describe('inspectPythonRuntime', () => {
       fileExists: () => true,
       runCandidate,
       readBaseSciencePackVersion: async () => '2026.07.1',
+      readBioinformaticsPackVersion: async () => '2026.07.1',
       now: () => checkedAt
     })
 
@@ -47,12 +54,20 @@ describe('inspectPythonRuntime', () => {
       source: 'managed',
       checkedAt: checkedAt.toISOString(),
       interpreter: { version: '3.12.4', architecture: 'x64' },
-      capabilityPacks: [{
-        id: 'base-science',
-        state: 'ready',
-        installedVersion: '2026.07.1',
-        missingPackages: []
-      }]
+      capabilityPacks: [
+        {
+          id: 'base-science',
+          state: 'ready',
+          installedVersion: '2026.07.1',
+          missingPackages: []
+        },
+        {
+          id: 'bioinformatics',
+          state: 'ready',
+          installedVersion: '2026.07.1',
+          missingPackages: []
+        }
+      ]
     })
     expect(runCandidate).toHaveBeenCalledWith(expect.objectContaining({ source: 'managed' }))
   })
@@ -113,7 +128,10 @@ describe('inspectPythonRuntime', () => {
 
     expect(incomplete).toMatchObject({
       state: 'incomplete',
-      capabilityPacks: [{ missingPackages: ['anndata'] }]
+      capabilityPacks: [
+        { id: 'base-science', missingPackages: ['anndata'] },
+        { id: 'bioinformatics', state: 'not-installed' }
+      ]
     })
     expect(outdated.state).toBe('upgrade-required')
   })

@@ -29,6 +29,14 @@ export const BASE_SCIENCE_PACKAGES = [
   { id: 'umap-learn', module: 'umap', distribution: 'umap-learn' }
 ] as const
 
+export const BIOINFORMATICS_PACKAGES = [
+  { id: 'scanpy', module: 'scanpy', distribution: 'scanpy' },
+  { id: 'python-igraph', module: 'igraph', distribution: 'python-igraph' },
+  { id: 'leidenalg', module: 'leidenalg', distribution: 'leidenalg' }
+] as const
+
+const PROBE_PACKAGES = [...BASE_SCIENCE_PACKAGES, ...BIOINFORMATICS_PACKAGES]
+
 export type PythonRuntimeCandidate = {
   command: string
   prefixArgs: string[]
@@ -63,11 +71,12 @@ export type InspectPythonRuntimeOptions = {
   fileExists?: (path: string) => boolean
   runCandidate?: (candidate: PythonRuntimeCandidate) => Promise<PythonCandidateRunResult>
   readBaseSciencePackVersion?: () => Promise<string | undefined>
+  readBioinformaticsPackVersion?: () => Promise<string | undefined>
   now?: () => Date
 }
 
 function pythonProbeScript(): string {
-  const packages = JSON.stringify(BASE_SCIENCE_PACKAGES)
+  const packages = JSON.stringify(PROBE_PACKAGES)
   return [
     'import importlib',
     'import importlib.metadata',
@@ -228,11 +237,33 @@ function baseSciencePackStatus(
   }
 }
 
+function bioinformaticsPackStatus(
+  data: PythonProbeData,
+  installedVersion?: string
+): PythonCapabilityPackStatus {
+  const missingPackages = BIOINFORMATICS_PACKAGES
+    .filter((expected) => !data.packages.some((actual) =>
+      actual.id === expected.id && actual.available
+    ))
+    .map((item) => item.id)
+  return {
+    id: 'bioinformatics',
+    state: missingPackages.length === BIOINFORMATICS_PACKAGES.length
+      ? 'not-installed'
+      : missingPackages.length > 0
+        ? 'partial'
+        : 'ready',
+    missingPackages,
+    ...(installedVersion ? { installedVersion } : {})
+  }
+}
+
 function statusFromSuccess(
   candidate: PythonRuntimeCandidate,
   data: PythonProbeData,
   checkedAt: string,
-  installedVersion?: string
+  installedVersion?: string,
+  bioinformaticsVersion?: string
 ): PythonRuntimeStatusV1 {
   return createPythonRuntimeStatus({
     source: candidate.source,
@@ -243,7 +274,10 @@ function statusFromSuccess(
       architecture: data.architecture as PythonArchitecture
     },
     ...(candidate.managedRoot ? { managedRoot: candidate.managedRoot } : {}),
-    capabilityPacks: [baseSciencePackStatus(data, installedVersion)]
+    capabilityPacks: [
+      baseSciencePackStatus(data, installedVersion),
+      bioinformaticsPackStatus(data, bioinformaticsVersion)
+    ]
   })
 }
 
@@ -270,13 +304,13 @@ export async function inspectPythonRuntime(
   const runCandidate = options.runCandidate ?? runPythonCandidate
   const checkedAt = (options.now ?? (() => new Date()))().toISOString()
   const managed = managedPythonCandidate(options.userDataPath, platform)
-  const readBaseSciencePackVersion = options.readBaseSciencePackVersion ?? (async () => {
+  const readPackVersion = async (packId: string): Promise<string | undefined> => {
     try {
       const content = await readFile(join(
         options.userDataPath,
         'runtimes',
         'python-packages',
-        'base-science',
+        packId,
         'active-environment.json'
       ), 'utf8')
       const parsed = JSON.parse(content) as { packVersion?: unknown }
@@ -284,12 +318,20 @@ export async function inspectPythonRuntime(
     } catch {
       return undefined
     }
-  })
+  }
+  const readBaseSciencePackVersion = options.readBaseSciencePackVersion ?? (() => readPackVersion('base-science'))
+  const readBioinformaticsPackVersion = options.readBioinformaticsPackVersion ?? (() => readPackVersion('bioinformatics'))
 
   if (fileExists(managed.command)) {
     const result = await runCandidate(managed)
     return result.kind === 'success'
-      ? statusFromSuccess(managed, result.data, checkedAt, await readBaseSciencePackVersion())
+      ? statusFromSuccess(
+          managed,
+          result.data,
+          checkedAt,
+          await readBaseSciencePackVersion(),
+          await readBioinformaticsPackVersion()
+        )
       : result.kind === 'failed'
         ? brokenStatus(managed, result, checkedAt)
         : brokenStatus(managed, {

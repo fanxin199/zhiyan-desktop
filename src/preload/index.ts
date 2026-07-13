@@ -25,6 +25,13 @@ const api = {
     ipcRenderer.on('python:base-science-install-progress', wrapped)
     return () => ipcRenderer.removeListener('python:base-science-install-progress', wrapped)
   },
+  installBioinformaticsPack: (confirmed) =>
+    ipcRenderer.invoke('python:bioinformatics-install', { confirmed }),
+  onBioinformaticsPackInstallProgress: (handler) => {
+    const wrapped = (_: Electron.IpcRendererEvent, phase: Parameters<typeof handler>[0]) => handler(phase)
+    ipcRenderer.on('python:bioinformatics-install-progress', wrapped)
+    return () => ipcRenderer.removeListener('python:bioinformatics-install-progress', wrapped)
+  },
   pickWorkspaceDirectory: (defaultPath) =>
     ipcRenderer.invoke('workspace:pick-directory', defaultPath),
   pickFile: (options) =>

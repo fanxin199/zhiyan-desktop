@@ -108,7 +108,11 @@ export type PythonCapabilityPackInstallPhase =
 
 export type PythonCapabilityPackInstallResult =
   | { ok: true; packVersion: string; environmentPath: string }
-  | { ok: false; code: 'runtime-not-installed' | 'install-failed' | 'smoke-test-failed'; message: string }
+  | {
+      ok: false
+      code: 'runtime-not-installed' | 'base-pack-required' | 'install-failed' | 'smoke-test-failed'
+      message: string
+    }
 
 function baseSciencePack(
   capabilityPacks: PythonCapabilityPackStatus[]
