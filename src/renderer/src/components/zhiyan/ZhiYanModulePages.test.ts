@@ -84,6 +84,13 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(literature).not.toContain('analysis-environment-preflight')
   })
 
+  it('requires explicit grouping metadata for the default statistical analysis task', () => {
+    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
+
+    expect(bioinformatics).toContain('样本分组与比较关系')
+    expect(bioinformatics).toContain('不会根据文件名猜测分组')
+  })
+
   it('renders the review writing module purpose notice', () => {
     const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
     const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))

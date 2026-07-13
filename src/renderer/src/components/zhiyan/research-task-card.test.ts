@@ -17,6 +17,7 @@ const card = createResearchTaskCard({
   taskTypeId: 'single-cell',
   taskLabel: '单细胞数据分析',
   objective: '比较治疗前后 B 细胞亚群变化',
+  groupingMetadata: '分组列 response：Responder 对比 Non-responder',
   materials: [{ name: 'bcell.h5ad', path: 'J:/data/bcell.h5ad' }],
   saveLocation: 'J:/data',
   now: '2026-07-14T08:00:00.000Z'
@@ -29,6 +30,7 @@ describe('research task registry', () => {
     expect(registry.tasks['task-1']).toMatchObject({
       status: 'queued',
       objective: '比较治疗前后 B 细胞亚群变化',
+      groupingMetadata: '分组列 response：Responder 对比 Non-responder',
       deliverables: ['分析报告', '结果图表', '可复现文件清单']
     })
     expect(normalizeResearchTaskRegistry({

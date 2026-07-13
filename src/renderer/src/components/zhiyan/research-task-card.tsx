@@ -25,6 +25,7 @@ export type ResearchTaskCardV1 = {
   taskTypeId: string
   taskLabel: string
   objective: string
+  groupingMetadata?: string
   materials: ResearchTaskMaterial[]
   status: ResearchTaskStatus
   deliverables: string[]
@@ -85,6 +86,7 @@ export function createResearchTaskCard(input: {
   taskTypeId: string
   taskLabel: string
   objective: string
+  groupingMetadata?: string
   materials: ResearchTaskMaterial[]
   saveLocation: string
   now?: string
@@ -95,6 +97,7 @@ export function createResearchTaskCard(input: {
     taskTypeId: input.taskTypeId.trim(),
     taskLabel: input.taskLabel.trim(),
     objective: input.objective.trim(),
+    ...(input.groupingMetadata?.trim() ? { groupingMetadata: input.groupingMetadata.trim() } : {}),
     materials: input.materials
       .map((material) => ({ name: material.name.trim(), path: material.path.trim() }))
       .filter((material) => material.name && material.path)
@@ -114,6 +117,7 @@ function normalizeResearchTask(value: unknown): ResearchTaskCardV1 | null {
   const taskTypeId = cleanString(source.taskTypeId)
   const taskLabel = cleanString(source.taskLabel)
   const objective = cleanString(source.objective)
+  const groupingMetadata = cleanString(source.groupingMetadata)
   const status = cleanString(source.status)
   if (!id || !isResearchTaskModuleId(moduleId) || !taskTypeId || !taskLabel || !isResearchTaskStatus(status)) {
     return null
@@ -139,6 +143,7 @@ function normalizeResearchTask(value: unknown): ResearchTaskCardV1 | null {
     taskTypeId,
     taskLabel,
     objective,
+    ...(groupingMetadata ? { groupingMetadata } : {}),
     materials,
     status,
     deliverables,

@@ -35,6 +35,12 @@ import {
   type AnalysisRequirement
 } from './analysis-environment-preflight'
 import {
+  buildAnalysisReproducibilityPrompt,
+  createAnalysisReproducibilityManifest,
+  persistAnalysisReproducibilityManifest,
+  validateAnalysisMetadata
+} from './analysis-reproducibility'
+import {
   ResearchTaskCardPanel,
   applyResearchTaskExecution,
   buildResearchTaskResumeText,
@@ -407,6 +413,7 @@ function ResearchTaskEntry({
   const entry = config.taskEntry
   const [selectedTaskId, setSelectedTaskId] = useState(entry?.taskTypes[0]?.id ?? '')
   const [userInput, setUserInput] = useState('')
+  const [analysisMetadata, setAnalysisMetadata] = useState('')
   const [files, setFiles] = useState<ResearchTaskFile[]>([])
   const [error, setError] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
@@ -431,10 +438,17 @@ function ResearchTaskEntry({
     requiresAnalysisEnvironment,
     analysisRequirement
   )
+  const analysisMetadataValidation = validateAnalysisMetadata(
+    selectedTask?.id ?? '',
+    analysisMetadata
+  )
+  const needsGroupingMetadata = requiresAnalysisEnvironment
+    && (selectedTask?.id === 'bulk' || selectedTask?.id === 'single-cell')
   const canSubmit = Boolean(
     selectedTask
     && (userInput.trim() || files.length > 0)
     && (!requiresAnalysisEnvironment || analysisEnvironment.model.ready)
+    && analysisMetadataValidation.ok
   )
 
   useEffect(() => {
@@ -599,27 +613,60 @@ function ResearchTaskEntry({
       setError('请先完成上方的分析环境准备，再开始当前任务。')
       return
     }
+    if (!analysisMetadataValidation.ok) {
+      setError(analysisMetadataValidation.message)
+      return
+    }
     const displayText = buildResearchTaskDisplayText(config, activeSelectedTask, files)
-    const prompt = buildResearchTaskPrompt(config, activeSelectedTask, userInput, files, {
+    const basePrompt = buildResearchTaskPrompt(config, activeSelectedTask, userInput, files, {
       name: `${config.title} · ${activeSelectedTask.label}`,
       type: config.inlineConversationModule === 'syllabus' ? 'teaching' : 'research',
       summary: displayText
     })
-    if (!prompt) {
+    if (!basePrompt) {
       setError('请先输入任务需求，或添加一个本地文件。')
       return
     }
     setError('')
-    const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
+    let workspaceRoot = files[0] ? dirname(files[0].path) : undefined
+    if (requiresAnalysisEnvironment && !workspaceRoot) {
+      const picked = await window.dsGui.pickWorkspaceDirectory()
+      if (picked.canceled || !picked.path) {
+        setError('请选择一个保存分析记录和结果的文件夹。')
+        return
+      }
+      workspaceRoot = picked.path
+    }
     const researchTask = researchModuleId ? createResearchTaskCard({
       id: `research-task:${researchModuleId}:${Date.now().toString(36)}`,
       moduleId: researchModuleId,
       taskTypeId: activeSelectedTask.id,
       taskLabel: activeSelectedTask.label,
       objective: userInput.trim() || activeSelectedTask.description,
+      ...(analysisMetadata.trim() ? { groupingMetadata: analysisMetadata.trim() } : {}),
       materials: files.map((file) => ({ name: file.name, path: file.path })),
       saveLocation: workspaceRoot ?? '尚未选择，将在任务执行时确认'
     }) : null
+    let prompt = basePrompt
+    if (requiresAnalysisEnvironment && researchTask && workspaceRoot) {
+      try {
+        const runtime = await window.dsGui.getPythonRuntimeStatus()
+        const manifest = createAnalysisReproducibilityManifest({
+          taskId: researchTask.id,
+          taskTypeId: activeSelectedTask.id,
+          taskLabel: activeSelectedTask.label,
+          objective: researchTask.objective,
+          groupingMetadata: analysisMetadata,
+          files: researchTask.materials,
+          runtime
+        })
+        await persistAnalysisReproducibilityManifest(workspaceRoot, manifest)
+        prompt = `${basePrompt}\n\n${buildAnalysisReproducibilityPrompt(manifest)}`
+      } catch (manifestError) {
+        setError(`无法创建可复现分析记录：${manifestError instanceof Error ? manifestError.message : String(manifestError)}`)
+        return
+      }
+    }
     if (researchTask) {
       persistResearchTaskCard(researchTask)
       setRecentTask(researchTask)
@@ -652,6 +699,7 @@ function ResearchTaskEntry({
   function continueResearchTask(task: ResearchTaskCardV1): void {
     setSelectedTaskId(task.taskTypeId)
     setUserInput(buildResearchTaskResumeText(task))
+    setAnalysisMetadata(task.groupingMetadata ?? '')
     setFiles(task.materials.map((material) => ({
       name: material.name,
       path: material.path,
@@ -717,6 +765,28 @@ function ResearchTaskEntry({
 
         {requiresAnalysisEnvironment ? (
           <AnalysisEnvironmentPreflight {...analysisEnvironment} />
+        ) : null}
+
+        {needsGroupingMetadata ? (
+          <div className="rounded-xl border border-ds-border-muted bg-ds-main p-3">
+            <label className="text-ui-body-sm font-semibold text-ds-text" htmlFor="analysis-grouping-metadata">
+              样本分组与比较关系
+            </label>
+            <p className="mt-1 text-ui-caption leading-relaxed text-ds-muted">
+              明确写出样本标识列、分组列、比较方向、配对或批次信息；如果只绘制已有结果，请写明“不重新统计”。智研助手不会根据文件名猜测分组。
+            </p>
+            <ResizableTextArea
+              id="analysis-grouping-metadata"
+              value={analysisMetadata}
+              onChange={(event) => setAnalysisMetadata(event.target.value)}
+              rows={3}
+              className="mt-2 min-h-[88px] rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-ui-body-sm text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
+              placeholder="例如：样本列 sample_id；分组列 response；Responder 对比 Non-responder；同一患者治疗前后为配对样本。或：不重新统计，仅绘制已有差异结果。"
+            />
+            {!analysisMetadataValidation.ok ? (
+              <p className="mt-2 text-ui-caption font-semibold text-amber-700 dark:text-amber-300">{analysisMetadataValidation.message}</p>
+            ) : null}
+          </div>
         ) : null}
 
         <ResizableTextArea
