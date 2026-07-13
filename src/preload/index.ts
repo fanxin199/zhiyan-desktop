@@ -18,6 +18,13 @@ const api = {
     ipcRenderer.on('python:runtime-install-progress', wrapped)
     return () => ipcRenderer.removeListener('python:runtime-install-progress', wrapped)
   },
+  installBaseSciencePack: (confirmed) =>
+    ipcRenderer.invoke('python:base-science-install', { confirmed }),
+  onBaseSciencePackInstallProgress: (handler) => {
+    const wrapped = (_: Electron.IpcRendererEvent, phase: Parameters<typeof handler>[0]) => handler(phase)
+    ipcRenderer.on('python:base-science-install-progress', wrapped)
+    return () => ipcRenderer.removeListener('python:base-science-install-progress', wrapped)
+  },
   pickWorkspaceDirectory: (defaultPath) =>
     ipcRenderer.invoke('workspace:pick-directory', defaultPath),
   pickFile: (options) =>

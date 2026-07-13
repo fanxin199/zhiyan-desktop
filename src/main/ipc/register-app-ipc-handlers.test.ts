@@ -74,6 +74,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
     getPythonRuntimeManifest: vi.fn() as never,
     installManagedPythonRuntime: vi.fn() as never,
     uninstallManagedPythonRuntime: vi.fn() as never,
+    installBaseScienceCapabilityPack: vi.fn() as never,
     resolveKunConfigPath: () => '/tmp/kun.json',
     showTurnCompleteNotification: vi.fn() as never,
     getAppVersion: () => '0.1.0',
@@ -120,6 +121,23 @@ describe('registerAppIpcHandlers', () => {
     await expect(handler?.({}, { confirmed: false })).rejects.toThrow(/explicit confirmation/u)
     await expect(handler?.({}, { confirmed: true })).resolves.toEqual({ ok: true })
     expect(uninstallManagedPythonRuntime).toHaveBeenCalledOnce()
+  })
+
+  it('requires explicit teacher confirmation before installing the science pack', async () => {
+    const installBaseScienceCapabilityPack = vi.fn(async () => ({
+      ok: true as const,
+      packVersion: '2026.07.1',
+      environmentPath: 'environment.json'
+    }))
+    registerAppIpcHandlers(registerOptions({ installBaseScienceCapabilityPack }))
+
+    const handler = handlers.get('python:base-science-install')
+    await expect(handler?.({}, { confirmed: false })).rejects.toThrow(/explicit confirmation/u)
+    await expect(handler?.({}, { confirmed: true })).resolves.toMatchObject({
+      ok: true,
+      packVersion: '2026.07.1'
+    })
+    expect(installBaseScienceCapabilityPack).toHaveBeenCalledOnce()
   })
 
   it('rejects invalid settings patches at the handler boundary', async () => {

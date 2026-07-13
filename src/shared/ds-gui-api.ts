@@ -2,6 +2,8 @@ import type { AppSettingsPatch, AppSettingsV1 } from './app-settings'
 import type { EditorListResult, EditorOpenResult, OpenEditorPathOptions } from './editor'
 import type { GitBranchesResult } from './git-branches'
 import type {
+  PythonCapabilityPackInstallPhase,
+  PythonCapabilityPackInstallResult,
   PythonRuntimeInstallProgress,
   PythonRuntimeManagerResult,
   PythonRuntimeManifest,
@@ -93,7 +95,9 @@ export type {
   PythonRuntimeTeacherSummary,
   PythonRuntimeManifest,
   PythonRuntimeInstallProgress,
-  PythonRuntimeManagerResult
+  PythonRuntimeManagerResult,
+  PythonCapabilityPackInstallPhase,
+  PythonCapabilityPackInstallResult
 } from './python-runtime'
 
 export type RuntimeRequestResult = { ok: boolean; status: number; body: string }
@@ -176,6 +180,10 @@ export type DsGuiApi = {
   uninstallPythonRuntime: (confirmed: boolean) => Promise<PythonRuntimeManagerResult>
   onPythonRuntimeInstallProgress: (
     handler: (progress: PythonRuntimeInstallProgress) => void
+  ) => () => void
+  installBaseSciencePack: (confirmed: boolean) => Promise<PythonCapabilityPackInstallResult>
+  onBaseSciencePackInstallProgress: (
+    handler: (phase: PythonCapabilityPackInstallPhase) => void
   ) => () => void
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>

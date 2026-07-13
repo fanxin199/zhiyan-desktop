@@ -116,6 +116,8 @@ import {
 
 type GuiUpdaterModule = typeof import('../gui-updater')
 import type {
+  PythonCapabilityPackInstallPhase,
+  PythonCapabilityPackInstallResult,
   PythonRuntimeInstallProgress,
   PythonRuntimeManagerResult,
   PythonRuntimeManifest,
@@ -148,6 +150,9 @@ type RegisterAppIpcHandlersOptions = {
     onProgress: (progress: PythonRuntimeInstallProgress) => void
   ) => Promise<PythonRuntimeManagerResult>
   uninstallManagedPythonRuntime: () => Promise<PythonRuntimeManagerResult>
+  installBaseScienceCapabilityPack: (
+    onProgress: (phase: PythonCapabilityPackInstallPhase) => void
+  ) => Promise<PythonCapabilityPackInstallResult>
   resolveKunConfigPath: () => string
   showTurnCompleteNotification: (
     payload: TurnCompleteNotificationPayload
@@ -240,6 +245,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     getPythonRuntimeManifest,
     installManagedPythonRuntime,
     uninstallManagedPythonRuntime,
+    installBaseScienceCapabilityPack,
     resolveKunConfigPath,
     showTurnCompleteNotification,
     getAppVersion,
@@ -375,6 +381,12 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   ipcMain.handle('python:runtime-uninstall', async (_, payload: unknown) => {
     parseIpcPayload('python:runtime-uninstall', explicitConfirmationSchema, payload)
     return uninstallManagedPythonRuntime()
+  })
+  ipcMain.handle('python:base-science-install', async (event, payload: unknown) => {
+    parseIpcPayload('python:base-science-install', explicitConfirmationSchema, payload)
+    return installBaseScienceCapabilityPack((phase) => {
+      if (!event.sender.isDestroyed()) event.sender.send('python:base-science-install-progress', phase)
+    })
   })
 
   ipcMain.handle('workspace:pick-directory', async (_, defaultPath: unknown): Promise<WorkspacePickResult> => {

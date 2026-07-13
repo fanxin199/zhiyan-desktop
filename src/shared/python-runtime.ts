@@ -99,6 +99,17 @@ export type PythonRuntimeManagerResult =
   | { ok: true }
   | { ok: false; code: 'unsupported-platform' | 'checksum-mismatch' | 'cancelled' | 'install-failed'; message: string }
 
+export type PythonCapabilityPackInstallPhase =
+  | 'preparing'
+  | 'installing'
+  | 'testing'
+  | 'activating'
+  | 'complete'
+
+export type PythonCapabilityPackInstallResult =
+  | { ok: true; packVersion: string; environmentPath: string }
+  | { ok: false; code: 'runtime-not-installed' | 'install-failed' | 'smoke-test-failed'; message: string }
+
 function baseSciencePack(
   capabilityPacks: PythonCapabilityPackStatus[]
 ): PythonCapabilityPackStatus | undefined {

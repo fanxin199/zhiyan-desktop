@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { z } from 'zod'
 import {
@@ -61,6 +62,7 @@ export type InspectPythonRuntimeOptions = {
   platform?: NodeJS.Platform
   fileExists?: (path: string) => boolean
   runCandidate?: (candidate: PythonRuntimeCandidate) => Promise<PythonCandidateRunResult>
+  readBaseSciencePackVersion?: () => Promise<string | undefined>
   now?: () => Date
 }
 
@@ -205,7 +207,10 @@ function versionNeedsUpgrade(version: string): boolean {
   return major < minimumMajor || (major === minimumMajor && minor < minimumMinor)
 }
 
-function baseSciencePackStatus(data: PythonProbeData): PythonCapabilityPackStatus {
+function baseSciencePackStatus(
+  data: PythonProbeData,
+  installedVersion?: string
+): PythonCapabilityPackStatus {
   const missingPackages = BASE_SCIENCE_PACKAGES
     .filter((expected) => !data.packages.some((actual) =>
       actual.id === expected.id && actual.available
@@ -218,14 +223,16 @@ function baseSciencePackStatus(data: PythonProbeData): PythonCapabilityPackStatu
       : missingPackages.length > 0
         ? 'partial'
         : 'ready',
-    missingPackages
+    missingPackages,
+    ...(installedVersion ? { installedVersion } : {})
   }
 }
 
 function statusFromSuccess(
   candidate: PythonRuntimeCandidate,
   data: PythonProbeData,
-  checkedAt: string
+  checkedAt: string,
+  installedVersion?: string
 ): PythonRuntimeStatusV1 {
   return createPythonRuntimeStatus({
     source: candidate.source,
@@ -236,7 +243,7 @@ function statusFromSuccess(
       architecture: data.architecture as PythonArchitecture
     },
     ...(candidate.managedRoot ? { managedRoot: candidate.managedRoot } : {}),
-    capabilityPacks: [baseSciencePackStatus(data)]
+    capabilityPacks: [baseSciencePackStatus(data, installedVersion)]
   })
 }
 
@@ -263,11 +270,26 @@ export async function inspectPythonRuntime(
   const runCandidate = options.runCandidate ?? runPythonCandidate
   const checkedAt = (options.now ?? (() => new Date()))().toISOString()
   const managed = managedPythonCandidate(options.userDataPath, platform)
+  const readBaseSciencePackVersion = options.readBaseSciencePackVersion ?? (async () => {
+    try {
+      const content = await readFile(join(
+        options.userDataPath,
+        'runtimes',
+        'python-packages',
+        'base-science',
+        'active-environment.json'
+      ), 'utf8')
+      const parsed = JSON.parse(content) as { packVersion?: unknown }
+      return typeof parsed.packVersion === 'string' ? parsed.packVersion : undefined
+    } catch {
+      return undefined
+    }
+  })
 
   if (fileExists(managed.command)) {
     const result = await runCandidate(managed)
     return result.kind === 'success'
-      ? statusFromSuccess(managed, result.data, checkedAt)
+      ? statusFromSuccess(managed, result.data, checkedAt, await readBaseSciencePackVersion())
       : result.kind === 'failed'
         ? brokenStatus(managed, result, checkedAt)
         : brokenStatus(managed, {

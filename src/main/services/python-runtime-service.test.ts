@@ -38,6 +38,7 @@ describe('inspectPythonRuntime', () => {
       platform: 'win32',
       fileExists: () => true,
       runCandidate,
+      readBaseSciencePackVersion: async () => '2026.07.1',
       now: () => checkedAt
     })
 
@@ -46,7 +47,12 @@ describe('inspectPythonRuntime', () => {
       source: 'managed',
       checkedAt: checkedAt.toISOString(),
       interpreter: { version: '3.12.4', architecture: 'x64' },
-      capabilityPacks: [{ id: 'base-science', state: 'ready', missingPackages: [] }]
+      capabilityPacks: [{
+        id: 'base-science',
+        state: 'ready',
+        installedVersion: '2026.07.1',
+        missingPackages: []
+      }]
     })
     expect(runCandidate).toHaveBeenCalledWith(expect.objectContaining({ source: 'managed' }))
   })

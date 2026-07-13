@@ -45,6 +45,7 @@ import {
   installManagedPythonRuntime,
   uninstallManagedPythonRuntime
 } from './services/python-runtime-manager'
+import { installBaseScienceCapabilityPack } from './services/python-capability-pack-service'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const APP_USER_MODEL_ID = 'com.zhiyan.assistant'
@@ -764,6 +765,10 @@ app.whenReady().then(async () => {
     }),
     uninstallManagedPythonRuntime: () => uninstallManagedPythonRuntime({
       userDataPath: app.getPath('userData')
+    }),
+    installBaseScienceCapabilityPack: (onProgress) => installBaseScienceCapabilityPack({
+      userDataPath: app.getPath('userData'),
+      onProgress
     }),
     resolveKunConfigPath: resolveKunMcpJsonPath,
     showTurnCompleteNotification,
