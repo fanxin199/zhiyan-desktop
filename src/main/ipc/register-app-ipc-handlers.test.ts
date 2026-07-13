@@ -71,6 +71,9 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
     runtimeRequest: vi.fn() as never,
     fetchUpstreamModels: vi.fn() as never,
     inspectPythonRuntime: vi.fn(async () => emptyPythonRuntimeStatus('2026-07-13T00:00:00.000Z')),
+    getPythonRuntimeManifest: vi.fn() as never,
+    installManagedPythonRuntime: vi.fn() as never,
+    uninstallManagedPythonRuntime: vi.fn() as never,
     resolveKunConfigPath: () => '/tmp/kun.json',
     showTurnCompleteNotification: vi.fn() as never,
     getAppVersion: () => '0.1.0',
@@ -97,6 +100,26 @@ describe('registerAppIpcHandlers', () => {
       state: 'not-installed'
     })
     expect(inspectPythonRuntime).toHaveBeenCalledOnce()
+  })
+
+  it('requires explicit teacher confirmation before installing managed Python', async () => {
+    const installManagedPythonRuntime = vi.fn(async () => ({ ok: true as const }))
+    registerAppIpcHandlers(registerOptions({ installManagedPythonRuntime }))
+
+    const handler = handlers.get('python:runtime-install')
+    await expect(handler?.({}, { confirmed: false })).rejects.toThrow(/explicit confirmation/u)
+    await expect(handler?.({}, { confirmed: true })).resolves.toEqual({ ok: true })
+    expect(installManagedPythonRuntime).toHaveBeenCalledOnce()
+  })
+
+  it('requires explicit teacher confirmation before uninstalling managed Python', async () => {
+    const uninstallManagedPythonRuntime = vi.fn(async () => ({ ok: true as const }))
+    registerAppIpcHandlers(registerOptions({ uninstallManagedPythonRuntime }))
+
+    const handler = handlers.get('python:runtime-uninstall')
+    await expect(handler?.({}, { confirmed: false })).rejects.toThrow(/explicit confirmation/u)
+    await expect(handler?.({}, { confirmed: true })).resolves.toEqual({ ok: true })
+    expect(uninstallManagedPythonRuntime).toHaveBeenCalledOnce()
   })
 
   it('rejects invalid settings patches at the handler boundary', async () => {

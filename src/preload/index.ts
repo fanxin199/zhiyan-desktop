@@ -10,6 +10,14 @@ const api = {
     ipcRenderer.invoke('runtime:request', { path, method, body }),
   fetchUpstreamModels: () => ipcRenderer.invoke('upstream:models'),
   getPythonRuntimeStatus: () => ipcRenderer.invoke('python:runtime-status'),
+  getPythonRuntimeManifest: () => ipcRenderer.invoke('python:runtime-manifest'),
+  installPythonRuntime: (confirmed) => ipcRenderer.invoke('python:runtime-install', { confirmed }),
+  uninstallPythonRuntime: (confirmed) => ipcRenderer.invoke('python:runtime-uninstall', { confirmed }),
+  onPythonRuntimeInstallProgress: (handler) => {
+    const wrapped = (_: Electron.IpcRendererEvent, progress: Parameters<typeof handler>[0]) => handler(progress)
+    ipcRenderer.on('python:runtime-install-progress', wrapped)
+    return () => ipcRenderer.removeListener('python:runtime-install-progress', wrapped)
+  },
   pickWorkspaceDirectory: (defaultPath) =>
     ipcRenderer.invoke('workspace:pick-directory', defaultPath),
   pickFile: (options) =>

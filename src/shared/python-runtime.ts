@@ -75,6 +75,30 @@ export type PythonRuntimeTeacherSummary = {
   action: 'none' | 'install' | 'repair' | 'upgrade'
 }
 
+export type PythonRuntimeManifest = {
+  id: string
+  pythonVersion: string
+  build: string
+  platform: 'win32'
+  architecture: 'x64'
+  url: string
+  size: number
+  sha256: string
+  source: { name: string; homepage: string }
+  license: { name: string; url: string }
+  uninstall: { removesManagedRootOnly: true }
+}
+
+export type PythonRuntimeInstallProgress = {
+  phase: 'preparing' | 'downloading' | 'verifying' | 'installing' | 'complete'
+  transferred?: number
+  total?: number
+}
+
+export type PythonRuntimeManagerResult =
+  | { ok: true }
+  | { ok: false; code: 'unsupported-platform' | 'checksum-mismatch' | 'cancelled' | 'install-failed'; message: string }
+
 function baseSciencePack(
   capabilityPacks: PythonCapabilityPackStatus[]
 ): PythonCapabilityPackStatus | undefined {

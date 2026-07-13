@@ -40,6 +40,11 @@ import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
+import {
+  WINDOWS_X64_PYTHON_RUNTIME,
+  installManagedPythonRuntime,
+  uninstallManagedPythonRuntime
+} from './services/python-runtime-manager'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const APP_USER_MODEL_ID = 'com.zhiyan.assistant'
@@ -752,6 +757,14 @@ app.whenReady().then(async () => {
     },
     fetchUpstreamModels: fetchModels,
     inspectPythonRuntime: () => inspectLocalPythonRuntime({ userDataPath: app.getPath('userData') }),
+    getPythonRuntimeManifest: () => WINDOWS_X64_PYTHON_RUNTIME,
+    installManagedPythonRuntime: (onProgress) => installManagedPythonRuntime({
+      userDataPath: app.getPath('userData'),
+      onProgress
+    }),
+    uninstallManagedPythonRuntime: () => uninstallManagedPythonRuntime({
+      userDataPath: app.getPath('userData')
+    }),
     resolveKunConfigPath: resolveKunMcpJsonPath,
     showTurnCompleteNotification,
     getAppVersion: () => app.getVersion(),

@@ -85,7 +85,7 @@ R/Bioconductor 作为后续独立扩展，不假设 Python 能完全替代 DESeq
   - 检测 NumPy、pandas、SciPy、Matplotlib、Seaborn、statsmodels、scikit-learn、openpyxl、AnnData 和 UMAP。
   - 对 Windows 商店占位程序、错误位数、损坏环境和超时提供明确结果。
 
-- [ ] **1.3 建设应用私有 Python 管理器**
+- [x] **1.3 建设应用私有 Python 管理器**
   - Python 安装在智研助手数据目录，不写系统 PATH。
   - 安装包清单包含版本、来源、体积、SHA-256、许可证和可卸载信息。
   - 支持下载进度、断点恢复、校验、原子安装、失败回滚、修复和卸载。
@@ -162,4 +162,4 @@ npm run dist:win
 
 ## 五、当前执行位置
 
-当前执行任务：**1.3 建设应用私有 Python 管理器**。
+当前执行任务：**1.4 建立版本固定的基础科研包**。

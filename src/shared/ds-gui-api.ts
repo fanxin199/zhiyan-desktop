@@ -1,7 +1,12 @@
 import type { AppSettingsPatch, AppSettingsV1 } from './app-settings'
 import type { EditorListResult, EditorOpenResult, OpenEditorPathOptions } from './editor'
 import type { GitBranchesResult } from './git-branches'
-import type { PythonRuntimeStatusV1 } from './python-runtime'
+import type {
+  PythonRuntimeInstallProgress,
+  PythonRuntimeManagerResult,
+  PythonRuntimeManifest,
+  PythonRuntimeStatusV1
+} from './python-runtime'
 import type {
   GuiUpdateChannel,
   GuiUpdateDownloadResult,
@@ -85,7 +90,10 @@ export type {
   PythonRuntimeSource,
   PythonRuntimeState,
   PythonRuntimeStatusV1,
-  PythonRuntimeTeacherSummary
+  PythonRuntimeTeacherSummary,
+  PythonRuntimeManifest,
+  PythonRuntimeInstallProgress,
+  PythonRuntimeManagerResult
 } from './python-runtime'
 
 export type RuntimeRequestResult = { ok: boolean; status: number; body: string }
@@ -163,6 +171,12 @@ export type DsGuiApi = {
   runtimeRequest: (path: string, method?: string, body?: string) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
   getPythonRuntimeStatus: () => Promise<PythonRuntimeStatusV1>
+  getPythonRuntimeManifest: () => Promise<PythonRuntimeManifest>
+  installPythonRuntime: (confirmed: boolean) => Promise<PythonRuntimeManagerResult>
+  uninstallPythonRuntime: (confirmed: boolean) => Promise<PythonRuntimeManagerResult>
+  onPythonRuntimeInstallProgress: (
+    handler: (progress: PythonRuntimeInstallProgress) => void
+  ) => () => void
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   getPathForFile: (file: unknown) => string

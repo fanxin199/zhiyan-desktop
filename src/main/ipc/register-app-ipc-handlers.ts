@@ -115,7 +115,12 @@ import {
 } from '../services/textbook-service'
 
 type GuiUpdaterModule = typeof import('../gui-updater')
-import type { PythonRuntimeStatusV1 } from '../../shared/python-runtime'
+import type {
+  PythonRuntimeInstallProgress,
+  PythonRuntimeManagerResult,
+  PythonRuntimeManifest,
+  PythonRuntimeStatusV1
+} from '../../shared/python-runtime'
 
 const MAX_BINARY_READ_BYTES = 100 * 1024 * 1024
 
@@ -138,6 +143,11 @@ type RegisterAppIpcHandlersOptions = {
   ) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
   inspectPythonRuntime: () => Promise<PythonRuntimeStatusV1>
+  getPythonRuntimeManifest: () => PythonRuntimeManifest
+  installManagedPythonRuntime: (
+    onProgress: (progress: PythonRuntimeInstallProgress) => void
+  ) => Promise<PythonRuntimeManagerResult>
+  uninstallManagedPythonRuntime: () => Promise<PythonRuntimeManagerResult>
   resolveKunConfigPath: () => string
   showTurnCompleteNotification: (
     payload: TurnCompleteNotificationPayload
@@ -227,6 +237,9 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     runtimeRequest,
     fetchUpstreamModels,
     inspectPythonRuntime,
+    getPythonRuntimeManifest,
+    installManagedPythonRuntime,
+    uninstallManagedPythonRuntime,
     resolveKunConfigPath,
     showTurnCompleteNotification,
     getAppVersion,
@@ -349,6 +362,20 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
 
   ipcMain.handle('upstream:models', async () => fetchUpstreamModels())
   ipcMain.handle('python:runtime-status', async () => inspectPythonRuntime())
+  ipcMain.handle('python:runtime-manifest', async () => getPythonRuntimeManifest())
+  const explicitConfirmationSchema = z.object({ confirmed: z.literal(true, {
+    error: 'Managed Python changes require explicit confirmation.'
+  }) }).strict()
+  ipcMain.handle('python:runtime-install', async (event, payload: unknown) => {
+    parseIpcPayload('python:runtime-install', explicitConfirmationSchema, payload)
+    return installManagedPythonRuntime((progress) => {
+      if (!event.sender.isDestroyed()) event.sender.send('python:runtime-install-progress', progress)
+    })
+  })
+  ipcMain.handle('python:runtime-uninstall', async (_, payload: unknown) => {
+    parseIpcPayload('python:runtime-uninstall', explicitConfirmationSchema, payload)
+    return uninstallManagedPythonRuntime()
+  })
 
   ipcMain.handle('workspace:pick-directory', async (_, defaultPath: unknown): Promise<WorkspacePickResult> => {
     const normalizedDefaultPath = parseIpcPayload(
