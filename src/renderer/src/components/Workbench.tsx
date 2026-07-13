@@ -50,6 +50,11 @@ import { WriteAssistantPanel } from './write/WriteAssistantPanel'
 import { WriteSidebar } from './write/WriteSidebar'
 import { WriteWorkspaceView } from './write/WriteWorkspaceView'
 import { ModuleConversationPanel } from './zhiyan/ModuleConversationPanel'
+import {
+  deriveResearchTaskExecution,
+  type ResearchTaskExecution,
+  type ResearchTaskModuleId
+} from './zhiyan/research-task-card'
 
 const PluginMarketplaceView = lazy(() =>
   import('./PluginMarketplaceView').then((module) => ({ default: module.PluginMarketplaceView }))
@@ -74,6 +79,7 @@ type ModuleTaskStartOptions = {
 }
 
 type InlineConversationThreadIds = Partial<Record<InlineModuleId, string>>
+type InlineResearchTaskIds = Partial<Record<ResearchTaskModuleId, string>>
 type ModuleHandoffFiles = Partial<Record<FileManagerModuleTarget, FileManagerModuleFile>>
 export type ModuleWriteDraftSeed = {
   title: string
@@ -383,6 +389,8 @@ export function Workbench(): ReactElement {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [inlineConversationThreadIds, setInlineConversationThreadIds] =
     useState<InlineConversationThreadIds>({})
+  const [inlineResearchTaskIds, setInlineResearchTaskIds] =
+    useState<InlineResearchTaskIds>({})
   const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
@@ -646,6 +654,7 @@ export function Workbench(): ReactElement {
       workspaceRoot?: string
       displayText?: string
       inlineModule?: InlineModuleId
+      researchTaskId?: string
     }
   ): void => {
     void startModuleTask({
@@ -665,8 +674,23 @@ export function Workbench(): ReactElement {
         ...current,
         [options.inlineModule!]: threadId ?? undefined
       }))
+      if (options.researchTaskId) {
+        setInlineResearchTaskIds((current) => ({
+          ...current,
+          [options.inlineModule as ResearchTaskModuleId]: options.researchTaskId
+        }))
+      }
     })
   }
+  const researchTaskExecutionFor = (moduleId: ResearchTaskModuleId): ResearchTaskExecution | null =>
+    deriveResearchTaskExecution({
+      taskId: inlineResearchTaskIds[moduleId],
+      threadId: inlineConversationThreadIds[moduleId],
+      activeThreadId,
+      busy,
+      ...(error?.trim() ? { errorMessage: error.trim() } : {}),
+      blocks
+    })
   const handleFileManagerModuleHandoff = (
     target: FileManagerModuleTarget,
     file: FileManagerModuleFile
@@ -842,6 +866,7 @@ export function Workbench(): ReactElement {
         ) : route === 'paper-polish' ? (
           <PaperPolishPage
             onStartChat={handleModuleQuickPrompt}
+            researchTaskExecution={researchTaskExecutionFor('paper-polish')}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'paper-polish',
@@ -859,6 +884,7 @@ export function Workbench(): ReactElement {
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
+            researchTaskExecution={researchTaskExecutionFor('literature')}
             handoffFile={moduleHandoffFiles.literature}
             onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
               ...current,
@@ -878,6 +904,7 @@ export function Workbench(): ReactElement {
         ) : route === 'review-writing' ? (
           <ReviewWritingPage
             onStartChat={handleModuleQuickPrompt}
+            researchTaskExecution={researchTaskExecutionFor('review-writing')}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'review-writing',
@@ -895,6 +922,7 @@ export function Workbench(): ReactElement {
         ) : route === 'grant-writing' ? (
           <GrantWritingPage
             onStartChat={handleModuleQuickPrompt}
+            researchTaskExecution={researchTaskExecutionFor('grant-writing')}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'grant-writing',
@@ -914,6 +942,7 @@ export function Workbench(): ReactElement {
         ) : route === 'bioinformatics' ? (
           <BioinformaticsPage
             onStartChat={handleModuleQuickPrompt}
+            researchTaskExecution={researchTaskExecutionFor('bioinformatics')}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'bioinformatics',

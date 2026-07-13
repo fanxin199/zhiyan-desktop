@@ -35,6 +35,18 @@ import {
   type AnalysisRequirement
 } from './analysis-environment-preflight'
 import {
+  ResearchTaskCardPanel,
+  applyResearchTaskExecution,
+  buildResearchTaskResumeText,
+  createResearchTaskCard,
+  persistResearchTaskCard,
+  recentResearchTask,
+  RESEARCH_TASK_MODULE_IDS,
+  type ResearchTaskCardV1,
+  type ResearchTaskExecution,
+  type ResearchTaskModuleId
+} from './research-task-card'
+import {
   FileManagerWorkspacePage,
   type FileManagerModuleFile,
   type FileManagerModuleTarget
@@ -54,12 +66,14 @@ type ModulePageProps = {
     workspaceRoot?: string
     displayText?: string
     inlineModule?: InlineModuleId
+    researchTaskId?: string
   }) => void
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
   onUseFileInModule?: (target: FileManagerModuleTarget, file: FileManagerModuleFile) => void
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
+  researchTaskExecution?: ResearchTaskExecution | null
   className?: string
 }
 
@@ -381,12 +395,14 @@ function ResearchTaskEntry({
   config,
   onStartChat,
   handoffFile,
-  onHandoffFileConsumed
+  onHandoffFileConsumed,
+  researchTaskExecution
 }: {
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
+  researchTaskExecution?: ResearchTaskExecution | null
 }): ReactElement | null {
   const entry = config.taskEntry
   const [selectedTaskId, setSelectedTaskId] = useState(entry?.taskTypes[0]?.id ?? '')
@@ -397,6 +413,10 @@ function ResearchTaskEntry({
   const [isDraggingFileOver, setIsDraggingFileOver] = useState(false)
   const [importableBlueprint, setImportableBlueprint] = useState<WritingBlueprintModuleContextV1 | null>(null)
   const consumedHandoffPathRef = useRef<string | null>(null)
+  const researchModuleId = RESEARCH_TASK_MODULE_IDS.includes(
+    config.inlineConversationModule as ResearchTaskModuleId
+  ) ? config.inlineConversationModule as ResearchTaskModuleId : null
+  const [recentTask, setRecentTask] = useState<ResearchTaskCardV1 | null>(null)
 
   const taskEntry = entry
   const selectedTask = taskEntry?.taskTypes.find((task) => task.id === selectedTaskId)
@@ -416,6 +436,24 @@ function ResearchTaskEntry({
     && (userInput.trim() || files.length > 0)
     && (!requiresAnalysisEnvironment || analysisEnvironment.model.ready)
   )
+
+  useEffect(() => {
+    setRecentTask(researchModuleId ? recentResearchTask(researchModuleId) : null)
+  }, [researchModuleId])
+
+  useEffect(() => {
+    if (!recentTask || !researchTaskExecution) return
+    const next = applyResearchTaskExecution(recentTask, researchTaskExecution)
+    if (next === recentTask) return
+    if (
+      next.status === recentTask.status
+      && next.threadId === recentTask.threadId
+      && next.lastSuccessfulStep === recentTask.lastSuccessfulStep
+      && next.errorMessage === recentTask.errorMessage
+    ) return
+    setRecentTask(next)
+    persistResearchTaskCard(next)
+  }, [recentTask, researchTaskExecution])
 
   useEffect(() => {
     if (config.inlineConversationModule !== 'review-writing') {
@@ -555,7 +593,7 @@ function ResearchTaskEntry({
     }
   }
 
-  function handleSubmit(): void {
+  async function handleSubmit(): Promise<void> {
     if (isExtracting) return
     if (requiresAnalysisEnvironment && !analysisEnvironment.model.ready) {
       setError('请先完成上方的分析环境准备，再开始当前任务。')
@@ -573,6 +611,19 @@ function ResearchTaskEntry({
     }
     setError('')
     const workspaceRoot = files[0] ? dirname(files[0].path) : undefined
+    const researchTask = researchModuleId ? createResearchTaskCard({
+      id: `research-task:${researchModuleId}:${Date.now().toString(36)}`,
+      moduleId: researchModuleId,
+      taskTypeId: activeSelectedTask.id,
+      taskLabel: activeSelectedTask.label,
+      objective: userInput.trim() || activeSelectedTask.description,
+      materials: files.map((file) => ({ name: file.name, path: file.path })),
+      saveLocation: workspaceRoot ?? '尚未选择，将在任务执行时确认'
+    }) : null
+    if (researchTask) {
+      persistResearchTaskCard(researchTask)
+      setRecentTask(researchTask)
+    }
     if (config.inlineConversationModule === 'paper-polish' && activeSelectedTask.id === 'blueprint') {
       const projectId = moduleProjectIdFromDisplayText('paper-polish', displayText, config.title)
       void persistModuleProjectContext(
@@ -593,8 +644,20 @@ function ResearchTaskEntry({
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
       displayText,
-      ...(config.inlineConversationModule ? { inlineModule: config.inlineConversationModule } : {})
+      ...(config.inlineConversationModule ? { inlineModule: config.inlineConversationModule } : {}),
+      ...(researchTask ? { researchTaskId: researchTask.id } : {})
     })
+  }
+
+  function continueResearchTask(task: ResearchTaskCardV1): void {
+    setSelectedTaskId(task.taskTypeId)
+    setUserInput(buildResearchTaskResumeText(task))
+    setFiles(task.materials.map((material) => ({
+      name: material.name,
+      path: material.path,
+      requiresWorkspaceRead: true
+    })))
+    setError('')
   }
 
   function applyQuickPrompt(prompt: string): void {
@@ -623,6 +686,10 @@ function ResearchTaskEntry({
       </div>
 
       <div className="space-y-4">
+        {recentTask ? (
+          <ResearchTaskCardPanel task={recentTask} onContinue={continueResearchTask} />
+        ) : null}
+
         <div>
           <div className="mb-2 text-ui-meta font-semibold text-ds-muted">选择任务类型</div>
           <div className="flex flex-wrap gap-2">
@@ -756,7 +823,7 @@ function ResearchTaskEntry({
           </button>
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!canSubmit || isExtracting}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-ui-body-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
           >
@@ -839,6 +906,7 @@ function ModulePageShell({
   onHandoffFileConsumed,
   inlineConversation,
   showInlineConversation = false,
+  researchTaskExecution,
   className = ''
 }: {
   config: ModuleConfig
@@ -847,6 +915,7 @@ function ModulePageShell({
   onHandoffFileConsumed?: () => void
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
+  researchTaskExecution?: ResearchTaskExecution | null
   className?: string
 }): ReactElement {
   const Icon = config.icon
@@ -893,6 +962,7 @@ function ModulePageShell({
               onStartChat={onStartChat}
               handoffFile={handoffFile}
               onHandoffFileConsumed={onHandoffFileConsumed}
+              researchTaskExecution={researchTaskExecution}
             />
 
             {showInlineConversation && inlineConversation ? (
