@@ -1,6 +1,7 @@
 import type { AppSettingsPatch, AppSettingsV1 } from './app-settings'
 import type { EditorListResult, EditorOpenResult, OpenEditorPathOptions } from './editor'
 import type { GitBranchesResult } from './git-branches'
+import type { PythonRuntimeStatusV1 } from './python-runtime'
 import type {
   GuiUpdateChannel,
   GuiUpdateDownloadResult,
@@ -161,6 +162,7 @@ export type DsGuiApi = {
   setSettings: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (path: string, method?: string, body?: string) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
+  getPythonRuntimeStatus: () => Promise<PythonRuntimeStatusV1>
   pickWorkspaceDirectory: (defaultPath?: string) => Promise<WorkspacePickResult>
   pickFile: (options?: { defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<WorkspacePickResult>
   getPathForFile: (file: unknown) => string

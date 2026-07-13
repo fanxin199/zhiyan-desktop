@@ -85,8 +85,8 @@ export function resolvePythonRuntimeState(
   input: PythonRuntimeStatusInput
 ): PythonRuntimeState {
   if (input.checking) return 'checking'
-  if (input.source === 'none' || !input.interpreter) return 'not-installed'
   if (input.issue) return 'broken'
+  if (input.source === 'none' || !input.interpreter) return 'not-installed'
 
   const basePack = baseSciencePack(input.capabilityPacks)
   if (basePack?.state === 'upgrade-required') return 'upgrade-required'

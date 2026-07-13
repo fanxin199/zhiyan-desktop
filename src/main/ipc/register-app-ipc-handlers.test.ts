@@ -12,6 +12,7 @@ import {
   type AppSettingsV1
 } from '../../shared/app-settings'
 import { registerAppIpcHandlers } from './register-app-ipc-handlers'
+import { emptyPythonRuntimeStatus } from '../../shared/python-runtime'
 
 const handlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>()
 
@@ -69,6 +70,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,
     fetchUpstreamModels: vi.fn() as never,
+    inspectPythonRuntime: vi.fn(async () => emptyPythonRuntimeStatus('2026-07-13T00:00:00.000Z')),
     resolveKunConfigPath: () => '/tmp/kun.json',
     showTurnCompleteNotification: vi.fn() as never,
     getAppVersion: () => '0.1.0',
@@ -84,6 +86,17 @@ describe('registerAppIpcHandlers', () => {
   beforeEach(() => {
     handlers.clear()
     vi.mocked(dialog.showOpenDialog).mockReset()
+  })
+
+  it('exposes the inspected Python runtime status', async () => {
+    const inspectPythonRuntime = vi.fn(async () => emptyPythonRuntimeStatus('2026-07-13T00:00:00.000Z'))
+    registerAppIpcHandlers(registerOptions({ inspectPythonRuntime }))
+
+    await expect(handlers.get('python:runtime-status')?.({})).resolves.toMatchObject({
+      version: 1,
+      state: 'not-installed'
+    })
+    expect(inspectPythonRuntime).toHaveBeenCalledOnce()
   })
 
   it('rejects invalid settings patches at the handler boundary', async () => {

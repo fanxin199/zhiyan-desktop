@@ -115,6 +115,7 @@ import {
 } from '../services/textbook-service'
 
 type GuiUpdaterModule = typeof import('../gui-updater')
+import type { PythonRuntimeStatusV1 } from '../../shared/python-runtime'
 
 const MAX_BINARY_READ_BYTES = 100 * 1024 * 1024
 
@@ -136,6 +137,7 @@ type RegisterAppIpcHandlersOptions = {
     body?: string
   ) => Promise<RuntimeRequestResult>
   fetchUpstreamModels: () => Promise<UpstreamModelsResult>
+  inspectPythonRuntime: () => Promise<PythonRuntimeStatusV1>
   resolveKunConfigPath: () => string
   showTurnCompleteNotification: (
     payload: TurnCompleteNotificationPayload
@@ -224,6 +226,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     applySettingsPatch,
     runtimeRequest,
     fetchUpstreamModels,
+    inspectPythonRuntime,
     resolveKunConfigPath,
     showTurnCompleteNotification,
     getAppVersion,
@@ -345,6 +348,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   })
 
   ipcMain.handle('upstream:models', async () => fetchUpstreamModels())
+  ipcMain.handle('python:runtime-status', async () => inspectPythonRuntime())
 
   ipcMain.handle('workspace:pick-directory', async (_, defaultPath: unknown): Promise<WorkspacePickResult> => {
     const normalizedDefaultPath = parseIpcPayload(

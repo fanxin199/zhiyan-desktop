@@ -39,6 +39,7 @@ import { resolveKunMcpJsonPath } from './kun-config-path'
 import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
+import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const APP_USER_MODEL_ID = 'com.zhiyan.assistant'
@@ -750,6 +751,7 @@ app.whenReady().then(async () => {
       return runtimeRequest(settings, path, { method, body })
     },
     fetchUpstreamModels: fetchModels,
+    inspectPythonRuntime: () => inspectLocalPythonRuntime({ userDataPath: app.getPath('userData') }),
     resolveKunConfigPath: resolveKunMcpJsonPath,
     showTurnCompleteNotification,
     getAppVersion: () => app.getVersion(),

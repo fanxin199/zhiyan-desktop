@@ -80,7 +80,7 @@ R/Bioconductor 作为后续独立扩展，不假设 Python 能完全替代 DESeq
   - 定义 `未安装 / 可用 / 不完整 / 损坏 / 需要升级 / 检测中` 状态。
   - 返回解释器路径、版本、架构、来源和能力包版本，不向教师暴露技术噪音。
 
-- [ ] **1.2 将 PATH 检测升级为真实诊断**
+- [x] **1.2 将 PATH 检测升级为真实诊断**
   - 实际运行 `python --version` 和受控导入检查，而不是只判断可执行文件是否存在。
   - 检测 NumPy、pandas、SciPy、Matplotlib、Seaborn、statsmodels、scikit-learn、openpyxl、AnnData 和 UMAP。
   - 对 Windows 商店占位程序、错误位数、损坏环境和超时提供明确结果。
@@ -162,4 +162,4 @@ npm run dist:win
 
 ## 五、当前执行位置
 
-当前执行任务：**1.2 将 PATH 检测升级为真实诊断**。
+当前执行任务：**1.3 建设应用私有 Python 管理器**。

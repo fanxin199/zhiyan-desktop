@@ -36,6 +36,10 @@ describe('Python runtime status contract', () => {
     expect(resolvePythonRuntimeState(input({ checking: true }))).toBe('checking')
     expect(resolvePythonRuntimeState(input({ source: 'none', interpreter: null }))).toBe('not-installed')
     expect(resolvePythonRuntimeState(input({ issue: { code: 'launch-failed', message: 'failed' } }))).toBe('broken')
+    expect(resolvePythonRuntimeState(input({
+      interpreter: null,
+      issue: { code: 'launch-failed', message: 'failed' }
+    }))).toBe('broken')
     expect(resolvePythonRuntimeState(input({ capabilityPacks: [] }))).toBe('incomplete')
     expect(resolvePythonRuntimeState(input({
       capabilityPacks: [{
