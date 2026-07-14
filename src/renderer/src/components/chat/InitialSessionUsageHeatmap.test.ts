@@ -91,6 +91,7 @@ function render(
   return renderToStaticMarkup(
     createElement(InitialSessionUsageHeatmapView, {
       state: stateValue,
+      initialCollapsed: false,
       ...props
     })
   )
@@ -125,7 +126,7 @@ describe('InitialSessionUsageHeatmap', () => {
   it('renders populated usage with accessible day summaries without starter actions', () => {
     const html = render(state({ usage: usage(), loaded: true }))
 
-    expect(html).toContain('ds-runtime-wake-stage')
+    expect(html).not.toContain('ds-runtime-wake-stage')
     expect(html).toContain('Overview')
     expect(html).toContain('Models')
     expect(html).toContain('All')
@@ -222,30 +223,34 @@ describe('InitialSessionUsageHeatmap', () => {
 
   it('renders loading, empty, and error states as calendar-only warmup states', () => {
     const loadingHtml = render(state({ loading: true }))
-    expect(loadingHtml).toContain('Preparing your usage calendar')
     expect(loadingHtml).toContain('Checking history')
     expect(loadingHtml).toContain('Collapse calendar')
     expect(loadingHtml).not.toContain('Daily Kun usage calendar')
     expect(loadingHtml).not.toContain('Explain this project&#x27;s structure')
 
     const emptyHtml = render(state({ usage: usage([bucket('2026-05-01', 0, 0)]), loaded: true }))
-    expect(emptyHtml).toContain('Start your agent rhythm')
     expect(emptyHtml).toContain('No usage has been recorded yet')
     expect(emptyHtml).not.toContain('aria-label="2026-05-01')
     expect(emptyHtml).not.toContain('Explain this project&#x27;s structure')
 
     const errorHtml = render(state({ loaded: true, error: 'boom' }))
-    expect(errorHtml).toContain('Start now, sync usage later')
     expect(errorHtml).toContain('Usage can be retried later')
     expect(errorHtml).not.toContain('Explain this project&#x27;s structure')
   })
 
-  it('renders the whale hero with a collapsed calendar card', () => {
-    const html = render(state({ usage: usage(), loaded: true }), { initialCollapsed: true })
+  it('defaults to a compact conversation-first view without the animated hero', () => {
+    const html = renderToStaticMarkup(
+      createElement(InitialSessionUsageHeatmapView, {
+        state: state({ usage: usage(), loaded: true })
+      })
+    )
 
     expect(html).toContain('Expand calendar')
-    expect(html).toContain('ds-runtime-wake-stage')
-    expect(html).toContain('ds-work-logo')
+    expect(html).toContain('Overview')
+    expect(html).toContain('Models')
+    expect(html).toContain('data-testid="usage-insights-toggle"')
+    expect(html).not.toContain('ds-runtime-wake-stage')
+    expect(html).not.toContain('ds-work-logo')
     expect(html).not.toContain('Keep the canvas clear')
     expect(html).not.toContain('Daily Kun usage calendar')
   })
