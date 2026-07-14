@@ -133,11 +133,6 @@ export function WriteAssistantPanel({
             <Plus className="h-4 w-4" strokeWidth={2.1} />
           </button>
         </div>
-        <div className="min-w-0 px-4 pb-3">
-          <div className="truncate rounded-full border border-ds-border-muted bg-ds-surface-subtle px-3 py-1.5 text-[11.5px] font-medium text-ds-muted dark:bg-white/6">
-            {activeFileLabel}
-          </div>
-        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-ds-main/45 dark:bg-transparent">
@@ -153,45 +148,44 @@ export function WriteAssistantPanel({
             onSelectSuggestion={(text) => setInput(text)}
           />
         ) : (
-          <div className="flex min-h-full flex-col justify-end px-5 py-5">
-            <div className="mb-auto rounded-[24px] border border-ds-border bg-ds-card/95 p-4 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
-                <Sparkles className="h-5 w-5" strokeWidth={1.9} />
+          <div
+            data-testid="write-assistant-empty"
+            className="flex min-h-full flex-col justify-end px-4 py-4"
+          >
+            <div className="mb-3 flex items-start gap-3 px-1">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <Sparkles className="h-4 w-4" strokeWidth={1.9} />
               </div>
-              <h3 className="mt-4 text-[18px] font-semibold tracking-[-0.035em] text-ds-ink">
-                {t('writeAssistantEmptyTitle')}
-              </h3>
-              <p className="mt-2 text-[13px] leading-6 text-ds-muted">
-                {t('writeAssistantEmptySub')}
-              </p>
+              <div className="min-w-0">
+                <h3 className="text-[14px] font-semibold text-ds-ink">
+                  {t('writeAssistantEmptyTitle')}
+                </h3>
+                <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-5 text-ds-faint">
+                  {t('writeAssistantEmptySub')}
+                </p>
+              </div>
             </div>
 
-            <div className="mt-3 grid gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setAssistantPrompt(t('writeAssistantSummarizePrompt', { file: activeFileLabel }))}
-                className="flex items-center gap-3 rounded-2xl border border-ds-border bg-ds-card px-3 py-3 text-left transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
-                  <FileText className="h-4 w-4" strokeWidth={1.9} />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                  <FileText className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="min-w-0">
-                  <span className="block text-[13.5px] font-semibold text-ds-ink">{t('writeAssistantSummarize')}</span>
-                  <span className="mt-0.5 block truncate text-[12px] text-ds-faint">{t('writeAssistantSummarizeSub')}</span>
-                </span>
+                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantSummarize')}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAssistantPrompt(t('writeAssistantOutlinePrompt', { file: activeFileLabel }))}
-                className="flex items-center gap-3 rounded-2xl border border-ds-border bg-ds-card px-3 py-3 text-left transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
-                  <ListTodo className="h-4 w-4" strokeWidth={1.9} />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                  <ListTodo className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="min-w-0">
-                  <span className="block text-[13.5px] font-semibold text-ds-ink">{t('writeAssistantOutline')}</span>
-                  <span className="mt-0.5 block truncate text-[12px] text-ds-faint">{t('writeAssistantOutlineSub')}</span>
-                </span>
+                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantOutline')}</span>
               </button>
               <button
                 type="button"
@@ -202,15 +196,12 @@ export function WriteAssistantPanel({
                     setAssistantPrompt(t('writeAssistantPolishSelectionPrompt'))
                   }
                 }}
-                className="flex items-center gap-3 rounded-2xl border border-ds-border bg-ds-card px-3 py-3 text-left transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
-                  <MessageSquareQuote className="h-4 w-4" strokeWidth={1.9} />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300">
+                  <MessageSquareQuote className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="min-w-0">
-                  <span className="block text-[13.5px] font-semibold text-ds-ink">{t('writeAssistantPolishSelection')}</span>
-                  <span className="mt-0.5 block truncate text-[12px] text-ds-faint">{t('writeAssistantPolishSelectionSub')}</span>
-                </span>
+                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantPolishSelection')}</span>
               </button>
             </div>
           </div>

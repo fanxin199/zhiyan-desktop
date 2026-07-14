@@ -756,7 +756,7 @@ export function Workbench(): ReactElement {
   return (
     <div className="ds-workbench-shell ds-drag flex h-full min-h-0 w-full min-w-0 bg-ds-main">
       {!leftSidebarCollapsed ? (
-        <div className="min-h-0 w-[264px] shrink-0 border-r border-ds-border-muted">
+        <div className="min-h-0 w-[240px] shrink-0 border-r border-ds-border-muted">
           {route === 'write' ? (
             <WriteSidebar
               onOpenDashboard={openDashboard}
@@ -953,7 +953,7 @@ export function Workbench(): ReactElement {
                 onSubmitPrompt={sendWritePrompt}
               />
               {writeAssistantOpen ? (
-                <div className="h-full w-[420px] shrink-0 border-l border-ds-border-muted">
+                <div className="h-full w-[380px] shrink-0 border-l border-ds-border-muted">
                   <WriteAssistantPanel
                     input={input}
                     setInput={setInput}

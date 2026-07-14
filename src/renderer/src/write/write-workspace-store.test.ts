@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useWriteWorkspaceStore } from './write-workspace-store'
+import {
+  readStoredAssistantOpen,
+  WRITE_ASSISTANT_OPEN_KEY
+} from './write-workspace-store-helpers'
 
 function installDsGui(overrides: Partial<Window['dsGui']>): void {
   vi.stubGlobal('window', {
@@ -24,6 +28,19 @@ afterEach(() => {
 })
 
 describe('write workspace store', () => {
+  it('keeps the writing assistant closed until the user explicitly opens it', () => {
+    const values = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value)
+    })
+
+    expect(readStoredAssistantOpen()).toBe(false)
+
+    values.set(WRITE_ASSISTANT_OPEN_KEY, '1')
+    expect(readStoredAssistantOpen()).toBe(true)
+  })
+
   it('reports read errors when syncing the active text file from disk', async () => {
     installDsGui({
       readWorkspaceFile: vi.fn(async () => {

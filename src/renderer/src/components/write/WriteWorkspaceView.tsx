@@ -13,8 +13,7 @@ import {
   type WritePreviewMode,
   type WriteSaveStatus,
   writeBasenameFromPath,
-  writeJoinPath,
-  writeRelativeToWorkspace
+  writeJoinPath
 } from '../../write/write-workspace-store'
 import { getWriteRenderSafety } from '../../write/write-render-safety'
 import {
@@ -125,9 +124,6 @@ export function WriteWorkspaceView({
   const selectionActionActive = Boolean(selectionAction)
   const selectionActionLeft = selectionAction?.left
   const selectionActionTop = selectionAction?.top
-  const activeFileLabel = activeFilePath
-    ? writeRelativeToWorkspace(workspaceRoot, activeFilePath)
-    : t('writeNoFileOpen')
   const activeFileName = activeFilePath ? writeBasenameFromPath(activeFilePath) : t('writeStudio')
   const workspacePathLabel = rootDirectory || workspaceRoot
   const workspaceName = workspacePathLabel ? writeBasenameFromPath(workspacePathLabel) : t('writeWorkspace')
@@ -544,9 +540,7 @@ export function WriteWorkspaceView({
   return (
     <div className="write-workspace-view ds-no-drag flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 sm:px-4 md:px-6 lg:px-8">
       <WriteWorkspaceToolbar
-        activeFileIsImage={activeFileIsImage}
         activeFileIsText={activeFileIsText}
-        activeFileLabel={activeFileLabel}
         activeFileName={activeFileName}
         activeFilePath={activeFilePath ?? ''}
         assistantOpen={assistantOpen}
@@ -558,7 +552,6 @@ export function WriteWorkspaceView({
         modeMenuItems={modeMenuItems}
         modeMenuOpen={modeMenuOpen}
         modeMenuRef={modeMenuRef}
-        previewMode={previewMode}
         readOnly={renderSafety.readOnly}
         saveLabel={saveLabel}
         saveStatus={saveStatus}
@@ -568,11 +561,6 @@ export function WriteWorkspaceView({
         setPreviewMode={setPreviewMode}
         onCopyRichText={() => void copyCurrentFileAsRichText()}
         onExportFile={(format) => void exportCurrentFile(format)}
-        onPickWorkspace={() => void pickWriteWorkspace()}
-        onSave={() => {
-          if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
-          void flushSave(workspaceRoot)
-        }}
         onToggleLeftSidebar={onToggleLeftSidebar}
       />
       <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden pb-3 pt-3">

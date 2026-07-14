@@ -1,5 +1,5 @@
 import type { ReactElement, RefObject } from 'react'
-import { ChevronDown, Copy, Download, FileCode2, FilePenLine, FolderOpen, Loader2, Save, Sparkles } from 'lucide-react'
+import { AlertCircle, Check, ChevronDown, Copy, Download, FileCode2, FilePenLine, Loader2, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { WriteExportFormat } from '@shared/write-export'
 import type { WritePreviewMode, WriteSaveStatus } from '../../write/write-workspace-store'
@@ -14,9 +14,7 @@ import {
 } from './write-workspace-view-utils'
 
 type Props = {
-  activeFileIsImage: boolean
   activeFileIsText: boolean
-  activeFileLabel: string
   activeFileName: string
   activeFilePath: string
   assistantOpen: boolean
@@ -30,10 +28,7 @@ type Props = {
   modeMenuRef: RefObject<HTMLDivElement | null>
   onCopyRichText: () => void
   onExportFile: (format: WriteExportFormat) => void
-  onPickWorkspace: () => void
-  onSave: () => void
   onToggleLeftSidebar: () => void
-  previewMode: WritePreviewMode
   readOnly: boolean
   saveLabel: string
   saveStatus: WriteSaveStatus
@@ -44,9 +39,7 @@ type Props = {
 }
 
 export function WriteWorkspaceToolbar({
-  activeFileIsImage,
   activeFileIsText,
-  activeFileLabel,
   activeFileName,
   activeFilePath,
   assistantOpen,
@@ -60,10 +53,7 @@ export function WriteWorkspaceToolbar({
   modeMenuRef,
   onCopyRichText,
   onExportFile,
-  onPickWorkspace,
-  onSave,
   onToggleLeftSidebar,
-  previewMode,
   readOnly,
   saveLabel,
   saveStatus,
@@ -75,10 +65,13 @@ export function WriteWorkspaceToolbar({
   const { t } = useTranslation('common')
   return (
     <div className="ds-stage-inset -mx-3 shrink-0 sm:-mx-4 md:-mx-6 lg:-mx-8">
-      <header className="ds-topbar-surface relative z-10 mt-3 flex min-h-[56px] w-full items-stretch overflow-visible rounded-[18px]">
-        <div className="write-workspace-toolbar-grid grid w-full min-w-0 items-center gap-2 px-3 py-2 sm:px-4 md:pl-5 md:pr-2 lg:gap-4">
+      <header
+        data-testid="write-compact-toolbar"
+        className="ds-topbar-surface relative z-10 mt-2 flex min-h-12 w-full items-center overflow-visible rounded-[16px]"
+      >
+        <div className="flex w-full min-w-0 items-center gap-2 px-3 py-1.5 sm:px-4 md:pl-5 md:pr-2">
           <div
-            className={`flex min-w-0 items-center gap-2.5 ${
+            className={`flex min-w-0 flex-1 items-center gap-2 ${
               leftSidebarCollapsed ? 'ds-window-controls-safe-inset' : ''
             }`}
           >
@@ -89,22 +82,42 @@ export function WriteWorkspaceToolbar({
                 ariaLabel={t('sidebarExpand')}
               />
             ) : null}
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <FilePenLine className="h-4 w-4" strokeWidth={1.9} />
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/9 text-accent">
+              <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
             </span>
-            <div className="min-w-0 flex-1 leading-none">
-              <div className="truncate text-[15px] font-semibold tracking-[-0.01em] text-ds-ink">
-                {activeFileName}
-              </div>
-              <div className="mt-1.5 truncate text-[12px] text-ds-faint">
-                {activeFileLabel}
-              </div>
+            <div className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.01em] text-ds-ink">
+              {activeFileName}
             </div>
+            <span
+              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                readOnly
+                  ? 'bg-slate-500/10 text-slate-500'
+                  : saveStatus === 'error'
+                    ? 'bg-red-500/10 text-red-600 dark:text-red-300'
+                    : saveStatus === 'dirty'
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300'
+                      : saveStatus === 'saving'
+                        ? 'bg-sky-500/10 text-sky-600 dark:text-sky-300'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+              }`}
+              aria-label={saveLabel}
+              title={saveLabel}
+            >
+              {saveStatus === 'saving' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
+              ) : saveStatus === 'error' ? (
+                <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
+              ) : saveStatus === 'dirty' ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              ) : (
+                <Check className="h-3.5 w-3.5" strokeWidth={2.2} />
+              )}
+            </span>
           </div>
 
           <div
             ref={modeMenuRef}
-            className="write-workspace-toolbar-modes relative flex min-w-0 items-center justify-start gap-1 rounded-xl border border-ds-border-muted bg-white/68 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:bg-white/[0.06] dark:shadow-none"
+            className="relative flex shrink-0 items-center gap-0.5 rounded-xl border border-ds-border-muted bg-white/60 p-0.5 dark:bg-white/[0.06]"
           >
             <button
               type="button"
@@ -168,15 +181,7 @@ export function WriteWorkspaceToolbar({
             ) : null}
           </div>
 
-          <div className="write-workspace-toolbar-actions flex min-w-0 items-center justify-start gap-1.5">
-            <button
-              type="button"
-              onClick={onPickWorkspace}
-              className={toolbarIconButtonClass()}
-              title={t('changeWorkspace')}
-            >
-              <FolderOpen className="h-4 w-4" strokeWidth={1.85} />
-            </button>
+          <div className="flex shrink-0 items-center gap-0.5">
             <button
               type="button"
               onClick={() => setAssistantOpen(!assistantOpen)}
@@ -202,7 +207,7 @@ export function WriteWorkspaceToolbar({
                 ) : (
                   <Download className="h-4 w-4" strokeWidth={1.85} />
                 )}
-                <span className="hidden lg:inline">{t('writeExport')}</span>
+                <span className="sr-only">{t('writeExport')}</span>
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" strokeWidth={1.9} />
               </button>
               {exportMenuOpen ? (
@@ -237,29 +242,6 @@ export function WriteWorkspaceToolbar({
                 </div>
               ) : null}
             </div>
-            <button
-              type="button"
-              onClick={onSave}
-              disabled={!activeFilePath || !activeFileIsText || readOnly}
-              className={`${toolbarIconButtonClass()} disabled:cursor-not-allowed disabled:opacity-40`}
-              title={activeFileIsImage ? t('writeImageSaveDisabled') : readOnly ? t('writeReadOnlySaveDisabled') : t('writeSaveFile')}
-              aria-label={activeFileIsImage ? t('writeImageSaveDisabled') : readOnly ? t('writeReadOnlySaveDisabled') : t('writeSaveFile')}
-            >
-              <Save className="h-4 w-4" strokeWidth={1.85} />
-            </button>
-            <span className={`ml-1 inline-flex min-w-[64px] justify-center rounded-lg px-2.5 py-1 text-[11.5px] font-semibold ${
-              readOnly
-                ? 'bg-slate-500/12 text-slate-700 dark:text-slate-300'
-                : saveStatus === 'error'
-                ? 'bg-red-500/12 text-red-600 dark:text-red-300'
-                : saveStatus === 'dirty'
-                  ? 'bg-amber-500/12 text-amber-700 dark:text-amber-300'
-                  : saveStatus === 'saving'
-                    ? 'bg-sky-500/12 text-sky-700 dark:text-sky-300'
-                    : 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300'
-            }`}>
-              {saveLabel}
-            </span>
           </div>
         </div>
       </header>
