@@ -16,7 +16,6 @@ import {
   type ModelUsageState,
   useModelUsageState
 } from '../../hooks/use-model-usage'
-import { WhaleHeroStage } from './WhaleHeroStage'
 
 type CalendarCell = DailyUsageBucket | null
 type CalendarWeek = {
@@ -696,38 +695,24 @@ function UsageHeroToggle({
   )
 }
 
-function UsageHeroSection({
-  title,
-  sub,
-  showText = true
-}: {
-  title: string
-  sub: string
-  showText?: boolean
-}): ReactElement {
-  return (
-    <div className="flex w-full min-w-0 flex-col items-center text-center">
-      <div>
-        <WhaleHeroStage />
-      </div>
-      {showText ? (
-        <>
-          <h1 className="max-w-[620px] text-[28px] font-semibold leading-tight tracking-[0] text-ds-ink sm:text-[32px]">
-            {title}
-          </h1>
-          <p className="mt-3 max-w-[680px] text-[14.5px] leading-7 text-ds-muted">
-            {sub}
-          </p>
-        </>
-      ) : null}
-    </div>
-  )
-}
-
 function CollapsedCalendarCard({ onExpand }: { onExpand: () => void }): ReactElement {
+  const { t } = useTranslation('common')
+
   return (
-    <div className="-mt-1 flex w-full min-w-0 justify-center">
-      <UsageHeroToggle expanded={false} onToggle={onExpand} />
+    <div className="flex w-full min-w-0 justify-center">
+      <button
+        type="button"
+        data-testid="usage-insights-toggle"
+        className="inline-flex min-h-8 items-center gap-2 rounded-full border border-ds-border-muted bg-ds-card/70 px-3 py-1 text-[12px] font-medium text-ds-muted shadow-sm backdrop-blur transition hover:border-accent/30 hover:bg-ds-card hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+        onClick={onExpand}
+        aria-label={t('usageHeatmapExpand')}
+        title={t('usageHeatmapExpand')}
+      >
+        <span>{t('usageHeatmapTabOverview')}</span>
+        <span aria-hidden="true" className="text-ds-faint">·</span>
+        <span>{t('usageHeatmapTabModels')}</span>
+        <ChevronDown className="h-3.5 w-3.5 text-ds-faint" strokeWidth={1.8} />
+      </button>
     </div>
   )
 }
@@ -761,7 +746,7 @@ export function InitialSessionUsageHeatmapView({
   state,
   modelState = { usage: null, loading: false, loaded: false, error: null },
   rangeKey = 'all',
-  initialCollapsed = false,
+  initialCollapsed = true,
   initialActiveTab = 'overview',
   initialModelHoverIndex = null,
   onRangeChange,
@@ -803,15 +788,6 @@ export function InitialSessionUsageHeatmapView({
     },
     { label: t('usageHeatmapCache'), value: formatPercent(totals.cacheHitRate) }
   ]
-  const heroTitle =
-    mode === 'populated'
-      ? t('usageHeatmapTitle')
-      : t(`usageHeatmapHeroTitle.${mode}`)
-  const heroSub =
-    mode === 'populated'
-      ? t('usageHeatmapSub')
-      : t(`usageHeatmapHeroSub.${mode}`)
-
   useEffect(() => {
     let cancelled = false
     if (typeof window === 'undefined' || typeof window.dsGui?.getSettings !== 'function') return
@@ -828,13 +804,12 @@ export function InitialSessionUsageHeatmapView({
   }, [])
 
   return (
-    <div className="ds-initial-usage-heatmap ds-no-drag mx-auto flex min-h-[min(620px,calc(100dvh-220px))] w-full items-center justify-center px-3 py-6 text-left sm:px-5 sm:py-8">
-      <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-5">
-        <UsageHeroSection
-          title={heroTitle}
-          sub={heroSub}
-          showText={mode !== 'populated'}
-        />
+    <div className={`ds-initial-usage-heatmap ds-no-drag mx-auto flex w-full justify-center text-left ${
+      collapsed
+        ? 'px-3 py-2'
+        : 'min-h-[min(620px,calc(100dvh-220px))] items-center px-3 py-6 sm:px-5 sm:py-8'
+    }`}>
+      <div className={`flex w-full max-w-[980px] min-w-0 flex-col ${collapsed ? '' : 'gap-5'}`}>
         {collapsed ? (
           <CollapsedCalendarCard onExpand={() => setCollapsed(false)} />
         ) : (

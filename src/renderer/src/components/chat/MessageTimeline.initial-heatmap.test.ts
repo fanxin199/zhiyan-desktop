@@ -27,7 +27,10 @@ describe('MessageTimeline initial heatmap empty hero routing', () => {
   it('shows the Kun heatmap for eligible initial chat states', () => {
     const html = renderHero()
 
-    expect(html).toContain('Kun usage')
+    expect(html).toContain('data-testid="usage-insights-toggle"')
+    expect(html).toContain('Overview')
+    expect(html).toContain('Models')
+    expect(html).not.toContain('ds-runtime-wake-stage')
     expect(html).not.toContain('Start a new conversation')
   })
 
