@@ -1,7 +1,7 @@
 import { app, dialog, ipcMain, shell, type BrowserWindow, type WebContents } from 'electron'
 import { watch, type FSWatcher } from 'node:fs'
 import { randomUUID } from 'node:crypto'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import {
@@ -30,6 +30,7 @@ import {
   desktopCommandSchema,
   defaultPathSchema,
   filePickPayloadSchema,
+  fileReadPathSchema,
   gitBranchPayloadSchema,
   guiUpdateChannelSchema,
   logErrorPayloadSchema,
@@ -70,6 +71,7 @@ import { createAndSwitchGitBranch, getGitBranches, switchGitBranch } from '../se
 import {
   createWorkspaceDirectory,
   createWorkspaceFile,
+  canonicalPath,
   deleteWorkspaceEntry,
   expandHomePath,
   listEditorsResult,
@@ -258,22 +260,77 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     resolveLogDirectory,
     logError
   } = options
-  const authorizedBinaryReadPaths = new Set<string>()
+  const authorizedFileReadPaths = new Set<string>()
+  const authorizedOutputDirectories = new Set<string>()
+  const authorizedWorkspaceRoots = new Set<string>()
   const workspaceFileWatchers = new Map<string, WorkspaceFileWatchRecord>()
 
   const normalizeAuthorizedPath = (path: string): string =>
     process.platform === 'win32' ? path.toLowerCase() : path
 
-  const authorizeBinaryReadPath = async (path: string): Promise<void> => {
-    authorizedBinaryReadPaths.add(normalizeAuthorizedPath(await realpath(path)))
+  const authorizeFileReadPath = async (path: string): Promise<void> => {
+    authorizedFileReadPaths.add(normalizeAuthorizedPath(await realpath(path)))
   }
 
-  const isBinaryReadPathAuthorized = async (path: string): Promise<boolean> => {
+  const isFileReadPathAuthorized = async (path: string): Promise<boolean> => {
     try {
-      return authorizedBinaryReadPaths.has(normalizeAuthorizedPath(await realpath(path)))
+      return authorizedFileReadPaths.has(normalizeAuthorizedPath(await realpath(path)))
     } catch {
       return false
     }
+  }
+
+  const requireAuthorizedFileReadPath = async (path: string): Promise<void> => {
+    if (!await isFileReadPathAuthorized(path)) {
+      throw new Error('File must be selected through the file picker before it can be read.')
+    }
+  }
+
+  const authorizeOutputDirectory = async (path: string): Promise<void> => {
+    const normalized = normalizeAuthorizedPath(await realpath(path))
+    authorizedOutputDirectories.add(normalized)
+    authorizedWorkspaceRoots.add(normalized)
+  }
+
+  const requireAuthorizedOutputDirectory = async (path: string): Promise<void> => {
+    try {
+      const normalized = normalizeAuthorizedPath(await realpath(path))
+      if (authorizedOutputDirectories.has(normalized)) return
+    } catch {
+      // The shared error below keeps the UI message actionable.
+    }
+    throw new Error('Output directory must be selected through the directory picker.')
+  }
+
+  const normalizedWorkspaceRoot = async (path: string): Promise<string> =>
+    normalizeAuthorizedPath(await canonicalPath(resolve(expandHomePath(path))))
+
+  const requireAuthorizedWorkspaceRoot = async (path: string): Promise<void> => {
+    const normalized = await normalizedWorkspaceRoot(path)
+    if (authorizedWorkspaceRoots.has(normalized)) return
+
+    const settings = await store.load()
+    const configuredRoots = [
+      settings.workspaceRoot,
+      settings.write.defaultWorkspaceRoot,
+      settings.write.activeWorkspaceRoot,
+      ...settings.write.workspaces
+    ].filter((root) => root.trim())
+    for (const root of configuredRoots) {
+      if (await normalizedWorkspaceRoot(root) === normalized) return
+    }
+    throw new Error('Workspace must be selected or configured before files can be accessed.')
+  }
+
+  const requireAuthorizedWorkspaceFileTarget = async (request: {
+    path: string
+    workspaceRoot?: string
+  }): Promise<void> => {
+    if (request.workspaceRoot?.trim()) {
+      await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+      return
+    }
+    await requireAuthorizedFileReadPath(request.path)
   }
 
   const disposeWorkspaceFileWatch = (watchId: string): boolean => {
@@ -414,9 +471,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const result = mainWindow
       ? await dialog.showOpenDialog(mainWindow, options)
       : await dialog.showOpenDialog(options)
+    const path = result.canceled ? null : (result.filePaths[0] ?? null)
+    if (path) await authorizeOutputDirectory(path)
     return {
       canceled: result.canceled,
-      path: result.canceled ? null : (result.filePaths[0] ?? null)
+      path
     }
   })
 
@@ -433,7 +492,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       ? await dialog.showOpenDialog(mainWindow, options)
       : await dialog.showOpenDialog(options)
     const path = result.canceled ? null : (result.filePaths[0] ?? null)
-    if (path) await authorizeBinaryReadPath(path)
+    if (path) await authorizeFileReadPath(path)
     return {
       canceled: result.canceled,
       path
@@ -441,21 +500,19 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   })
 
   ipcMain.handle('file:read-binary', async (_, filePath: unknown): Promise<{ ok: true; data: string; size: number } | { ok: false; message: string }> => {
-    if (typeof filePath !== 'string' || !filePath.trim()) {
-      return { ok: false, message: 'File path is required.' }
-    }
+    const validatedPath = parseIpcPayload('file:read-binary', fileReadPathSchema, filePath)
     try {
-      if (!await isBinaryReadPathAuthorized(filePath)) {
+      if (!await isFileReadPathAuthorized(validatedPath)) {
         return { ok: false, message: 'File must be selected through the file picker before it can be read.' }
       }
-      const info = await stat(filePath)
+      const info = await stat(validatedPath)
       if (!info.isFile()) {
         return { ok: false, message: 'Path is not a file.' }
       }
       if (info.size > MAX_BINARY_READ_BYTES) {
         return { ok: false, message: 'File is too large to read.' }
       }
-      const buf = await readFile(filePath)
+      const buf = await readFile(validatedPath)
       return { ok: true, data: buf.toString('base64'), size: buf.length }
     } catch (error) {
       return {
@@ -465,11 +522,15 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     }
   })
 
-  ipcMain.handle('file:extract-legacy-word-text', async (_, payload: unknown) =>
-    extractLegacyWordText(
-      parseIpcPayload('file:extract-legacy-word-text', legacyWordTextExtractPayloadSchema, payload).path
-    )
-  )
+  ipcMain.handle('file:extract-legacy-word-text', async (_, payload: unknown) => {
+    const path = parseIpcPayload(
+      'file:extract-legacy-word-text',
+      legacyWordTextExtractPayloadSchema,
+      payload
+    ).path
+    await requireAuthorizedFileReadPath(path)
+    return extractLegacyWordText(path)
+  })
 
   ipcMain.handle('file:extract-pdf-range', async (_, payload: unknown) => {
     const request = parseIpcPayload(
@@ -477,6 +538,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       coursewarePdfRangePayloadSchema,
       payload
     )
+    await requireAuthorizedFileReadPath(request.path)
     return extractPdfRange(request.path, request.pageStart, request.pageEnd)
   })
 
@@ -486,6 +548,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       coursewarePdfInspectPayloadSchema,
       payload
     )
+    await requireAuthorizedFileReadPath(request.path)
     return inspectPdf(request.path)
   })
 
@@ -495,6 +558,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       coursewareSourcePathPayloadSchema,
       payload
     )
+    await requireAuthorizedFileReadPath(request.path)
     return analyzeCoursewareSource(request.path)
   })
 
@@ -504,6 +568,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       coursewareSourcePathPayloadSchema,
       payload
     )
+    await requireAuthorizedFileReadPath(request.path)
     return loadCoursewareProject(request.path)
   })
 
@@ -555,6 +620,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
       coursewareExportPayloadSchema,
       payload
     )
+    if (request.outputDirectory) {
+      await requireAuthorizedOutputDirectory(request.outputDirectory)
+    } else {
+      await requireAuthorizedFileReadPath(request.project.request.sourcePath)
+    }
     return exportCoursewarePackage({
       ...request,
       outputDirectory: request.outputDirectory || dirname(request.project.request.sourcePath)
@@ -596,14 +666,15 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     )
   )
 
-  ipcMain.handle('textbook:export-project', async (_, payload: unknown) =>
-    exportTextbookProject(
-      parseIpcPayload('textbook:export-project', textbookExportPayloadSchema, payload)
-    )
-  )
+  ipcMain.handle('textbook:export-project', async (_, payload: unknown) => {
+    const request = parseIpcPayload('textbook:export-project', textbookExportPayloadSchema, payload)
+    await requireAuthorizedOutputDirectory(request.outputDirectory)
+    return exportTextbookProject(request)
+  })
 
   ipcMain.handle('textbook:load-project', async (_, payload: unknown) => {
     const request = parseIpcPayload('textbook:load-project', textbookLoadProjectPayloadSchema, payload)
+    await requireAuthorizedFileReadPath(request.path)
     return loadTextbookProject(request.path)
   })
 
@@ -633,6 +704,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
 
   ipcMain.handle('skill:list', async (_, payload: unknown) => {
     const request = parseIpcPayload('skill:list', skillListPayloadSchema, payload)
+    if (request.workspaceRoot) await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     const settings = await store.load()
     await syncBuiltinSkills({
       dataDir: expandHomePath(getKunRuntimeSettings(settings).dataDir)
@@ -696,13 +768,16 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     }
   })
 
-  ipcMain.handle('git:branches', async (_, workspaceRoot: unknown) =>
-    getGitBranches(parseIpcPayload('git:branches', workspaceRootSchema, workspaceRoot))
-  )
+  ipcMain.handle('git:branches', async (_, workspaceRoot: unknown) => {
+    const request = parseIpcPayload('git:branches', workspaceRootSchema, workspaceRoot)
+    await requireAuthorizedWorkspaceRoot(request)
+    return getGitBranches(request)
+  })
   ipcMain.handle(
     'git:switch-branch',
     async (_, payload: unknown) => {
       const request = parseIpcPayload('git:switch-branch', gitBranchPayloadSchema, payload)
+      await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
       return switchGitBranch(request.workspaceRoot, request.branch)
     }
   )
@@ -714,72 +789,76 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
         gitBranchPayloadSchema,
         payload
       )
+      await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
       return createAndSwitchGitBranch(request.workspaceRoot, request.branch)
     }
   )
 
   ipcMain.handle('editor:list', async () => listEditorsResult())
-  ipcMain.handle('editor:open-path', async (_, payload: unknown) =>
-    openEditorPath(parseIpcPayload('editor:open-path', openEditorPathPayloadSchema, payload))
-  )
+  ipcMain.handle('editor:open-path', async (_, payload: unknown) => {
+    const request = parseIpcPayload('editor:open-path', openEditorPathPayloadSchema, payload)
+    await requireAuthorizedWorkspaceFileTarget(request)
+    return openEditorPath(request)
+  })
 
-  ipcMain.handle('file:resolve-workspace', async (_, payload: unknown) =>
-    resolveWorkspaceFile(
-      parseIpcPayload('file:resolve-workspace', workspaceFileTargetPayloadSchema, payload)
+  ipcMain.handle('file:resolve-workspace', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:resolve-workspace', workspaceFileTargetPayloadSchema, payload)
+    await requireAuthorizedWorkspaceFileTarget(request)
+    return resolveWorkspaceFile(request)
+  })
+  ipcMain.handle('file:list-workspace-directory', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:list-workspace-directory', workspaceDirectoryTargetPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return listWorkspaceDirectory(request)
+  })
+  ipcMain.handle('file:read-workspace', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:read-workspace', workspaceFileTargetPayloadSchema, payload)
+    await requireAuthorizedWorkspaceFileTarget(request)
+    return readWorkspaceFile(request)
+  })
+  ipcMain.handle('file:read-workspace-image', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:read-workspace-image', workspaceFileTargetPayloadSchema, payload)
+    await requireAuthorizedWorkspaceFileTarget(request)
+    return readWorkspaceImage(request)
+  })
+  ipcMain.handle('file:write-workspace', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:write-workspace', workspaceFileWritePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return writeWorkspaceFile(request)
+  })
+  ipcMain.handle('file:create-workspace', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:create-workspace', workspaceFileCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return createWorkspaceFile(request)
+  })
+  ipcMain.handle('file:create-workspace-directory', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:create-workspace-directory', workspaceDirectoryCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return createWorkspaceDirectory(request)
+  })
+  ipcMain.handle('file:save-workspace-clipboard-image', async (_, payload: unknown) => {
+    const request = parseIpcPayload(
+      'file:save-workspace-clipboard-image',
+      workspaceClipboardImageSavePayloadSchema,
+      payload
     )
-  )
-  ipcMain.handle('file:list-workspace-directory', async (_, payload: unknown) =>
-    listWorkspaceDirectory(
-      parseIpcPayload('file:list-workspace-directory', workspaceDirectoryTargetPayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:read-workspace', async (_, payload: unknown) =>
-    readWorkspaceFile(
-      parseIpcPayload('file:read-workspace', workspaceFileTargetPayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:read-workspace-image', async (_, payload: unknown) =>
-    readWorkspaceImage(
-      parseIpcPayload('file:read-workspace-image', workspaceFileTargetPayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:write-workspace', async (_, payload: unknown) =>
-    writeWorkspaceFile(
-      parseIpcPayload('file:write-workspace', workspaceFileWritePayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:create-workspace', async (_, payload: unknown) =>
-    createWorkspaceFile(
-      parseIpcPayload('file:create-workspace', workspaceFileCreatePayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:create-workspace-directory', async (_, payload: unknown) =>
-    createWorkspaceDirectory(
-      parseIpcPayload('file:create-workspace-directory', workspaceDirectoryCreatePayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:save-workspace-clipboard-image', async (_, payload: unknown) =>
-    saveWorkspaceClipboardImage(
-      parseIpcPayload(
-        'file:save-workspace-clipboard-image',
-        workspaceClipboardImageSavePayloadSchema,
-        payload
-      )
-    )
-  )
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return saveWorkspaceClipboardImage(request)
+  })
   ipcMain.handle('clipboard:read-image', async () => readClipboardImage())
-  ipcMain.handle('file:rename-workspace-entry', async (_, payload: unknown) =>
-    renameWorkspaceEntry(
-      parseIpcPayload('file:rename-workspace-entry', workspaceEntryRenamePayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('file:delete-workspace-entry', async (_, payload: unknown) =>
-    deleteWorkspaceEntry(
-      parseIpcPayload('file:delete-workspace-entry', workspaceEntryDeletePayloadSchema, payload)
-    )
-  )
+  ipcMain.handle('file:rename-workspace-entry', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:rename-workspace-entry', workspaceEntryRenamePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return renameWorkspaceEntry(request)
+  })
+  ipcMain.handle('file:delete-workspace-entry', async (_, payload: unknown) => {
+    const request = parseIpcPayload('file:delete-workspace-entry', workspaceEntryDeletePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return deleteWorkspaceEntry(request)
+  })
   ipcMain.handle('file:watch-workspace', async (event, payload: unknown) => {
     const request = parseIpcPayload('file:watch-workspace', workspaceFileWatchPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     const initial = await readWorkspaceFile(request)
     let watchedPath: string
     let initialContent: string
@@ -831,23 +910,21 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   ipcMain.handle('file:unwatch-workspace', async (_, watchId: unknown) =>
     disposeWorkspaceFileWatch(parseIpcPayload('file:unwatch-workspace', streamIdSchema, watchId))
   )
-  ipcMain.handle('write:export', async (_, payload: unknown) =>
-    exportWriteDocument(
-      parseIpcPayload('write:export', writeExportPayloadSchema, payload),
-      { parentWindow: getMainWindow() }
-    )
-  )
-  ipcMain.handle('write:copy-rich-text', async (_, payload: unknown) =>
-    copyWriteDocumentAsRichText(
-      parseIpcPayload('write:copy-rich-text', writeRichClipboardPayloadSchema, payload)
-    )
-  )
-  ipcMain.handle('write:inline-completion', async (_, payload: unknown) =>
-    requestWriteInlineCompletion(
-      await store.load(),
-      parseIpcPayload('write:inline-completion', writeInlineCompletionPayloadSchema, payload)
-    )
-  )
+  ipcMain.handle('write:export', async (_, payload: unknown) => {
+    const request = parseIpcPayload('write:export', writeExportPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return exportWriteDocument(request, { parentWindow: getMainWindow() })
+  })
+  ipcMain.handle('write:copy-rich-text', async (_, payload: unknown) => {
+    const request = parseIpcPayload('write:copy-rich-text', writeRichClipboardPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return copyWriteDocumentAsRichText(request)
+  })
+  ipcMain.handle('write:inline-completion', async (_, payload: unknown) => {
+    const request = parseIpcPayload('write:inline-completion', writeInlineCompletionPayloadSchema, payload)
+    if (request.workspaceRoot) await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return requestWriteInlineCompletion(await store.load(), request)
+  })
   ipcMain.handle('write:inline-completion-debug:list', async () => listWriteInlineCompletionDebugEntries())
   ipcMain.handle('write:inline-completion-debug:clear', async () => {
     clearWriteInlineCompletionDebugEntries()

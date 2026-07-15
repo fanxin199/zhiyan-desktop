@@ -140,7 +140,8 @@ export class ImageWidget extends WidgetType {
     private src: string,
     private alt: string,
     private from: number,
-    private localPath?: string
+    private localPath?: string,
+    private workspaceRoot?: string
   ) {
     super()
   }
@@ -149,7 +150,8 @@ export class ImageWidget extends WidgetType {
     return other.src === this.src &&
       other.alt === this.alt &&
       other.from === this.from &&
-      other.localPath === this.localPath
+      other.localPath === this.localPath &&
+      other.workspaceRoot === this.workspaceRoot
   }
 
   toDOM(view: EditorView): HTMLElement {
@@ -168,7 +170,10 @@ export class ImageWidget extends WidgetType {
     image.loading = 'lazy'
     wrapper.appendChild(image)
     if (this.localPath && typeof window.dsGui?.readWorkspaceImage === 'function') {
-      void window.dsGui.readWorkspaceImage({ path: this.localPath })
+      void window.dsGui.readWorkspaceImage({
+        path: this.localPath,
+        workspaceRoot: this.workspaceRoot
+      })
         .then((result) => {
           if (result.ok) image.src = result.dataUrl
         })

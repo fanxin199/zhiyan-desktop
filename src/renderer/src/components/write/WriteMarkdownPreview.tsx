@@ -39,6 +39,7 @@ type Props = {
   content: string
   isMarkdown: boolean
   filePath?: string | null
+  workspaceRoot?: string
   previewErrorMessage?: string
 }
 
@@ -260,12 +261,14 @@ type ResolvedMarkdownImageProps = {
   src?: string
   alt?: string | null
   filePath?: string | null
+  workspaceRoot?: string
 } & Omit<ComponentPropsWithoutRef<'img'>, 'src' | 'alt'>
 
 function ResolvedMarkdownImage({
   src,
   alt,
   filePath,
+  workspaceRoot,
   ...props
 }: ResolvedMarkdownImageProps): ReactElement {
   const [resolvedSrc, setResolvedSrc] = useState(() => resolveWriteMarkdownResource(src, filePath))
@@ -280,7 +283,7 @@ function ResolvedMarkdownImage({
 
     if (!localPath || typeof window.dsGui?.readWorkspaceImage !== 'function') return
 
-    void window.dsGui.readWorkspaceImage({ path: localPath })
+    void window.dsGui.readWorkspaceImage({ path: localPath, workspaceRoot })
       .then((result) => {
         if (cancelled) return
         if (result.ok) {
@@ -296,7 +299,7 @@ function ResolvedMarkdownImage({
     return () => {
       cancelled = true
     }
-  }, [src, filePath])
+  }, [src, filePath, workspaceRoot])
 
   if (loadFailed) {
     return (
@@ -355,7 +358,7 @@ class PreviewErrorBoundary extends Component<PreviewBoundaryProps, PreviewBounda
   }
 }
 
-function WriteMarkdownPreviewContent({ content, isMarkdown, filePath }: Props): ReactElement {
+function WriteMarkdownPreviewContent({ content, isMarkdown, filePath, workspaceRoot }: Props): ReactElement {
   if (!isMarkdown) return plainTextFallback(content)
 
   return (
@@ -383,6 +386,7 @@ function WriteMarkdownPreviewContent({ content, isMarkdown, filePath }: Props): 
               src={src}
               alt={alt}
               filePath={filePath}
+              workspaceRoot={workspaceRoot}
             />
           ),
           code: ({ className, children, node, ...props }): ReactNode => (

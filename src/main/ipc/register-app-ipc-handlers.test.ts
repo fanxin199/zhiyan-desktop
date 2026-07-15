@@ -279,4 +279,45 @@ describe('registerAppIpcHandlers', () => {
       await rm(dir, { recursive: true, force: true })
     }
   })
+
+  it('rejects document extraction when the file was not authorized by the picker', async () => {
+    registerAppIpcHandlers(registerOptions())
+
+    const inspectPdf = handlers.get('file:inspect-pdf')
+    await expect(inspectPdf?.({}, { path: '/tmp/private.pdf' })).rejects.toThrow(
+      /selected through the file picker/u
+    )
+  })
+
+  it('rejects workspace file access for roots that were not configured or selected', async () => {
+    registerAppIpcHandlers(registerOptions())
+
+    const readWorkspace = handlers.get('file:read-workspace')
+    await expect(readWorkspace?.({}, {
+      path: '/tmp/private/notes.md',
+      workspaceRoot: '/tmp/private'
+    })).rejects.toThrow(/workspace must be selected or configured/iu)
+  })
+
+  it('authorizes a workspace root after the teacher selects its directory', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-workspace-ipc-'))
+    try {
+      vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+        canceled: false,
+        filePaths: [dir],
+        bookmarks: []
+      })
+      registerAppIpcHandlers(registerOptions())
+
+      await expect(handlers.get('workspace:pick-directory')?.({}, undefined)).resolves.toEqual({
+        canceled: false,
+        path: dir
+      })
+      await expect(handlers.get('file:list-workspace-directory')?.({}, {
+        workspaceRoot: dir
+      })).resolves.toMatchObject({ ok: true, root: dir })
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
 })

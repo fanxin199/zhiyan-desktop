@@ -34,6 +34,7 @@ type BlockRange = {
 
 type MarkdownImageContext = {
   filePath?: string | null
+  workspaceRoot?: string | null
 }
 
 const CONCEAL_MARKS = new Set([
@@ -487,7 +488,15 @@ function buildMarkdownDecorations(view: EditorView): DecorationSet {
               ranges.push({
                 from: node.from,
                 to: node.to,
-                deco: Decoration.replace({ widget: new ImageWidget(parsed.src, parsed.alt, node.from, parsed.localPath) })
+                deco: Decoration.replace({
+                  widget: new ImageWidget(
+                    parsed.src,
+                    parsed.alt,
+                    node.from,
+                    parsed.localPath,
+                    imageContext.workspaceRoot ?? undefined
+                  )
+                })
               })
               return false
             }
@@ -566,10 +575,13 @@ const markdownLivePreviewPlugin = ViewPlugin.fromClass(
   }
 )
 
-export function writeMarkdownLivePreviewExtensions(filePath?: string | null): Extension[] {
+export function writeMarkdownLivePreviewExtensions(
+  filePath?: string | null,
+  workspaceRoot?: string | null
+): Extension[] {
   return [
     EditorView.editorAttributes.of({ class: 'cm-write-live-preview' }),
-    markdownImageContextFacet.of({ filePath }),
+    markdownImageContextFacet.of({ filePath, workspaceRoot }),
     syntaxHighlighting(writeMarkdownHighlight),
     writeMarkdownLiveTheme,
     markdownBlockPreviewField,

@@ -11,6 +11,7 @@ import {
   workspaceDirectoryTargetPayloadSchema,
   workspaceEntryDeletePayloadSchema,
   workspaceEntryRenamePayloadSchema,
+  workspaceFileWritePayloadSchema,
   writeExportPayloadSchema,
   writeRichClipboardPayloadSchema,
   writeInlineCompletionPayloadSchema
@@ -107,6 +108,17 @@ describe('app-ipc-schemas', () => {
         unexpected: true
       })
     ).toThrow(/Unrecognized key/)
+  })
+
+  it('rejects external URLs with executable schemes or embedded credentials', () => {
+    expect(shellOpenExternalUrlSchema.parse('https://pubmed.ncbi.nlm.nih.gov/')).toBe(
+      'https://pubmed.ncbi.nlm.nih.gov/'
+    )
+    expect(shellOpenExternalUrlSchema.parse('mailto:teacher@example.edu')).toBe(
+      'mailto:teacher@example.edu'
+    )
+    expect(() => shellOpenExternalUrlSchema.parse('javascript:alert(1)')).toThrow()
+    expect(() => shellOpenExternalUrlSchema.parse('https://user:password@example.com/')).toThrow()
   })
 
   it('accepts Kun thread goal endpoints', () => {
@@ -333,7 +345,7 @@ describe('app-ipc-schemas', () => {
     expect(isSafeOpenExternalUrl('javascript:alert(1)')).toBe(false)
     expect(isSafeOpenExternalUrl('file:///tmp/test')).toBe(false)
     expect(() => shellOpenExternalUrlSchema.parse('javascript:alert(1)')).toThrow(
-      /Only http, https, and mailto URLs are allowed/
+      /Only credential-free http, https, and mailto URLs are allowed/
     )
   })
 
@@ -468,6 +480,13 @@ describe('app-ipc-schemas', () => {
     expect(payload.path).toBe('/tmp/workspace/draft.md')
     expect(payload.format).toBe('docx')
     expect(payload.content).toBe('# Draft')
+  })
+
+  it('requires a workspace root for workspace writes', () => {
+    expect(() => workspaceFileWritePayloadSchema.parse({
+      path: '/tmp/workspace/draft.md',
+      content: '# Draft'
+    })).toThrow()
   })
 
   it('accepts write rich clipboard payloads', () => {

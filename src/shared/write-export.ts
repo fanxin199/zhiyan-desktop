@@ -4,14 +4,14 @@ export type WriteExportFormat = (typeof WRITE_EXPORT_FORMATS)[number]
 
 export type WriteExportPayload = {
   path: string
-  workspaceRoot?: string
+  workspaceRoot: string
   format: WriteExportFormat
   content: string
 }
 
 export type WriteRichClipboardPayload = {
   path: string
-  workspaceRoot?: string
+  workspaceRoot: string
   content: string
 }
 

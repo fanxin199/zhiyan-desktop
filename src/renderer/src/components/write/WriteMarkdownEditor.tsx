@@ -400,7 +400,7 @@ export function WriteMarkdownEditor({
         themeCompartment.of(buildEditorTheme(appearanceRef.current)),
         livePreviewCompartment.of(
           appearanceRef.current === 'live' && livePreviewEnabledRef.current
-            ? writeMarkdownLivePreviewExtensions(filePathRef.current)
+            ? writeMarkdownLivePreviewExtensions(filePathRef.current, workspaceRootRef.current)
             : []
         ),
         editableCompartment.of(buildInteractionExtensions(readOnlyRef.current, appearanceRef.current)),
@@ -546,12 +546,14 @@ export function WriteMarkdownEditor({
       effects: [
         themeCompartment.reconfigure(buildEditorTheme(appearance)),
         livePreviewCompartment.reconfigure(
-          appearance === 'live' && livePreviewEnabled ? writeMarkdownLivePreviewExtensions(filePath) : []
+          appearance === 'live' && livePreviewEnabled
+            ? writeMarkdownLivePreviewExtensions(filePath, workspaceRoot)
+            : []
         ),
         editableCompartment.reconfigure(buildInteractionExtensions(readOnly, appearance))
       ]
     })
-  }, [appearance, filePath, livePreviewEnabled, readOnly])
+  }, [appearance, filePath, livePreviewEnabled, readOnly, workspaceRoot])
 
   useEffect(() => {
     const view = viewRef.current

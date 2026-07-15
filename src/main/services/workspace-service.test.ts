@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdir, mkdtemp, readFile, realpath, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, readdir, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
@@ -81,6 +81,27 @@ describe('workspace-service boundary checks', () => {
     if (!result.ok) {
       expect(result.message).toContain('within the selected workspace')
     }
+  })
+
+  it('rejects writes through a linked directory that points outside the workspace', async () => {
+    const outsideDirectory = join(rootDir, 'outside-directory')
+    const linkedDirectory = join(workspaceRoot, 'linked-outside')
+    await mkdir(outsideDirectory)
+    await symlink(
+      outsideDirectory,
+      linkedDirectory,
+      process.platform === 'win32' ? 'junction' : 'dir'
+    )
+
+    const result = await writeWorkspaceFile({
+      path: 'linked-outside/escaped.md',
+      workspaceRoot,
+      content: 'must stay inside'
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.message).toContain('within the selected workspace')
+    await expect(readFile(join(outsideDirectory, 'escaped.md'), 'utf8')).rejects.toThrow()
   })
 
   it('lists directories and files inside the selected workspace', async () => {

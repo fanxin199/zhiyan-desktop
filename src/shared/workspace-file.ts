@@ -19,7 +19,7 @@ export type WorkspaceDirectoryTarget = {
 
 export type WorkspaceFileWritePayload = {
   path: string
-  workspaceRoot?: string
+  workspaceRoot: string
   content: string
 }
 

@@ -188,6 +188,7 @@ export function WriteWorkspaceDocumentPane({
               content={debouncedPreviewContent}
               isMarkdown={isMarkdown && renderSafety.markdownPreviewEnabled}
               filePath={activeFilePath}
+              workspaceRoot={workspaceRoot}
               previewErrorMessage={t('writePreviewErrorFallback')}
             />
           </div>

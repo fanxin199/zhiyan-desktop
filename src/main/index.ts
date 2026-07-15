@@ -1,7 +1,7 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, shell, Tray } from 'electron'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import {
   JsonSettingsStore,
   devServerHintUrl
@@ -47,6 +47,7 @@ import {
 } from './services/python-runtime-manager'
 import { installBaseScienceCapabilityPack } from './services/python-capability-pack-service'
 import { installBioinformaticsCapabilityPack } from './services/python-bioinformatics-pack-service'
+import { installWindowSecurity } from './security/window-security'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const APP_USER_MODEL_ID = 'com.zhiyan.assistant'
@@ -542,8 +543,9 @@ function createWindow(options: { suppressInitialShow?: boolean } = {}): void {
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
+      nodeIntegration: false,
       sandbox: true,
-      webviewTag: true
+      webviewTag: false
     }
   })
   if (usesDesktopTitleBar) {
@@ -569,11 +571,20 @@ function createWindow(options: { suppressInitialShow?: boolean } = {}): void {
     mainWindow = null
   })
   const devUrl = devServerHintUrl()
+  const rendererPath = join(__dirname, '../renderer/index.html')
+  const trustedRendererUrl = devUrl ?? pathToFileURL(rendererPath).href
+  installWindowSecurity(mainWindow.webContents, {
+    trustedRendererUrl,
+    openExternal: (url) => shell.openExternal(url),
+    onBlocked: (url, decision) => {
+      logWarn('window-navigation', 'Blocked renderer navigation.', { url, decision })
+    }
+  })
   traceStartup('createWindow:load', { devUrl: devUrl ?? 'file' })
   if (devUrl) {
     mainWindow.loadURL(devUrl)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(rendererPath)
   }
   mainWindow.once('ready-to-show', () => {
     traceStartup('window:ready-to-show')

@@ -51,6 +51,9 @@ import {
   textbookSectionGenerationInputSchema,
   textbookSectionRevisionInputSchema
 } from '../../shared/textbook'
+import { isSafeOpenExternalUrl } from '../security/window-security'
+
+export { isSafeOpenExternalUrl } from '../security/window-security'
 
 const MAX_BODY_BYTES = 2_000_000
 const MAX_PATH_LENGTH = 4_096
@@ -67,8 +70,6 @@ const MAX_EDITOR_COMPLETION_TEXT = 200_000
 const MAX_FILE_PICK_FILTERS = 16
 const MAX_FILE_PICK_EXTENSIONS = 32
 
-const SAFE_OPEN_EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
-
 function trimmedString(max: number): z.ZodString {
   return z.string().trim().min(1).max(max)
 }
@@ -77,16 +78,8 @@ function optionalTrimmedString(max: number): z.ZodOptional<z.ZodString> {
   return z.string().trim().max(max).optional()
 }
 
-export function isSafeOpenExternalUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value)
-    return SAFE_OPEN_EXTERNAL_PROTOCOLS.has(parsed.protocol)
-  } catch {
-    return false
-  }
-}
-
 export const defaultPathSchema = optionalTrimmedString(MAX_PATH_LENGTH)
+export const fileReadPathSchema = trimmedString(MAX_PATH_LENGTH)
 
 const fileExtensionSchema = z
   .string()
@@ -637,7 +630,7 @@ export const workspaceDirectoryTargetPayloadSchema = z
 export const workspaceFileWritePayloadSchema = z
   .object({
     path: trimmedString(MAX_PATH_LENGTH),
-    workspaceRoot: optionalTrimmedString(MAX_PATH_LENGTH),
+    workspaceRoot: trimmedString(MAX_PATH_LENGTH),
     content: z.string().max(MAX_BODY_BYTES)
   })
   .strict()
@@ -690,7 +683,7 @@ export const workspaceFileWatchPayloadSchema = z
 export const writeExportPayloadSchema = z
   .object({
     path: trimmedString(MAX_PATH_LENGTH),
-    workspaceRoot: optionalTrimmedString(MAX_PATH_LENGTH),
+    workspaceRoot: trimmedString(MAX_PATH_LENGTH),
     format: z.enum(WRITE_EXPORT_FORMATS),
     content: z.string().max(MAX_BODY_BYTES)
   })
@@ -699,7 +692,7 @@ export const writeExportPayloadSchema = z
 export const writeRichClipboardPayloadSchema = z
   .object({
     path: trimmedString(MAX_PATH_LENGTH),
-    workspaceRoot: optionalTrimmedString(MAX_PATH_LENGTH),
+    workspaceRoot: trimmedString(MAX_PATH_LENGTH),
     content: z.string().max(MAX_BODY_BYTES)
   })
   .strict()
@@ -799,7 +792,7 @@ export const writeInlineCompletionPayloadSchema = z
 
 export const shellOpenExternalUrlSchema = trimmedString(MAX_URL_LENGTH).refine(
   isSafeOpenExternalUrl,
-  { message: 'Only http, https, and mailto URLs are allowed.' }
+  { message: 'Only credential-free http, https, and mailto URLs are allowed.' }
 )
 
 export const notificationPayloadSchema = z
