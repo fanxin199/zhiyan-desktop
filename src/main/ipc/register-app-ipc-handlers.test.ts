@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { dialog } from 'electron'
@@ -302,6 +302,7 @@ describe('registerAppIpcHandlers', () => {
   it('authorizes a workspace root after the teacher selects its directory', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'zhiyan-workspace-ipc-'))
     try {
+      const canonicalDir = await realpath(dir)
       vi.mocked(dialog.showOpenDialog).mockResolvedValue({
         canceled: false,
         filePaths: [dir],
@@ -315,7 +316,7 @@ describe('registerAppIpcHandlers', () => {
       })
       await expect(handlers.get('file:list-workspace-directory')?.({}, {
         workspaceRoot: dir
-      })).resolves.toMatchObject({ ok: true, root: dir })
+      })).resolves.toMatchObject({ ok: true, root: canonicalDir })
     } finally {
       await rm(dir, { recursive: true, force: true })
     }
