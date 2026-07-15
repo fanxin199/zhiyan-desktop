@@ -8,19 +8,8 @@ describe('ZhiYanSidebar direct teacher task entries', () => {
     const noop = vi.fn()
     const html = renderToStaticMarkup(createElement(ZhiYanSidebar, {
       activeRoute: 'dashboard',
-      onOpenDashboard: noop,
-      onOpenSyllabus: noop,
-      onOpenPptGen: noop,
-      onOpenPaperPolish: noop,
-      onOpenLiterature: noop,
-      onOpenReviewWriting: noop,
-      onOpenGrantWriting: noop,
-      onOpenTextbook: noop,
-      onOpenBioinformatics: noop,
-      onOpenWrite: noop,
-      onOpenFileManager: noop,
+      onOpenModule: noop,
       onOpenSettings: noop,
-      onOpenChat: noop,
       onToggleSidebar: noop
     }))
 

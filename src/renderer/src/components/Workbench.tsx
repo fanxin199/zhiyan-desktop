@@ -55,6 +55,10 @@ import {
   type ResearchTaskExecution,
   type ResearchTaskModuleId
 } from './zhiyan/research-task-card'
+import {
+  ZHIYAN_MODULE_ROUTE_IDS,
+  type ZhiYanModuleRouteId
+} from './zhiyan/zhiyan-module-registry'
 
 const PluginMarketplaceView = lazy(() =>
   import('./PluginMarketplaceView').then((module) => ({ default: module.PluginMarketplaceView }))
@@ -313,17 +317,7 @@ export function Workbench(): ReactElement {
     interrupt,
     liveAssistant,
     liveReasoning,
-    openBioinformatics,
-    openDashboard,
-    openFileManager,
-    openGrantWriting,
-    openLiterature,
-    openPaperPolish,
-    openPptGen,
-    openReviewWriting,
     openSettings,
-    openSyllabus,
-    openTextbook,
     openWrite,
     probeRuntime,
     queuedMessages,
@@ -351,17 +345,7 @@ export function Workbench(): ReactElement {
     interrupt: state.interrupt,
     liveAssistant: state.liveAssistant,
     liveReasoning: state.liveReasoning,
-    openBioinformatics: state.openBioinformatics,
-    openDashboard: state.openDashboard,
-    openFileManager: state.openFileManager,
-    openGrantWriting: state.openGrantWriting,
-    openLiterature: state.openLiterature,
-    openPaperPolish: state.openPaperPolish,
-    openPptGen: state.openPptGen,
-    openReviewWriting: state.openReviewWriting,
     openSettings: state.openSettings,
-    openSyllabus: state.openSyllabus,
-    openTextbook: state.openTextbook,
     openWrite: state.openWrite,
     probeRuntime: state.probeRuntime,
     queuedMessages: state.queuedMessages,
@@ -610,6 +594,13 @@ export function Workbench(): ReactElement {
   const openWriteMode = (): void => {
     void openWrite()
   }
+  const openRegisteredModule = (moduleId: ZhiYanModuleRouteId): void => {
+    if (moduleId === 'write') {
+      openWriteMode()
+      return
+    }
+    setRoute(moduleId)
+  }
   const openWriteWithDraft = (seed: ModuleWriteDraftSeed): void => {
     const content = seed.content.trim()
     void (async () => {
@@ -699,13 +690,7 @@ export function Workbench(): ReactElement {
       ...current,
       [target]: file
     }))
-    if (target === 'syllabus') {
-      void openSyllabus()
-      return
-    }
-    if (target === 'literature') {
-      void openLiterature()
-    }
+    setRoute(target)
   }
   const renderModuleConversation = (
     title: string,
@@ -763,20 +748,11 @@ export function Workbench(): ReactElement {
       onRetryConnection={() => void probeRuntime('user')}
     />
   )
-  const moduleRoutes = [
-    'dashboard',
-    'syllabus',
-    'ppt-gen',
-    'paper-polish',
-    'literature',
-    'review-writing',
-    'grant-writing',
-    'textbook',
-    'bioinformatics',
-    'file-manager'
-  ]
+  const moduleRoutes = ZHIYAN_MODULE_ROUTE_IDS.filter((moduleId) =>
+    moduleId !== 'write' && moduleId !== 'chat'
+  )
   const needsStageSidebarRestore =
-    leftSidebarCollapsed && (moduleRoutes.includes(route) || route === 'plugins')
+    leftSidebarCollapsed && (moduleRoutes.some((moduleId) => moduleId === route) || route === 'plugins')
 
   return (
     <div className="ds-workbench-shell ds-drag flex h-full min-h-0 w-full min-w-0 bg-ds-main">
@@ -784,26 +760,15 @@ export function Workbench(): ReactElement {
         <div className="min-h-0 w-[240px] shrink-0 border-r border-ds-border-muted">
           {route === 'write' ? (
             <WriteSidebar
-              onOpenDashboard={openDashboard}
+              onOpenDashboard={() => openRegisteredModule('dashboard')}
               onOpenSettings={(section) => openSettings(section)}
               onToggleSidebar={() => setLeftSidebarCollapsed(true)}
             />
           ) : (
             <ZhiYanSidebar
-              activeRoute={moduleRoutes.includes(route) ? route : route === 'chat' ? 'chat' : route}
-              onOpenDashboard={openDashboard}
-              onOpenSyllabus={openSyllabus}
-              onOpenPptGen={openPptGen}
-              onOpenPaperPolish={openPaperPolish}
-              onOpenLiterature={openLiterature}
-              onOpenReviewWriting={openReviewWriting}
-              onOpenGrantWriting={openGrantWriting}
-              onOpenTextbook={openTextbook}
-              onOpenBioinformatics={openBioinformatics}
-              onOpenWrite={openWriteMode}
-              onOpenFileManager={openFileManager}
+              activeRoute={route}
+              onOpenModule={openRegisteredModule}
               onOpenSettings={(section) => openSettings(section)}
-              onOpenChat={() => setRoute('chat')}
               onToggleSidebar={() => setLeftSidebarCollapsed(true)}
             />
           )}
@@ -823,16 +788,7 @@ export function Workbench(): ReactElement {
         ) : null}
         {route === 'dashboard' ? (
           <ZhiYanDashboard
-            onOpenSyllabus={openSyllabus}
-            onOpenPptGen={openPptGen}
-            onOpenPaperPolish={openPaperPolish}
-            onOpenLiterature={openLiterature}
-            onOpenReviewWriting={openReviewWriting}
-            onOpenGrantWriting={openGrantWriting}
-            onOpenTextbook={openTextbook}
-            onOpenBioinformatics={openBioinformatics}
-            onOpenChat={() => setRoute('chat')}
-            onOpenWrite={openWriteMode}
+            onOpenModule={openRegisteredModule}
             recentThreads={getRecentDashboardThreads(threads)}
             onOpenRecentThread={openRecentThread}
             onSubmitPrompt={handleDashboardPrompt}

@@ -12,6 +12,7 @@ import type {
 } from '../agent/types'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
 import type { TeacherProjectTypeV1 } from '@shared/app-settings'
+import type { ZhiYanModuleRouteId } from '../components/zhiyan/zhiyan-module-registry'
 
 export type QueuedUserMessage = {
   id: string
@@ -73,7 +74,7 @@ export type TeacherProjectStartContext = {
 
 export type InitialSetupMode = 'required' | 'preview'
 export type SettingsRouteSection = 'general' | 'write' | 'agents' | 'skill' | 'mcp' | 'api-keys'
-export type AppRoute = 'chat' | 'write' | 'settings' | 'plugins' | 'dashboard' | 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'review-writing' | 'grant-writing' | 'textbook' | 'bioinformatics' | 'file-manager'
+export type AppRoute = ZhiYanModuleRouteId | 'settings' | 'plugins'
 export type PluginHostRoute = 'chat'
 
 /**

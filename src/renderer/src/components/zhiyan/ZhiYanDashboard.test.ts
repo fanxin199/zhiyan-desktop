@@ -14,16 +14,7 @@ const noop = vi.fn()
 
 function dashboard(overrides: Partial<Parameters<typeof ZhiYanDashboard>[0]> = {}) {
   return createElement(ZhiYanDashboard, {
-    onOpenSyllabus: noop,
-    onOpenPptGen: noop,
-    onOpenPaperPolish: noop,
-    onOpenLiterature: noop,
-    onOpenReviewWriting: noop,
-    onOpenGrantWriting: noop,
-    onOpenTextbook: noop,
-    onOpenBioinformatics: noop,
-    onOpenChat: noop,
-    onOpenWrite: noop,
+    onOpenModule: noop,
     ...overrides
   })
 }

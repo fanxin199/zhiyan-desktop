@@ -2,21 +2,21 @@ import { useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement }
 import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
-  Award,
-  BookOpen,
   Clock3,
-  FileText,
-  GraduationCap,
   MessageCircle,
-  Microscope,
-  Presentation,
-  PenTool,
-  ScrollText,
   Search,
   type LucideIcon
 } from 'lucide-react'
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
+import {
+  ZHIYAN_MODULE_SECTIONS,
+  getZhiYanDashboardModules,
+  getZhiYanModule,
+  isZhiYanModuleRoute,
+  type ZhiYanModuleRouteId,
+  type ZhiYanModuleSectionId
+} from './zhiyan-module-registry'
 
 type QuickActionCardProps = {
   icon: LucideIcon
@@ -27,13 +27,13 @@ type QuickActionCardProps = {
 }
 
 type DashboardActionCard = QuickActionCardProps & {
-  id: string
-  keywords: string[]
+  id: ZhiYanModuleRouteId
+  keywords: readonly string[]
 }
 
 export type DashboardTaskRecommendation = {
   sourceModuleId: string
-  targetId: 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'review-writing'
+  targetId: ZhiYanModuleRouteId
   title: string
   description: string
 }
@@ -46,16 +46,9 @@ type RecentThreadCardProps = {
 
 const RECENT_THREAD_LIMIT = 5
 
-const RECENT_THREAD_ICONS: Record<string, LucideIcon> = {
-  syllabus: GraduationCap,
-  'ppt-gen': Presentation,
-  textbook: BookOpen,
-  literature: Search,
-  'paper-polish': PenTool,
-  'review-writing': ScrollText,
-  'grant-writing': Award,
-  bioinformatics: Microscope
-}
+const DASHBOARD_SECTION_LABELS = Object.fromEntries(
+  ZHIYAN_MODULE_SECTIONS.map((section) => [section.id, section.dashboardLabel])
+) as Record<ZhiYanModuleSectionId, string>
 
 const RECOMMENDATION_BY_SOURCE_MODULE: Record<string, Omit<DashboardTaskRecommendation, 'sourceModuleId'>> = {
   syllabus: {
@@ -141,7 +134,8 @@ function moduleIdFromProjectId(projectId: string | undefined): string {
 }
 
 function recentThreadIcon(thread: NormalizedThread): LucideIcon {
-  return RECENT_THREAD_ICONS[moduleIdFromProjectId(thread.projectId)] ?? MessageCircle
+  const moduleId = moduleIdFromProjectId(thread.projectId)
+  return isZhiYanModuleRoute(moduleId) ? getZhiYanModule(moduleId)?.icon ?? MessageCircle : MessageCircle
 }
 
 export function getRecentDashboardThreads(threads: NormalizedThread[]): NormalizedThread[] {
@@ -171,6 +165,21 @@ export function getDashboardTaskRecommendations(
   return recommendations
 }
 
+function dashboardActionCards(
+  section: ZhiYanModuleSectionId,
+  onOpenModule: (route: ZhiYanModuleRouteId) => void
+): DashboardActionCard[] {
+  return getZhiYanDashboardModules(section).map((module) => ({
+    id: module.id,
+    icon: module.icon,
+    title: module.dashboard.title,
+    description: module.taskDescription,
+    keywords: module.keywords,
+    gradient: module.dashboard.gradient,
+    onClick: () => onOpenModule(module.id)
+  }))
+}
+
 function QuickActionCard({
   icon: Icon,
   title,
@@ -192,6 +201,28 @@ function QuickActionCard({
         <p className="mt-1 text-ui-body-sm leading-relaxed text-white/70">{description}</p>
       </div>
     </button>
+  )
+}
+
+function DashboardCardSection({
+  title,
+  cards,
+  compact = false
+}: {
+  title: string
+  cards: DashboardActionCard[]
+  compact?: boolean
+}): ReactElement | null {
+  if (cards.length === 0) return null
+  return (
+    <div>
+      <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
+        {title}
+      </h2>
+      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${compact ? '' : 'lg:grid-cols-3'}`}>
+        {cards.map((card) => <QuickActionCard key={card.id} {...card} />)}
+      </div>
+    </div>
   )
 }
 
@@ -227,7 +258,7 @@ function TaskRecommendationCard({
   recommendation: DashboardTaskRecommendation
   onOpen: () => void
 }): ReactElement {
-  const Icon = RECENT_THREAD_ICONS[recommendation.targetId] ?? MessageCircle
+  const Icon = getZhiYanModule(recommendation.targetId)?.icon ?? MessageCircle
   return (
     <button
       type="button"
@@ -247,16 +278,7 @@ function TaskRecommendationCard({
 }
 
 type ZhiYanDashboardProps = {
-  onOpenSyllabus: () => void
-  onOpenPptGen: () => void
-  onOpenPaperPolish: () => void
-  onOpenLiterature: () => void
-  onOpenReviewWriting: () => void
-  onOpenGrantWriting: () => void
-  onOpenTextbook: () => void
-  onOpenBioinformatics: () => void
-  onOpenChat: () => void
-  onOpenWrite: () => void
+  onOpenModule: (route: ZhiYanModuleRouteId) => void
   recentThreads?: NormalizedThread[]
   onOpenRecentThread?: (threadId: string) => void
   onSubmitPrompt?: (prompt: string) => void
@@ -264,16 +286,7 @@ type ZhiYanDashboardProps = {
 }
 
 export function ZhiYanDashboard({
-  onOpenSyllabus,
-  onOpenPptGen,
-  onOpenPaperPolish,
-  onOpenLiterature,
-  onOpenReviewWriting,
-  onOpenGrantWriting,
-  onOpenTextbook,
-  onOpenBioinformatics,
-  onOpenChat,
-  onOpenWrite,
+  onOpenModule,
   recentThreads = [],
   onOpenRecentThread,
   onSubmitPrompt,
@@ -293,115 +306,13 @@ export function ZhiYanDashboard({
     return '晚上好，老师！'
   }
 
-  const teachingCards: DashboardActionCard[] = [
-    {
-      id: 'syllabus',
-      icon: GraduationCap,
-      title: '智能教案',
-      description: '根据课程信息或章节内容，AI 辅助生成规范教案',
-      keywords: ['教案', '教学设计', '课程', '授课', '章节', 'Word', 'DOCX'],
-      gradient: 'bg-gradient-to-br from-blue-600 to-blue-800',
-      onClick: onOpenSyllabus
-    },
-    {
-      id: 'ppt-gen',
-      icon: Presentation,
-      title: '制作课件 PPT',
-      description: '上传教材 PDF，自动生成教学课件',
-      keywords: ['课件', 'PPT', '幻灯片', '教材', 'PDF', '讲稿', '教学'],
-      gradient: 'bg-gradient-to-br from-purple-600 to-purple-800',
-      onClick: onOpenPptGen
-    },
-    {
-      id: 'textbook',
-      icon: BookOpen,
-      title: '教材编写',
-      description: 'AI 辅助撰写教材章节，保持教学主线和术语一致',
-      keywords: ['教材', '章节', '编写', '讲义', '课程建设', '教学材料'],
-      gradient: 'bg-gradient-to-br from-teal-600 to-teal-800',
-      onClick: onOpenTextbook
-    }
-  ]
-
-  const researchCards: DashboardActionCard[] = [
-    {
-      id: 'paper-polish',
-      icon: PenTool,
-      title: '文本写作',
-      description: '自然基金、论文润色和长文档分段写作，先锁定项目主线',
-      keywords: ['论文', '基金', '写作', '润色', '文本', '英文', '中文', 'Discussion', 'Results', '蓝图'],
-      gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
-      onClick: onOpenPaperPolish
-    },
-    {
-      id: 'literature',
-      icon: Search,
-      title: '文献阅读',
-      description: '文献精读、关键图解读和组会汇报 PPT 制作',
-      keywords: ['文献', 'PDF', '论文', '精读', '阅读', '图表', '组会', 'Journal Club', 'PMID', 'DOI'],
-      gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
-      onClick: onOpenLiterature
-    },
-    {
-      id: 'bioinformatics',
-      icon: Microscope,
-      title: '科研数据分析',
-      description: '基于整理后数据生成 bulk 和单细胞可视化分析',
-      keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
-      gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
-      onClick: onOpenBioinformatics
-    },
-    {
-      id: 'review-writing',
-      icon: ScrollText,
-      title: '综述撰写',
-      description: '围绕科研问题组织文献、框架和初稿',
-      keywords: ['综述', '文献', '框架', '证据矩阵', '章节', '初稿', 'review'],
-      gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
-      onClick: onOpenReviewWriting
-    },
-    {
-      id: 'grant-writing',
-      icon: Award,
-      title: '自然基金撰写',
-      description: '辅助立项依据、研究内容与技术路线成稿',
-      keywords: ['自然基金', '基金', '国自然', 'NSFC', '立项依据', '技术路线', '研究内容'],
-      gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
-      onClick: onOpenGrantWriting
-    }
-  ]
-
-  const capabilityCards: DashboardActionCard[] = [
-    {
-      id: 'write',
-      icon: FileText,
-      title: '自由写作台',
-      description: '自由草稿、长文编辑、局部润色和 DOCX/PDF 导出',
-      keywords: ['自由写作台', '写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档', '草稿'],
-      gradient: 'bg-gradient-to-br from-indigo-600 to-indigo-800',
-      onClick: onOpenWrite
-    },
-    {
-      id: 'chat',
-      icon: MessageCircle,
-      title: 'AI 对话',
-      description: '自由对话，让 AI 助手帮您处理任何教学科研任务',
-      keywords: ['对话', '聊天', 'AI', '助手', '问答', '任务'],
-      gradient: 'bg-gradient-to-br from-slate-600 to-slate-800',
-      onClick: onOpenChat
-    }
-  ]
+  const teachingCards = dashboardActionCards('teaching', onOpenModule)
+  const researchCards = dashboardActionCards('research', onOpenModule)
+  const capabilityCards = dashboardActionCards('capabilities', onOpenModule)
 
   const visibleTeachingCards = filterDashboardActionCards(teachingCards, searchQuery)
   const visibleResearchCards = filterDashboardActionCards(researchCards, searchQuery)
   const visibleCapabilityCards = filterDashboardActionCards(capabilityCards, searchQuery)
-  const directOpeners: Record<DashboardTaskRecommendation['targetId'], () => void> = {
-    syllabus: onOpenSyllabus,
-    'ppt-gen': onOpenPptGen,
-    'paper-polish': onOpenPaperPolish,
-    literature: onOpenLiterature,
-    'review-writing': onOpenReviewWriting
-  }
   const hasSearchQuery = searchQuery.trim().length > 0
   const hasSearchResults =
     visibleTeachingCards.length > 0 ||
@@ -472,7 +383,7 @@ export function ZhiYanDashboard({
                 <TaskRecommendationCard
                   key={`${recommendation.sourceModuleId}:${recommendation.targetId}`}
                   recommendation={recommendation}
-                  onOpen={directOpeners[recommendation.targetId]}
+                  onOpen={() => onOpenModule(recommendation.targetId)}
                 />
               ))}
             </div>
@@ -482,44 +393,9 @@ export function ZhiYanDashboard({
         {hasSearchQuery ? (
           hasSearchResults ? (
             <div className="space-y-8">
-              {visibleTeachingCards.length > 0 ? (
-                <div>
-                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-                    教学工具
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {visibleTeachingCards.map((card) => (
-                      <QuickActionCard key={card.id} {...card} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {visibleResearchCards.length > 0 ? (
-                <div>
-                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-                    科研工具
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {visibleResearchCards.map((card) => (
-                      <QuickActionCard key={card.id} {...card} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {visibleCapabilityCards.length > 0 ? (
-                <div>
-                  <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-                    能力中心
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {visibleCapabilityCards.map((card) => (
-                      <QuickActionCard key={card.id} {...card} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+              <DashboardCardSection title={DASHBOARD_SECTION_LABELS.teaching} cards={visibleTeachingCards} />
+              <DashboardCardSection title={DASHBOARD_SECTION_LABELS.research} cards={visibleResearchCards} />
+              <DashboardCardSection title={DASHBOARD_SECTION_LABELS.capabilities} cards={visibleCapabilityCards} compact />
             </div>
           ) : (
             <div className="rounded-2xl border border-ds-border-muted bg-ds-card px-5 py-8 text-center">
@@ -530,102 +406,11 @@ export function ZhiYanDashboard({
         ) : null}
 
         {!hasSearchQuery ? (
-          <>
-        {/* Quick Action Cards */}
-        <div className="mb-8">
-          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-            教学工具
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <QuickActionCard
-              icon={GraduationCap}
-              title="智能教案"
-              description="根据课程信息或章节内容，AI 辅助生成规范教案"
-              gradient="bg-gradient-to-br from-blue-600 to-blue-800"
-              onClick={onOpenSyllabus}
-            />
-            <QuickActionCard
-              icon={Presentation}
-              title="制作课件 PPT"
-              description="上传教材 PDF，自动生成教学课件"
-              gradient="bg-gradient-to-br from-purple-600 to-purple-800"
-              onClick={onOpenPptGen}
-            />
-            <QuickActionCard
-              icon={BookOpen}
-              title="教材编写"
-              description="AI 辅助撰写教材章节，保持教学主线和术语一致"
-              gradient="bg-gradient-to-br from-teal-600 to-teal-800"
-              onClick={onOpenTextbook}
-            />
+          <div className="space-y-8">
+            <DashboardCardSection title={DASHBOARD_SECTION_LABELS.teaching} cards={teachingCards} />
+            <DashboardCardSection title={DASHBOARD_SECTION_LABELS.research} cards={researchCards} />
+            <DashboardCardSection title={DASHBOARD_SECTION_LABELS.capabilities} cards={capabilityCards} compact />
           </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-            科研工具
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <QuickActionCard
-              icon={PenTool}
-              title="文本写作"
-              description="自然基金、论文润色和长文档分段写作，先锁定项目主线"
-              gradient="bg-gradient-to-br from-rose-600 to-rose-800"
-              onClick={onOpenPaperPolish}
-            />
-            <QuickActionCard
-              icon={Search}
-              title="文献阅读"
-              description="文献精读、关键图解读和组会汇报 PPT 制作"
-              gradient="bg-gradient-to-br from-amber-600 to-amber-800"
-              onClick={onOpenLiterature}
-            />
-            <QuickActionCard
-              icon={Microscope}
-              title="科研数据分析"
-              description="基于整理后数据生成 bulk 和单细胞可视化分析"
-              gradient="bg-gradient-to-br from-emerald-600 to-emerald-800"
-              onClick={onOpenBioinformatics}
-            />
-            <QuickActionCard
-              icon={ScrollText}
-              title="综述撰写"
-              description="围绕科研问题组织文献、框架和初稿"
-              gradient="bg-gradient-to-br from-cyan-600 to-cyan-800"
-              onClick={onOpenReviewWriting}
-            />
-            <QuickActionCard
-              icon={Award}
-              title="自然基金撰写"
-              description="辅助立项依据、研究内容与技术路线成稿"
-              gradient="bg-gradient-to-br from-orange-600 to-orange-800"
-              onClick={onOpenGrantWriting}
-            />
-          </div>
-        </div>
-
-        <div>
-          <h2 className="mb-4 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
-            能力中心
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <QuickActionCard
-              icon={FileText}
-              title="自由写作台"
-              description="自由草稿、长文编辑、局部润色和 DOCX/PDF 导出"
-              gradient="bg-gradient-to-br from-indigo-600 to-indigo-800"
-              onClick={onOpenWrite}
-            />
-            <QuickActionCard
-              icon={MessageCircle}
-              title="AI 对话"
-              description="自由对话，让 AI 助手帮您处理任何教学科研任务"
-              gradient="bg-gradient-to-br from-slate-600 to-slate-800"
-              onClick={onOpenChat}
-            />
-          </div>
-        </div>
-          </>
         ) : null}
       </div>
     </div>
