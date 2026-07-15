@@ -15,7 +15,7 @@
     "dist": "npm run build && npx --yes electron-builder@26.8.1 --config electron-builder.config.cjs --publish never",
     "dist:mac": "npm run build && npx --yes electron-builder@26.8.1 --config electron-builder.config.cjs --publish never --mac dmg zip",
     "dist:mac:signed": "MAC_SIGN=1 npm run dist:mac",
-    "dist:win": "npm run dist -- --win nsis --x64",
+    "dist:win": "npm run dist -- --win nsis --x64 && node ./scripts/verify-windows-release.cjs",
     "dist:linux": "npm run dist -- --linux AppImage --x64",
     "postinstall": "node ./scripts/postinstall.cjs",
     "verify:apple": "node ./scripts/verify-apple-signing.cjs",

@@ -1,0 +1,7 @@
+sample_id	patient_id	response	cluster	cell_count
+S01	P001	Responder	B_naive	824
+S01	P001	Responder	B_memory	516
+S01	P001	Responder	Plasma	148
+S02	P004	Non-responder	B_naive	901
+S02	P004	Non-responder	B_memory	287
+S02	P004	Non-responder	Plasma	392

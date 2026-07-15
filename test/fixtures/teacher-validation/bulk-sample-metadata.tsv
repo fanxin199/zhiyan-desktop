@@ -1,0 +1,7 @@
+sample_id	response	batch	patient_id
+Responder_01	Responder	A	P001
+Responder_02	Responder	A	P002
+Responder_03	Responder	B	P003
+NonResponder_01	Non-responder	A	P004
+NonResponder_02	Non-responder	B	P005
+NonResponder_03	Non-responder	B	P006

@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const builderConfig = require('../../electron-builder.config.cjs')
 const afterPack = require('../../scripts/after-pack.cjs')
+const windowsRelease = require('../../scripts/verify-windows-release.cjs')
 
 const tempRoots: string[] = []
 
@@ -109,6 +110,40 @@ describe('electron-builder Kun packaging', () => {
     expect(afterPack._internals.npmCommand(['prune'], 'darwin')).toEqual({
       command: 'npm',
       args: ['prune']
+    })
+  })
+
+  it('verifies the final Windows installer and teacher-facing packaged capabilities', async () => {
+    const root = tempRoot()
+    const unpackedRoot = join(root, 'win-unpacked')
+    for (const relativePath of windowsRelease.requiredPackagedPaths(builderConfig.productName)) {
+      touch(join(unpackedRoot, relativePath))
+    }
+    const installerPath = join(root, 'ZhiYan-Assistant-0.1.0-alpha.1-win-x64.exe')
+    writeFileSync(installerPath, 'verified installer fixture', 'utf8')
+
+    const result = await windowsRelease.verifyWindowsRelease({
+      outputDirectory: root,
+      version: '0.1.0-alpha.1',
+      productName: builderConfig.productName,
+      minimumInstallerBytes: 1,
+      signature: { status: 'NotSigned', subject: null }
+    })
+
+    expect(result.report).toMatchObject({
+      platform: 'win32',
+      architecture: 'x64',
+      productName: '智研助手',
+      status: 'internal-alpha-passed',
+      codeSigning: { status: 'NotSigned', subject: null },
+      installer: {
+        fileName: 'ZhiYan-Assistant-0.1.0-alpha.1-win-x64.exe',
+        size: 26,
+        sha256: expect.stringMatching(/^[a-f0-9]{64}$/u)
+      }
+    })
+    expect(JSON.parse(readFileSync(result.reportPath, 'utf8'))).toMatchObject({
+      status: 'internal-alpha-passed'
     })
   })
 })

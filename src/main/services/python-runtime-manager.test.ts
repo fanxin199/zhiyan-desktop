@@ -8,6 +8,11 @@ import {
   verifyFileSha256,
   uninstallManagedPythonRuntime
 } from './python-runtime-manager'
+import {
+  BASE_SCIENCE_PACKAGES,
+  inspectPythonRuntime,
+  type PythonCandidateRunResult
+} from './python-runtime-service'
 
 const roots: string[] = []
 
@@ -109,6 +114,86 @@ describe('installManagedPythonRuntime', () => {
 
     expect(result).toMatchObject({ ok: false, code: 'checksum-mismatch' })
     expect(extractArchive).not.toHaveBeenCalled()
+  })
+
+  it('preserves the existing runtime when the teacher cancels a repair', async () => {
+    const userDataPath = await temporaryRoot()
+    const managedRoot = join(userDataPath, 'runtimes', 'python')
+    await mkdir(managedRoot, { recursive: true })
+    await writeFile(join(managedRoot, 'python.exe'), 'existing runtime')
+    const controller = new AbortController()
+
+    const result = await installManagedPythonRuntime({
+      userDataPath,
+      platform: 'win32',
+      architecture: 'x64',
+      signal: controller.signal,
+      acquireArchive: async ({ archivePath }) => {
+        await writeFile(archivePath, 'partial download')
+        controller.abort()
+      },
+      verifyArchive: async () => true,
+      extractArchive: async () => undefined
+    })
+
+    expect(result).toMatchObject({ ok: false, code: 'cancelled', message: '已取消安装。' })
+    expect(await readFile(join(managedRoot, 'python.exe'), 'utf8')).toBe('existing runtime')
+  })
+
+  it('repairs a damaged private runtime and returns it to a ready state', async () => {
+    const userDataPath = await temporaryRoot()
+    const managedRoot = join(userDataPath, 'runtimes', 'python')
+    const executable = join(managedRoot, 'python.exe')
+    await mkdir(managedRoot, { recursive: true })
+    await writeFile(executable, 'damaged runtime')
+
+    const runCandidate = async (): Promise<PythonCandidateRunResult> => {
+      const content = await readFile(executable, 'utf8')
+      if (content === 'damaged runtime') {
+        return { kind: 'failed', code: 'probe-failed', message: 'runtime damaged' }
+      }
+      return {
+        kind: 'success',
+        data: {
+          executable,
+          version: '3.12.13',
+          architecture: 'x64',
+          packages: BASE_SCIENCE_PACKAGES.map(({ id }) => ({
+            id,
+            available: true,
+            version: 'teacher-validation'
+          }))
+        }
+      }
+    }
+    const inspect = () => inspectPythonRuntime({
+      userDataPath,
+      platform: 'win32',
+      runCandidate,
+      readBaseSciencePackVersion: async () => '2026.07.1'
+    })
+
+    await expect(inspect()).resolves.toMatchObject({ state: 'broken', source: 'managed' })
+    await expect(installManagedPythonRuntime({
+      userDataPath,
+      platform: 'win32',
+      architecture: 'x64',
+      acquireArchive: async ({ archivePath }) => writeFile(archivePath, 'verified archive'),
+      verifyArchive: async () => true,
+      extractArchive: async (_archivePath, destination) => {
+        await mkdir(join(destination, 'python'), { recursive: true })
+        await writeFile(join(destination, 'python', 'python.exe'), 'repaired runtime')
+      }
+    })).resolves.toEqual({ ok: true })
+    const repairedStatus = await inspect()
+    expect(repairedStatus).toMatchObject({
+      state: 'ready',
+      source: 'managed',
+      interpreter: { version: '3.12.13', architecture: 'x64' }
+    })
+    expect(repairedStatus.capabilityPacks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'base-science', state: 'ready' })
+    ]))
   })
 })
 
