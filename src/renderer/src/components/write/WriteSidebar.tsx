@@ -293,6 +293,8 @@ export function WriteSidebar({
               <div key={workspacePath} className="mb-1">
                 <SidebarTreeRow
                   active={active}
+                  actionsVisibility="hidden"
+                  actionsLayout="overlay"
                   title={workspacePath}
                   onClick={() => void toggleWorkspaceGroup(workspacePath)}
                   className="min-h-[36px]"

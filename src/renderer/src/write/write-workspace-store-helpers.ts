@@ -37,7 +37,7 @@ export function readStoredPreviewMode(): WritePreviewMode {
 }
 
 export function readStoredAssistantOpen(): boolean {
-  return readBrowserStorageItem(WRITE_ASSISTANT_OPEN_KEY) !== '0'
+  return readBrowserStorageItem(WRITE_ASSISTANT_OPEN_KEY) === '1'
 }
 
 export function readStoredAssistantModel(): string {

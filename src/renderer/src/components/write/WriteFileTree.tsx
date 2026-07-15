@@ -120,6 +120,8 @@ export function WriteFileTree({
         <div key={entry.path}>
           <SidebarTreeRow
             active={selected}
+            actionsVisibility="hidden"
+            actionsLayout="overlay"
             onClick={() => (isDirectory ? onToggleDir(entry.path) : onSelectFile(entry.path))}
             className="min-h-[34px]"
             buttonStyle={{ paddingLeft: 10 + depth * 14 }}

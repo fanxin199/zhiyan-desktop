@@ -89,6 +89,8 @@ export function WriteWorkspaceDocumentPane({
   onImagePasteError
 }: Props): ReactElement {
   const { t } = useTranslation('common')
+  const hasOnlyHeadingMarker = /^\s*#{1,6}\s*$/.test(fileContent)
+  const showEditorEmptyHint = activeFileIsText && (!fileContent.trim() || hasOnlyHeadingMarker)
 
   if (!activeFilePath) {
     return (
@@ -144,7 +146,17 @@ export function WriteWorkspaceDocumentPane({
       ) : null}
       <div className="flex min-h-0 min-w-0 flex-1">
         {editorVisible ? (
-          <div ref={editorPaneRef} className={`${editorWidth} min-h-0 overflow-hidden`}>
+          <div ref={editorPaneRef} className={`${editorWidth} relative min-h-0 overflow-hidden`}>
+            {showEditorEmptyHint ? (
+              <div
+                data-testid="write-editor-empty-hint"
+                className={`pointer-events-none absolute top-[27px] z-10 max-w-[min(520px,calc(100%-4rem))] text-[15px] leading-7 text-ds-faint/80 ${
+                  hasOnlyHeadingMarker ? 'left-[42px]' : 'left-6'
+                }`}
+              >
+                {t('writeEditorEmptyHint')}
+              </div>
+            ) : null}
             <WriteMarkdownEditor
               value={fileContent}
               workspaceRoot={workspaceRoot}
