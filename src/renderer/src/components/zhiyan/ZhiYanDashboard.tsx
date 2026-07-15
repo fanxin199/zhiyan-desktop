@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  ArrowRight,
   Award,
   BookOpen,
   Clock3,
@@ -30,6 +31,13 @@ type DashboardActionCard = QuickActionCardProps & {
   keywords: string[]
 }
 
+export type DashboardTaskRecommendation = {
+  sourceModuleId: string
+  targetId: 'syllabus' | 'ppt-gen' | 'paper-polish' | 'literature' | 'review-writing'
+  title: string
+  description: string
+}
+
 type RecentThreadCardProps = {
   thread: NormalizedThread
   locale: string
@@ -40,11 +48,56 @@ const RECENT_THREAD_LIMIT = 5
 
 const RECENT_THREAD_ICONS: Record<string, LucideIcon> = {
   syllabus: GraduationCap,
+  'ppt-gen': Presentation,
+  textbook: BookOpen,
   literature: Search,
   'paper-polish': PenTool,
   'review-writing': ScrollText,
   'grant-writing': Award,
   bioinformatics: Microscope
+}
+
+const RECOMMENDATION_BY_SOURCE_MODULE: Record<string, Omit<DashboardTaskRecommendation, 'sourceModuleId'>> = {
+  syllabus: {
+    targetId: 'ppt-gen',
+    title: '根据教案制作配套课件',
+    description: '沿用最近教案的课程主题，继续生成课堂 PPT。'
+  },
+  'ppt-gen': {
+    targetId: 'syllabus',
+    title: '为课件补充完整教案',
+    description: '把最近课件对应的教学目标、流程和课堂活动整理成教案。'
+  },
+  textbook: {
+    targetId: 'ppt-gen',
+    title: '将教材章节转为课堂课件',
+    description: '从最近教材内容继续制作适合讲授的 PPT。'
+  },
+  'paper-polish': {
+    targetId: 'literature',
+    title: '核验写作中的关键证据',
+    description: '检查关键论点对应的全文依据、PMID 和 DOI。'
+  },
+  literature: {
+    targetId: 'review-writing',
+    title: '将文献证据整理成综述',
+    description: '把最近精读结果组织成证据矩阵和综述框架。'
+  },
+  'review-writing': {
+    targetId: 'literature',
+    title: '核验综述中的关键引用',
+    description: '回到文献阅读，核对全文证据和引用标识。'
+  },
+  'grant-writing': {
+    targetId: 'literature',
+    title: '核验立项依据中的关键文献',
+    description: '检查核心论点的最新证据、PMID 和 DOI。'
+  },
+  bioinformatics: {
+    targetId: 'paper-polish',
+    title: '把分析结果整理成论文段落',
+    description: '将图表、统计结果和证据边界转为 Results 或 Discussion 草稿。'
+  }
 }
 
 function normalizeDashboardSearchText(value: string): string {
@@ -102,6 +155,22 @@ export function getRecentDashboardThreads(threads: NormalizedThread[]): Normaliz
     .slice(0, RECENT_THREAD_LIMIT)
 }
 
+export function getDashboardTaskRecommendations(
+  threads: NormalizedThread[]
+): DashboardTaskRecommendation[] {
+  const recommendations: DashboardTaskRecommendation[] = []
+  const seenTargets = new Set<string>()
+  for (const thread of getRecentDashboardThreads(threads)) {
+    const sourceModuleId = moduleIdFromProjectId(thread.projectId)
+    const recommendation = RECOMMENDATION_BY_SOURCE_MODULE[sourceModuleId]
+    if (!recommendation || seenTargets.has(recommendation.targetId)) continue
+    seenTargets.add(recommendation.targetId)
+    recommendations.push({ sourceModuleId, ...recommendation })
+    if (recommendations.length >= 2) break
+  }
+  return recommendations
+}
+
 function QuickActionCard({
   icon: Icon,
   title,
@@ -151,6 +220,32 @@ function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): Re
   )
 }
 
+function TaskRecommendationCard({
+  recommendation,
+  onOpen
+}: {
+  recommendation: DashboardTaskRecommendation
+  onOpen: () => void
+}): ReactElement {
+  const Icon = RECENT_THREAD_ICONS[recommendation.targetId] ?? MessageCircle
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex min-w-0 items-center gap-3 rounded-xl border border-accent/15 bg-accent/[0.045] px-3.5 py-3 text-left transition hover:border-accent/30 hover:bg-accent/[0.075]"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+        <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-ui-body-sm font-semibold text-ds-text">{recommendation.title}</span>
+        <span className="mt-0.5 line-clamp-2 block text-ui-caption leading-5 text-ds-muted">{recommendation.description}</span>
+      </span>
+      <ArrowRight className="h-4 w-4 shrink-0 text-ds-faint transition group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.8} />
+    </button>
+  )
+}
+
 type ZhiYanDashboardProps = {
   onOpenSyllabus: () => void
   onOpenPptGen: () => void
@@ -187,6 +282,7 @@ export function ZhiYanDashboard({
   const { i18n } = useTranslation('common')
   const [searchQuery, setSearchQuery] = useState('')
   const visibleRecentThreads = getRecentDashboardThreads(recentThreads)
+  const taskRecommendations = getDashboardTaskRecommendations(recentThreads)
 
   const getGreeting = (): string => {
     const hour = new Date().getHours()
@@ -299,6 +395,13 @@ export function ZhiYanDashboard({
   const visibleTeachingCards = filterDashboardActionCards(teachingCards, searchQuery)
   const visibleResearchCards = filterDashboardActionCards(researchCards, searchQuery)
   const visibleCapabilityCards = filterDashboardActionCards(capabilityCards, searchQuery)
+  const directOpeners: Record<DashboardTaskRecommendation['targetId'], () => void> = {
+    syllabus: onOpenSyllabus,
+    'ppt-gen': onOpenPptGen,
+    'paper-polish': onOpenPaperPolish,
+    literature: onOpenLiterature,
+    'review-writing': onOpenReviewWriting
+  }
   const hasSearchQuery = searchQuery.trim().length > 0
   const hasSearchResults =
     visibleTeachingCards.length > 0 ||
@@ -353,6 +456,23 @@ export function ZhiYanDashboard({
                   thread={thread}
                   locale={i18n.language}
                   onOpen={onOpenRecentThread}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {!hasSearchQuery && taskRecommendations.length > 0 ? (
+          <div className="mb-8" data-testid="dashboard-task-recommendations">
+            <h2 className="mb-3 text-ui-body-sm font-semibold uppercase tracking-wider text-ds-faint">
+              推荐下一步
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {taskRecommendations.map((recommendation) => (
+                <TaskRecommendationCard
+                  key={`${recommendation.sourceModuleId}:${recommendation.targetId}`}
+                  recommendation={recommendation}
+                  onOpen={directOpeners[recommendation.targetId]}
                 />
               ))}
             </div>

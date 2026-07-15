@@ -5,6 +5,7 @@ import type { NormalizedThread } from '../../agent/types'
 import {
   dashboardActionCardMatches,
   filterDashboardActionCards,
+  getDashboardTaskRecommendations,
   getRecentDashboardThreads,
   ZhiYanDashboard
 } from './ZhiYanDashboard'
@@ -130,5 +131,40 @@ describe('ZhiYanDashboard quick search', () => {
 
     expect(html).toContain('自由写作台')
     expect(html).toContain('自由草稿、长文编辑、局部润色和 DOCX/PDF 导出')
+  })
+})
+
+describe('ZhiYanDashboard task recommendations', () => {
+  it('recommends a concrete next task from recent research work without hiding direct entries', () => {
+    const recommendations = getDashboardTaskRecommendations([
+      thread('literature', 'TLS 文献精读', '2026-07-15T08:00:00.000Z', {
+        projectId: 'teacher-project:literature:tls'
+      }),
+      thread('analysis', 'B 细胞单细胞分析', '2026-07-15T07:00:00.000Z', {
+        projectId: 'teacher-project:bioinformatics:bcell'
+      })
+    ])
+
+    expect(recommendations).toMatchObject([
+      { sourceModuleId: 'literature', targetId: 'review-writing', title: '将文献证据整理成综述' },
+      { sourceModuleId: 'bioinformatics', targetId: 'paper-polish', title: '把分析结果整理成论文段落' }
+    ])
+  })
+
+  it('shows compact next-step recommendations only when usable history exists', () => {
+    const withHistory = renderToStaticMarkup(dashboard({
+      recentThreads: [thread('grant', '自然基金立项依据', '2026-07-15T08:00:00.000Z', {
+        projectId: 'teacher-project:grant-writing:nsfc'
+      })],
+      onOpenRecentThread: noop
+    }))
+    const withoutHistory = renderToStaticMarkup(dashboard())
+
+    expect(withHistory).toContain('推荐下一步')
+    expect(withHistory).toContain('核验立项依据中的关键文献')
+    expect(withHistory.indexOf('推荐下一步')).toBeLessThan(withHistory.indexOf('教学工具'))
+    expect(withHistory).toContain('智能教案')
+    expect(withHistory).toContain('科研数据分析')
+    expect(withoutHistory).not.toContain('推荐下一步')
   })
 })
