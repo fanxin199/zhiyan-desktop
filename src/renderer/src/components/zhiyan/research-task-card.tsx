@@ -2,6 +2,14 @@ import type { ReactElement } from 'react'
 import { AlertCircle, CheckCircle2, Clock3, FileText, FolderOpen, PencilLine } from 'lucide-react'
 import type { ChatBlock } from '../../agent/types'
 import { browserStorage, type BrowserStorageLike } from '../../lib/browser-storage'
+import {
+  ResearchEvidenceTracePanel,
+  collectResearchEvidenceTrace,
+  createMaterialEvidenceTrace,
+  mergeResearchEvidenceTraces,
+  normalizeResearchEvidenceTrace,
+  type ResearchEvidenceTraceV1
+} from './research-evidence-trace'
 
 export const RESEARCH_TASK_MODULE_IDS = [
   'paper-polish',
@@ -33,6 +41,7 @@ export type ResearchTaskCardV1 = {
   threadId?: string
   lastSuccessfulStep?: string
   errorMessage?: string
+  evidenceTrace?: ResearchEvidenceTraceV1
   updatedAt: string
 }
 
@@ -42,6 +51,7 @@ export type ResearchTaskExecution = {
   status: ResearchTaskStatus
   lastSuccessfulStep?: string
   errorMessage?: string
+  evidenceTrace?: ResearchEvidenceTraceV1
 }
 
 export type ResearchTaskRegistryV1 = {
@@ -91,6 +101,8 @@ export function createResearchTaskCard(input: {
   saveLocation: string
   now?: string
 }): ResearchTaskCardV1 {
+  const updatedAt = input.now ?? new Date().toISOString()
+  const evidenceTrace = createMaterialEvidenceTrace(input.materials, updatedAt)
   return {
     id: input.id.trim(),
     moduleId: input.moduleId,
@@ -105,7 +117,8 @@ export function createResearchTaskCard(input: {
     status: 'queued',
     deliverables: plannedResearchDeliverables(input.moduleId, input.taskTypeId),
     saveLocation: input.saveLocation.trim() || '尚未选择，将在任务执行时确认',
-    updatedAt: input.now ?? new Date().toISOString()
+    ...(evidenceTrace ? { evidenceTrace } : {}),
+    updatedAt
   }
 }
 
@@ -137,6 +150,8 @@ function normalizeResearchTask(value: unknown): ResearchTaskCardV1 | null {
   const threadId = cleanString(source.threadId)
   const lastSuccessfulStep = cleanString(source.lastSuccessfulStep)
   const errorMessage = cleanString(source.errorMessage)
+  const updatedAt = cleanString(source.updatedAt)
+  const evidenceTrace = normalizeResearchEvidenceTrace(source.evidenceTrace, updatedAt || undefined)
   return {
     id,
     moduleId,
@@ -151,7 +166,8 @@ function normalizeResearchTask(value: unknown): ResearchTaskCardV1 | null {
     ...(threadId ? { threadId } : {}),
     ...(lastSuccessfulStep ? { lastSuccessfulStep } : {}),
     ...(errorMessage ? { errorMessage } : {}),
-    updatedAt: cleanString(source.updatedAt)
+    ...(evidenceTrace ? { evidenceTrace } : {}),
+    updatedAt
   }
 }
 
@@ -235,12 +251,14 @@ export function applyResearchTaskExecution(
   execution: ResearchTaskExecution
 ): ResearchTaskCardV1 {
   if (execution.taskId !== task.id) return task
+  const evidenceTrace = mergeResearchEvidenceTraces(task.evidenceTrace, execution.evidenceTrace)
   return {
     ...task,
     status: execution.status,
     ...(execution.threadId ? { threadId: execution.threadId } : {}),
     ...(execution.lastSuccessfulStep ? { lastSuccessfulStep: execution.lastSuccessfulStep } : {}),
     errorMessage: execution.errorMessage?.trim() || undefined,
+    ...(evidenceTrace ? { evidenceTrace } : {}),
     updatedAt: new Date().toISOString()
   }
 }
@@ -282,7 +300,12 @@ export function deriveResearchTaskExecution(input: {
   blocks: ChatBlock[]
 }): ResearchTaskExecution | null {
   if (!input.taskId || !input.threadId || input.activeThreadId !== input.threadId) return null
-  const base = { taskId: input.taskId, threadId: input.threadId }
+  const evidenceTrace = collectResearchEvidenceTrace(input.blocks)
+  const base = {
+    taskId: input.taskId,
+    threadId: input.threadId,
+    ...(evidenceTrace.records.length > 0 ? { evidenceTrace } : {})
+  }
   const lastSuccessfulStep = successfulStep(input.blocks)
   if (input.busy) return { ...base, status: 'running', ...(lastSuccessfulStep ? { lastSuccessfulStep } : {}) }
   const failed = failedStep(input.blocks)
@@ -364,6 +387,10 @@ export function ResearchTaskCardPanel({
           <p className="mt-1 break-all text-ui-body-sm text-ds-text">{task.saveLocation}</p>
         </div>
       </div>
+
+      {task.evidenceTrace?.records.length ? (
+        <ResearchEvidenceTracePanel trace={task.evidenceTrace} />
+      ) : null}
 
       {task.lastSuccessfulStep ? (
         <p className="mt-3 rounded-lg border border-ds-border-muted px-3 py-2 text-ui-caption text-ds-muted">

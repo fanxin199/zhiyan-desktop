@@ -31,7 +31,15 @@ describe('research task registry', () => {
       status: 'queued',
       objective: '比较治疗前后 B 细胞亚群变化',
       groupingMetadata: '分组列 response：Responder 对比 Non-responder',
-      deliverables: ['分析报告', '结果图表', '可复现文件清单']
+      deliverables: ['分析报告', '结果图表', '可复现文件清单'],
+      evidenceTrace: {
+        version: 1,
+        records: [expect.objectContaining({
+          kind: 'user_material',
+          title: 'bcell.h5ad',
+          source: 'J:/data/bcell.h5ad'
+        })]
+      }
     })
     expect(normalizeResearchTaskRegistry({
       version: 1,
@@ -92,8 +100,17 @@ describe('research task registry', () => {
     })).toMatchObject({ status: 'failed', lastSuccessfulStep: '完成质量控制' })
     expect(deriveResearchTaskExecution({
       taskId: 'task-1', threadId: 'thread-1', activeThreadId: 'thread-1', busy: false,
-      blocks: [{ kind: 'assistant', id: 'answer-1', text: '分析完成' }]
-    })).toMatchObject({ status: 'completed' })
+      blocks: [{
+        kind: 'assistant',
+        id: 'answer-1',
+        text: `分析完成\n<!-- ZHIYAN_EVIDENCE_V1\n{"version":1,"records":[{"kind":"correlation_inference","claim":"B 细胞比例与疗效相关","title":"当前分析结果"}]}\nZHIYAN_EVIDENCE_V1 -->`
+      }]
+    })).toMatchObject({
+      status: 'completed',
+      evidenceTrace: {
+        records: [expect.objectContaining({ kind: 'correlation_inference' })]
+      }
+    })
     expect(deriveResearchTaskExecution({
       taskId: 'task-1', threadId: 'thread-1', activeThreadId: 'thread-1', busy: false,
       blocks: [
@@ -119,6 +136,8 @@ describe('ResearchTaskCardPanel', () => {
     for (const label of ['任务状态', '分析目标', '关联材料', '交付物', '保存位置', '从上次进度继续']) {
       expect(html).toContain(label)
     }
+    expect(html).toContain('科研证据追溯')
+    expect(html).toContain('用户材料')
     expect(html).toContain('完成质量控制')
     expect(buildResearchTaskResumeText(failed)).toContain('从“完成质量控制”之后继续')
   })

@@ -52,6 +52,7 @@ import {
   type ResearchTaskExecution,
   type ResearchTaskModuleId
 } from './research-task-card'
+import { buildResearchEvidencePrompt } from './research-evidence-trace'
 import {
   FileManagerWorkspacePage,
   type FileManagerModuleFile,
@@ -372,6 +373,8 @@ export function buildResearchTaskPrompt(
 
   lines.push('## 输出要求')
   lines.push('先给可直接使用的结果，再补充依据、待确认问题和下一步可执行动作。')
+  lines.push('')
+  lines.push(buildResearchEvidencePrompt())
 
   if (projectContext?.name.trim()) {
     lines.push('')
@@ -464,6 +467,7 @@ function ResearchTaskEntry({
       && next.threadId === recentTask.threadId
       && next.lastSuccessfulStep === recentTask.lastSuccessfulStep
       && next.errorMessage === recentTask.errorMessage
+      && next.evidenceTrace === recentTask.evidenceTrace
     ) return
     setRecentTask(next)
     persistResearchTaskCard(next)

@@ -165,6 +165,8 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('项目蓝图')
     expect(prompt).toContain('grant.md：D:\\project\\grant.md')
     expect(prompt).toContain('请建立项目主线')
+    expect(prompt).toContain('## 科研证据追溯要求（必须执行）')
+    expect(prompt).toContain('ZHIYAN_EVIDENCE_V1')
   })
 
   it('appends project context to research task prompts when provided', () => {
