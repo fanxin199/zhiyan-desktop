@@ -4,7 +4,7 @@
 
 [下载 Windows 测试版](https://github.com/fanxin199/zhiyan-desktop/releases) · [查看更新记录](CHANGELOG.md) · [使用与开发文档](#项目文档)
 
-> 当前为 `0.1.0-alpha.1` 测试版，支持 Windows 10/11 x64。安装包尚未配置商业代码签名，Windows 可能显示安全提醒；请只从本仓库的 Releases 页面下载。
+> 当前为 `0.2.0-alpha.1` 测试版，支持 Windows 10/11 x64。安装包尚未配置商业代码签名，Windows 可能显示安全提醒；请只从本仓库的 Releases 页面下载。
 
 ## 为什么适合没有代码基础的老师
 

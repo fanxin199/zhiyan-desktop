@@ -1,6 +1,6 @@
 {
   "name": "zhiyan-assistant",
-  "version": "0.1.0-alpha.1",
+  "version": "0.2.0-alpha.1",
   "description": "智研助手 - 面向大学教师的无代码教学科研 AI 工作台",
   "main": "./out/main/index.js",
   "type": "module",
