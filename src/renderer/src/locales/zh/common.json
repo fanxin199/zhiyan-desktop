@@ -851,7 +851,7 @@
   "runtimeActionNeedsConnection": "请先连接运行时（见顶部状态栏）。",
   "runtimeFetchFailed": "无法连接到智研服务。请确认服务已启动，或在设置中开启自动启动。",
   "runtimeBinaryNotInstalled": "未找到智研助手可执行文件。请在当前目录运行 npm install 以获取，或在设置中填写程序路径。",
-  "runtimeMissingApiKey": "尚未配置 DeepSeek API Key。请先打开设置填写，然后 GUI 才能自动启动本地运行时。",
+  "runtimeMissingApiKey": "尚未配置当前模型服务的 API Key。请先打开设置填写，然后应用才能启动本地 AI 助手。",
   "runtimeAutoStartDisabled": "智研服务当前未启动。请在设置中开启自动启动，或手动运行助手服务。",
   "runtimeUnhealthy": "本地运行时当前不可用。请检查端口、令牌或运行状态。",
   "runtimeAuthRequired": "本地运行时要求 Bearer Token 才能访问会话接口。请在设置中填写运行时令牌，或重启 GUI 让它重新管理本地运行时。",

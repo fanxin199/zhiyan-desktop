@@ -225,7 +225,7 @@ function audienceInstruction(audience: string): string {
     return '面向研究生教材：增加机制深度、争议点、实验方法、证据边界和研究设计。'
   }
   if (audience === 'international') {
-    return '面向国际学生教材：表达清晰，关键免疫学术语给出必要英文对照，避免中文语境隐含知识。'
+    return '面向国际学生教材：表达清晰，关键专业术语给出必要英文对照，避免中文语境隐含知识。'
   }
   return '面向本科二年级教材：先讲主线和概念边界，少堆名词，多用机制链条和临床/实验例子。'
 }
@@ -325,7 +325,7 @@ export async function generateTextbookOutline(
       {
         role: 'system',
         content: [
-          '你是医学免疫学教材总主编，负责从零设计可执行的全书写作大纲。',
+          '你是生物医学教材总主编，负责从零设计可执行的全书写作大纲。严格遵循元数据中的学科，不擅自改成免疫学教材。',
           audienceInstruction(input.metadata.audience),
           '必须遵守出版社要求；如果要求中有字体、间距、标点、编号或符号规范，要把它们转化为章节写作约束。',
           '大纲必须服务后续逐节写作，每一节都要有明确写作目标、预计字数和关键概念。',
@@ -367,12 +367,12 @@ export async function generateTextbookSection(
       {
         role: 'system',
         content: [
-          '你是医学免疫学教材作者。生成当前小节的正式教材正文，而不是写作建议。',
+          '你是生物医学教材作者。生成当前小节的正式教材正文，而不是写作建议，并严格保持项目设定的学科。',
           audienceInstruction(input.project.metadata.audience),
           '严格遵守出版社要求和项目格式规则。',
           '正文使用 Markdown：节标题用二级标题，必要的小标题用三级标题。',
           '可以只引用项目参考文献库中已有 key，引用格式使用 [@key]，不得编造 PMID、DOI 或文献。',
-          '涉及免疫机制时区分已证实事实、合理推断和需要验证的问题。',
+          '涉及生物医学机制时区分已证实事实、合理推断和需要验证的问题。',
           '只返回 JSON 对象，字段为 content 和 referenceKeys。',
           UNTRUSTED_MATERIAL_INSTRUCTION_ZH
         ].join('\n')

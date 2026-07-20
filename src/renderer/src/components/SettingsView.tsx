@@ -8,7 +8,9 @@ import {
   type AppSettingsPatch,
   getActiveAgentApiKey,
   getKunRuntimeSettings,
+  getModelProviderProfile,
   getModelProviderSettings,
+  MODEL_PROVIDER_PRESETS,
   isKunRuntimeInsecure,
   resolveWriteInlineCompletionApiKey,
   resolveWriteInlineCompletionBaseUrl,
@@ -549,6 +551,7 @@ export function SettingsView(): ReactElement {
 
   const kun = getKunRuntimeSettings(form)
   const provider = getModelProviderSettings(form)
+  const activeProvider = getModelProviderProfile(form, kun.providerId)
   const activeApiKey = getActiveAgentApiKey(form)
 
   const update = (partial: SettingsPatch): void => {
@@ -561,8 +564,8 @@ export function SettingsView(): ReactElement {
     scheduleSave(next)
   }
 
-  const sharedApiKey = provider.apiKey
-  const sharedBaseUrl = provider.baseUrl
+  const sharedApiKey = activeProvider.apiKey
+  const sharedBaseUrl = activeProvider.baseUrl
   const writeInlineApiKeyInherited = !form.write.inlineCompletion.apiKey.trim()
   const writeInlineBaseUrlInherited =
     !form.write.inlineCompletion.baseUrl.trim() ||
@@ -572,11 +575,31 @@ export function SettingsView(): ReactElement {
   const effectiveWriteInlineApiKey = resolveWriteInlineCompletionApiKey(form)
   const effectiveWriteInlineModel = resolveWriteInlineCompletionModel(form)
   const updateSharedCredential = (patch: { apiKey?: string; baseUrl?: string }): void => {
-    update({ provider: patch })
+    const providers = provider.providers.map((item) =>
+      item.id === activeProvider.id ? { ...item, ...patch } : item
+    )
+    update({
+      provider: {
+        ...(activeProvider.id === 'deepseek' ? patch : {}),
+        providers
+      }
+    })
   }
 
   const updateKun = (patch: Partial<AppSettingsV1['agents']['kun']>): void => {
     update({ agents: kunSettingsPatch(patch) })
+  }
+
+  const selectModelProvider = (providerId: string): void => {
+    const selected = provider.providers.find((item) => item.id === providerId)
+    if (!selected) return
+    const preset = MODEL_PROVIDER_PRESETS.find((item) => item.id === providerId)
+    updateKun({
+      providerId,
+      apiKey: '',
+      baseUrl: '',
+      model: preset?.recommendedModel ?? selected.models[0] ?? kun.model
+    })
   }
 
   const pickWorkspace = async (): Promise<void> => {
@@ -662,10 +685,12 @@ export function SettingsView(): ReactElement {
     tCommon,
     form,
     provider,
+    activeProvider,
     kun,
     activeApiKey,
     update,
     updateKun,
+    selectModelProvider,
     updateSharedCredential,
     sharedApiKey,
     sharedBaseUrl,

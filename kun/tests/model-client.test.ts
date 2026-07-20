@@ -34,6 +34,34 @@ function buildRequest(abortSignal: AbortSignal): ModelRequest {
 }
 
 describe('DeepseekCompatModelClient', () => {
+  it('keeps an existing API version segment when building the chat endpoint', async () => {
+    let requestedUrl = ''
+    const fetchImpl: typeof fetch = async (url) => {
+      requestedUrl = String(url)
+      return new Response(JSON.stringify({
+        id: 'glm-endpoint',
+        model: 'glm-5.2',
+        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: 'done' } }]
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+    const client = new DeepseekCompatModelClient({
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4/',
+      apiKey: 'k',
+      model: 'glm-5.2',
+      fetchImpl,
+      nonStreaming: true
+    })
+
+    for await (const _chunk of client.stream(buildRequest(new AbortController().signal))) {
+      // drain
+    }
+
+    expect(requestedUrl).toBe('https://open.bigmodel.cn/api/paas/v4/chat/completions')
+  })
+
   it('uses request.model over client default model', async () => {
     const response = {
       id: 'r2',
@@ -128,6 +156,103 @@ describe('DeepseekCompatModelClient', () => {
       response_format: { type: 'json_object' },
       thinking: { type: 'disabled' }
     })
+  })
+
+  it('uses the Qwen thinking switch for DashScope models', async () => {
+    const sentBodies: Array<Record<string, unknown>> = []
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      sentBodies.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>)
+      return new Response(JSON.stringify({
+        id: 'qwen-thinking',
+        model: 'qwen3.7-plus',
+        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: 'done' } }]
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+    const client = new DeepseekCompatModelClient({
+      baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      apiKey: 'k',
+      model: 'qwen3.7-plus',
+      fetchImpl,
+      nonStreaming: true
+    })
+    const request = buildRequest(new AbortController().signal)
+    request.model = 'qwen3.7-plus'
+    request.reasoningEffort = 'max'
+
+    for await (const _chunk of client.stream(request)) {
+      // drain
+    }
+
+    expect(sentBodies[0]?.enable_thinking).toBe(true)
+    expect(sentBodies[0]).not.toHaveProperty('thinking')
+    expect(sentBodies[0]).not.toHaveProperty('reasoning_effort')
+  })
+
+  it('uses reasoning effort without a thinking object for Kimi K3', async () => {
+    const sentBodies: Array<Record<string, unknown>> = []
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      sentBodies.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>)
+      return new Response(JSON.stringify({
+        id: 'kimi-k3-thinking',
+        model: 'kimi-k3',
+        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: 'done' } }]
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+    const client = new DeepseekCompatModelClient({
+      baseUrl: 'https://api.moonshot.cn/v1',
+      apiKey: 'k',
+      model: 'kimi-k3',
+      fetchImpl,
+      nonStreaming: true
+    })
+    const request = buildRequest(new AbortController().signal)
+    request.model = 'kimi-k3'
+    request.reasoningEffort = 'max'
+
+    for await (const _chunk of client.stream(request)) {
+      // drain
+    }
+
+    expect(sentBodies[0]?.reasoning_effort).toBe('max')
+    expect(sentBodies[0]).not.toHaveProperty('thinking')
+  })
+
+  it('uses the Kimi thinking switch without reasoning effort for K2 models', async () => {
+    const sentBodies: Array<Record<string, unknown>> = []
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      sentBodies.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>)
+      return new Response(JSON.stringify({
+        id: 'kimi-k2-thinking',
+        model: 'kimi-k2.6',
+        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: 'done' } }]
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+    const client = new DeepseekCompatModelClient({
+      baseUrl: 'https://api.moonshot.cn/v1',
+      apiKey: 'k',
+      model: 'kimi-k2.6',
+      fetchImpl,
+      nonStreaming: true
+    })
+    const request = buildRequest(new AbortController().signal)
+    request.model = 'kimi-k2.6'
+    request.reasoningEffort = 'high'
+
+    for await (const _chunk of client.stream(request)) {
+      // drain
+    }
+
+    expect(sentBodies[0]?.thinking).toEqual({ type: 'enabled' })
+    expect(sentBodies[0]).not.toHaveProperty('reasoning_effort')
   })
 
   it('keeps requiredToolName as loop metadata instead of sending provider tool_choice', async () => {

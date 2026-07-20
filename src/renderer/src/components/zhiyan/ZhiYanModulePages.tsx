@@ -1108,7 +1108,7 @@ const PPT_CONFIG: ModuleConfig = {
   ],
   quickPrompts: [
     '帮我把上传的 PDF 教材转化为教学用的 PPT 课件',
-    '帮我制作一个关于"T细胞免疫应答"的20页教学PPT',
+    '帮我制作一个关于“心血管生理调节”的 20 页教学 PPT',
     '将我的实验方案制作成组会汇报用的PPT'
   ]
 }
@@ -1149,7 +1149,7 @@ export const PAPER_CONFIG: ModuleConfig = {
         instruction: '请每次只写一个小节，写完后生成小节摘要卡和下一节承接点。'
       }
     ],
-    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于 B 细胞亚群与 TLS 影响免疫治疗反应的论文 Discussion，请先帮我建立写作蓝图。',
+    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于缺血再灌注损伤中线粒体稳态的论文 Discussion，请先帮我建立写作蓝图。',
     fileFilters: [{ name: '科研写作材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送写作任务',
     constraints: [
@@ -1207,7 +1207,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
         instruction: '请把文献转化为组会汇报大纲，包含背景、科学问题、主图讲解、创新点、局限性和讨论问题。'
       }
     ],
-    placeholder: '请输入文献阅读目标、研究问题或粘贴 PMID/DOI/题名。也可以先添加 PDF 文件。例如：请精读这篇关于 TLS 和免疫治疗反应的论文，重点解释每个主图如何支持结论。',
+    placeholder: '请输入文献阅读目标、研究问题或粘贴 PMID/DOI/题名。也可以先添加 PDF 文件。例如：请精读这篇关于代谢重编程与心肌损伤的论文，重点解释每个主图如何支持结论。',
     fileFilters: [{ name: '文献材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送文献任务',
     constraints: [
@@ -1226,7 +1226,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
   quickPrompts: [
     '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论和局限性整理。',
     '请把这篇文献做成研究生组会汇报 PPT 大纲，包含背景、科学问题、每个主图的讲解、创新点、局限性和讨论问题。',
-    '请围绕 B 细胞亚群、TLS 和肿瘤免疫治疗反应检索最新文献，区分综述、原始研究和临床队列证据，并列出 PMID/DOI。'
+    '请围绕肠道菌群影响药物代谢检索最新文献，区分综述、原始研究、临床队列和数据库再分析证据，并列出 PMID/DOI。'
   ]
 }
 
@@ -1266,7 +1266,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
         instruction: '请只撰写用户指定的小节，写完后生成本节摘要卡片和下一节承接点。'
       }
     ],
-    placeholder: '请给出综述主题、中心论点、目标期刊/读者或已有文献列表。例如：我想写 B 细胞亚群在肿瘤免疫中的作用，重点围绕 TLS、浆细胞和免疫治疗反应。',
+    placeholder: '请给出综述主题、中心论点、目标期刊/读者或已有文献列表。例如：我想写细胞衰老在组织纤维化中的作用，重点比较不同器官、细胞来源和干预策略。',
     fileFilters: [{ name: '综述材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送综述任务',
     constraints: [
@@ -1283,8 +1283,8 @@ export const REVIEW_CONFIG: ModuleConfig = {
     { title: '争议梳理', description: '明确证据等级、替代解释和未解决问题' }
   ],
   quickPrompts: [
-    '帮我设计一篇关于 B 细胞亚群在肿瘤免疫中作用的综述蓝图，先明确中心论点、章节逻辑和每节边界。',
-    '围绕 TLS、浆细胞和免疫治疗反应整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
+    '帮我设计一篇关于细胞衰老与组织纤维化的综述蓝图，先明确中心论点、章节逻辑和每节边界。',
+    '围绕神经炎症、突触可塑性与认知障碍整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
     '帮我把这些文献组织成综述的段落链条，每次只写一个小节，写完后生成摘要卡片和下一节承接点。'
   ]
 }
@@ -1330,7 +1330,7 @@ export const GRANT_CONFIG: ModuleConfig = {
         instruction: '请补充可行性依据、技术风险、替代方案和结果解释边界。'
       }
     ],
-    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“肿瘤 TLS 中 B 细胞亚群调控免疫治疗反应的机制研究”，请先建立项目蓝图。',
+    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“机械应力调控骨重建的细胞与分子机制研究”，请先建立项目蓝图。',
     fileFilters: [{ name: '基金材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
     submitLabel: '发送基金任务',
     constraints: [
@@ -1365,9 +1365,9 @@ const TEXTBOOK_CONFIG: ModuleConfig = {
     { title: '全文连贯', description: '跨章节术语一致性和逻辑检查' }
   ],
   quickPrompts: [
-    '帮我撰写国自然面上项目的立项依据部分，研究方向是肿瘤免疫微环境',
-    '帮我写教材《免疫学》第三章"免疫应答"的内容',
-    '帮我撰写一篇关于 scRNA-seq 在肿瘤研究中应用的综述文章'
+    '帮我撰写国自然面上项目的立项依据部分，研究方向是代谢稳态与器官损伤',
+    '帮我写教材《生理学》中“心血管活动调节”的内容',
+    '帮我撰写一篇关于单细胞测序在生物医学研究中应用的综述文章'
   ]
 }
 
@@ -1379,7 +1379,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
-    summary: '不需要上传原始测序文件。这里更适合放整理后的表格或分析结果，让智能体先检查格式，再生成图表方案和免疫学解释。',
+    summary: '不需要上传原始测序文件。这里更适合放整理后的表格或分析结果，让智能体先检查格式，再生成图表方案和生物医学解释。',
     items: [
       {
         term: '表达矩阵',
@@ -1388,7 +1388,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
       },
       {
         term: '分组表',
-        description: '说明每个样本属于哪个组，常用于差异分析、PCA、热图注释和免疫治疗响应比较。',
+        description: '说明每个样本属于哪个组，常用于差异分析、PCA、热图注释和处理响应比较。',
         example: 'sample_id、group、treatment、response、batch 等列'
       },
       {
@@ -1399,13 +1399,13 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
     ],
     checklist: [
       '文件名和列名尽量保留清楚含义，避免只写 Sheet1、A、B、C。',
-      '请在输入框补充分组设计和想回答的免疫学问题，例如 B 细胞亚群、TLS 或治疗响应。',
+      '请在输入框补充分组设计和想回答的生物医学问题，例如代谢通路、细胞状态或处理响应。',
       'H5AD、RDS 等对象文件可以先上传，但需要让智能体检查对象结构后再决定能做哪些分析。'
     ]
   },
   taskEntry: {
     title: '开始科研数据分析任务',
-    description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的免疫学问题。',
+    description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的生物医学问题。',
     taskTypes: [
       {
         id: 'bulk',
@@ -1422,36 +1422,36 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
       {
         id: 'enrichment',
         label: '基因列表富集',
-        description: '对基因列表或差异基因做 GO/KEGG/GSEA 和免疫学解释。',
+        description: '对基因列表或差异基因做 GO/KEGG/GSEA 和生物学解释。',
         instruction: '请先确认基因 ID 类型、背景基因集和阈值，再进行富集分析和可视化建议。'
       },
       {
-        id: 'immune-report',
-        label: '免疫学解释报告',
-        description: '围绕 B 细胞、TLS、浆细胞、Tfh/Tfr 或免疫治疗反应解释结果。',
-        instruction: '请围绕用户指定的肿瘤免疫问题组织结果解释、图表建议、陷阱和验证实验。'
+        id: 'biomedical-report',
+        label: '生物医学解释报告',
+        description: '围绕用户指定的细胞类型、通路、疾病过程或干预响应解释结果。',
+        instruction: '请围绕用户指定的生物医学问题组织结果解释、图表建议、可能陷阱和验证实验。'
       }
     ],
-    placeholder: '请说明数据类型、文件内容、分组设计和想回答的问题。例如：我有 bulk RNA-seq 差异结果表，想围绕 B 细胞/TLS 解释免疫治疗响应差异，请先检查列名和阈值。',
+    placeholder: '请说明数据类型、文件内容、分组设计和想回答的问题。例如：我有 bulk RNA-seq 差异结果表，想解释药物处理后的代谢通路变化，请先检查列名和阈值。',
     fileFilters: [{ name: '下游分析数据', extensions: ['csv', 'tsv', 'xlsx', 'h5ad', 'rds', 'txt'] }],
     submitLabel: '发送分析任务',
     constraints: [
       '必须先检查数据格式、列名、样本分组、阈值和可用字段，再开始分析。',
       '明确统计/模型选择、关键 QC 点、可视化方案和可复现步骤。',
-      '转录特征不能直接等同功能结论，尤其是 B 细胞亚群、TLS、浆细胞和 Tfh/Tfr 解释。',
+      '转录特征不能直接等同功能结论；涉及细胞状态、通路活性或疾病机制时，应说明推断边界和验证方法。',
       '默认从整理后的数据开始，不从原始 FASTQ 开始。'
     ]
   },
   features: [
     { title: 'bulk mRNA 下游可视化', description: '从表达矩阵、分组表或差异结果生成 PCA、火山图、热图和富集图' },
     { title: '单细胞下游可视化', description: '从 h5ad/注释表/marker 表生成 UMAP、比例图、dotplot 和 violin 图' },
-    { title: '免疫学解释框架', description: '重点支持 B 细胞亚群、TLS、浆细胞、Tfh/Tfr 和免疫治疗反应解释' },
+    { title: '生物医学解释框架', description: '支持细胞类型、通路变化、疾病机制和干预响应等多类研究问题' },
     { title: '可复现交付', description: '输出图表、参数、代码、结果解释和可能陷阱，不从原始 FASTQ 开始' }
   ],
   quickPrompts: [
-    '我有整理好的 bulk mRNA 差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和免疫学解释报告。',
-    '我有整理好的单细胞 h5ad 或细胞注释表。请做下游可视化：UMAP、细胞比例、B 细胞亚群 marker dotplot、violin 图，并说明哪些结论只是转录特征推断。',
-    '请围绕肿瘤免疫中的 B 细胞/TLS 主题，对我提供的基因列表或 marker 表做通路富集和可视化，报告背景基因集、FDR 和解释边界。'
+    '我有整理好的 bulk mRNA 差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和生物医学解释报告。',
+    '我有整理好的单细胞 h5ad 或细胞注释表。请做下游可视化：UMAP、细胞比例、主要细胞群 marker dotplot、violin 图，并说明哪些结论只是转录特征推断。',
+    '请围绕药物处理后的代谢重编程，对我提供的基因列表或 marker 表做通路富集和可视化，报告背景基因集、FDR 和解释边界。'
   ]
 }
 
@@ -1937,7 +1937,7 @@ export function SyllabusPage({
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
-                  placeholder="如：医学免疫学"
+                  placeholder="如：生理学"
                 />
               </div>
               <div>
@@ -1947,7 +1947,7 @@ export function SyllabusPage({
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
-                  placeholder="如：第二十三章 移植免疫"
+                  placeholder="如：第八章 心血管活动调节"
                 />
               </div>
               <div>
@@ -1993,7 +1993,7 @@ export function SyllabusPage({
                     setSchool(e.target.value)
                   }}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
-                  placeholder="如：仙交大"
+                  placeholder="如：某医科大学"
                 />
               </div>
               <div>
@@ -2006,7 +2006,7 @@ export function SyllabusPage({
                     setDepartment(e.target.value)
                   }}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
-                  placeholder="如：基础医学院病原生物学与免疫学系"
+                  placeholder="如：基础医学院生理学系"
                 />
               </div>
             </div>
@@ -2103,7 +2103,7 @@ export function SyllabusPage({
                   onChange={(e) => setTextSource(e.target.value)}
                   rows={4}
                   className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-ui-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 resize-y"
-                  placeholder="请在此处粘贴本章的大纲结构、核心知识点、PPT大纲或要求生成教案的简短描述（例如：第一节 移植免疫概述；第二节 同种异型移植排斥反应机制；第三节 移植排斥反应的临床类型与特点）..."
+                  placeholder="请在此处粘贴本章的大纲结构、核心知识点、PPT 大纲或教案要求（例如：第一节 动脉血压的形成；第二节 心血管活动的神经调节；第三节 高血压病例讨论）..."
                   required={sourceType === 'text'}
                 />
               </div>

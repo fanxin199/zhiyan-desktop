@@ -761,6 +761,17 @@ describe('write inline completion runtime config', () => {
     expect(resolveWriteInlineCompletionBaseUrl(state)).toBe('https://write-only.example/v1')
   })
 
+  it('follows the active non-DeepSeek provider baseUrl', () => {
+    const state = settings()
+    const kimi = state.provider.providers.find((profile) => profile.id === 'kimi')
+    if (!kimi) throw new Error('Missing Kimi provider preset')
+    kimi.baseUrl = 'https://api.moonshot.cn/v1'
+    state.agents.kun.providerId = 'kimi'
+    state.agents.kun.baseUrl = ''
+
+    expect(resolveWriteInlineCompletionBaseUrl(state)).toBe('https://api.moonshot.cn/v1')
+  })
+
   it('falls back to the kun model when write keeps the default inline model', () => {
     const state = settings()
     state.agents.kun.model = 'deepseek-chat'

@@ -44,7 +44,7 @@ export const textbookFormatRulesSchema = z.object({
 
 export const textbookMetadataSchema = z.object({
   title: z.string().trim().min(1).max(300),
-  subject: z.string().trim().max(300).default('医学免疫学'),
+  subject: z.string().trim().max(300).default('生物医学'),
   audience: z.enum(TEXTBOOK_AUDIENCES).default('undergraduate'),
   author: z.string().trim().max(200).default(''),
   writingGoal: z.string().trim().max(4_000).default(''),

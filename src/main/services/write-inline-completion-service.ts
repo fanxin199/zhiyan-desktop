@@ -4,6 +4,7 @@ import {
   resolveWriteInlineCompletionApiKey,
   resolveWriteInlineCompletionBaseUrl,
   resolveWriteInlineCompletionModel,
+  resolveKunRuntimeSettings,
   type AppSettingsV1
 } from '../../shared/app-settings'
 import {
@@ -554,7 +555,8 @@ export async function requestWriteInlineCompletion(
   const model = resolveModel(request, settings)
   const mode = resolveMode(request)
   const actionMayEdit = Boolean(request.editCandidate && request.recentEdits?.length)
-  const useChatCompletions = mode === 'edit' || actionMayEdit
+  const providerId = resolveKunRuntimeSettings(settings).providerId || 'deepseek'
+  const useChatCompletions = providerId !== 'deepseek' || mode === 'edit' || actionMayEdit
   const baseUrl = resolveWriteInlineCompletionBaseUrl(settings)
   const url = useChatCompletions
     ? upstreamOpenAiChatCompletionsUrl(baseUrl)

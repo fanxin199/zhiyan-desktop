@@ -150,8 +150,8 @@ Options:
   --port <port>            HTTP port (default ${DEFAULT_SERVE_PORT})
   --data-dir <path>        Root directory for threads, events, and usage
   --runtime-token <token>  Bearer token for /v1/* requests
-  --api-key <key>          DeepSeek-compatible API key
-  --base-url <url>         DeepSeek-compatible base URL
+  --api-key <key>          OpenAI-compatible provider API key
+  --base-url <url>         OpenAI-compatible provider base URL
   --model <model>          Default model id
   --approval-policy <p>    on-request | untrusted | never | auto | suggest
   --sandbox-mode <mode>    read-only | workspace-write | danger-full-access | external-sandbox

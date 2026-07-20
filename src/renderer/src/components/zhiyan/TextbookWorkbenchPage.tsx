@@ -115,11 +115,11 @@ function slugId(prefix: string): string {
 
 function initialMetadata(): TextbookMetadata {
   return {
-    title: '医学免疫学',
-    subject: '医学免疫学',
+    title: '生物医学课程教材',
+    subject: '生物医学',
     audience: 'undergraduate',
     author: '',
-    writingGoal: '面向医学生建立清晰、系统、可用于临床与科研理解的免疫学知识框架。',
+    writingGoal: '面向医学生建立清晰、系统、能够衔接临床实践与科研问题的知识框架。',
     citationStyle: 'gbt7714',
     outputFormats: ['markdown', 'docx', 'project']
   }
@@ -975,7 +975,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   onChange={(event) => setTeacherBrief(event.target.value)}
                   rows={6}
                   className={fieldClass}
-                  placeholder="例如：重点覆盖免疫器官、固有免疫、适应性免疫、肿瘤免疫；每章设置临床案例和思考题。"
+                  placeholder="例如：重点覆盖细胞稳态、器官功能、疾病机制和药物干预；每章设置临床案例和思考题。"
                 />
                 <button
                   type="button"
@@ -1207,7 +1207,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   onChange={(event) => setSectionInstruction(event.target.value)}
                   rows={4}
                   className={fieldClass}
-                  placeholder="输入对当前节的要求，例如：增加 TLS 与 B 细胞亚群内容；压缩到 2500 字；改成本科教材语气。"
+                  placeholder="输入对当前节的要求，例如：增加机制图与临床案例；压缩到 2500 字；改成本科教材语气。"
                 />
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[

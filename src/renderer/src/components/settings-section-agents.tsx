@@ -169,6 +169,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
     activeApiKey,
     update,
     updateKun,
+    selectModelProvider,
     updateSharedCredential,
     sharedApiKey,
     sharedBaseUrl,
@@ -467,7 +468,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           <select
                             className={selectControlClass}
                             value={activeProvider?.id ?? DEFAULT_MODEL_PROVIDER_ID}
-                            onChange={(e) => updateKun({ providerId: e.target.value })}
+                            onChange={(e) => selectModelProvider(e.target.value)}
                           >
                             {modelProviders.map((item) => (
                               <option key={item.id} value={item.id}>{item.name}</option>

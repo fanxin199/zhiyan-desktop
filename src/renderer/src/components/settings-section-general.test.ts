@@ -116,11 +116,16 @@ function settings(): AppSettingsV1 {
 function baseCtx(): Record<string, unknown> {
   const noop = () => undefined
   const asyncNoop = async () => undefined
+  const form = settings()
+  const activeProvider = form.provider.providers[0]
   return {
     t,
     tCommon: t,
-    form: settings(),
+    form,
     kun: defaultKunRuntimeSettings(),
+    provider: form.provider,
+    activeProvider,
+    selectModelProvider: noop,
     activeApiKey: '',
     update: noop,
     updateKun: noop,

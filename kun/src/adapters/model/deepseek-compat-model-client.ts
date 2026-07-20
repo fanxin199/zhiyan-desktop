@@ -160,8 +160,15 @@ export class DeepseekCompatModelClient implements ModelClient {
   }
 
   private buildUrl(path: string): string {
-    const base = this.config.baseUrl.replace(/\/+$/, '')
-    return `${base}${path}`
+    let base = this.config.baseUrl.replace(/\/+$/, '')
+    let normalizedPath = path.replace(/^\/+/, '')
+    const lastSegment = base.split('/').pop()?.toLowerCase() ?? ''
+    if (lastSegment === 'beta' && normalizedPath.startsWith('v1/')) {
+      base = base.slice(0, base.lastIndexOf('/'))
+    } else if (/^v\d+$/i.test(lastSegment) && normalizedPath.startsWith('v1/')) {
+      normalizedPath = normalizedPath.slice('v1/'.length)
+    }
+    return `${base}/${normalizedPath}`
   }
 
   private buildHeaders(stream: boolean): Record<string, string> {
@@ -221,7 +228,11 @@ export class DeepseekCompatModelClient implements ModelClient {
       body.response_format = { type: 'json_object' }
     }
     const includeThinking = !isAzureOpenAiEndpoint(this.config.baseUrl)
-    applyReasoningEffort(body, request.reasoningEffort, { includeThinking })
+    applyReasoningEffort(body, request.reasoningEffort, {
+      includeThinking,
+      baseUrl: this.config.baseUrl,
+      model
+    })
     if (
       includeThinking &&
       !Object.prototype.hasOwnProperty.call(body, 'thinking') &&
@@ -709,10 +720,28 @@ function normalizeToolSpecs(tools: ModelToolSpec[]): ModelToolSpec[] {
 function applyReasoningEffort(
   body: Record<string, unknown>,
   effort: string | undefined,
-  options: { includeThinking?: boolean } = {}
+  options: { includeThinking?: boolean; baseUrl?: string; model?: string } = {}
 ): void {
   const normalized = effort?.trim().toLowerCase()
   if (!normalized) return
+  if (normalizeModelId(options.model) === 'kimi-k3') {
+    body.reasoning_effort = ['off', 'disabled', 'none', 'false', 'low'].includes(normalized)
+      ? 'low'
+      : ['max', 'maximum', 'xhigh'].includes(normalized)
+        ? 'max'
+        : 'high'
+    return
+  }
+  if (normalizeModelId(options.model).startsWith('kimi-k2')) {
+    const canDisable = !normalizeModelId(options.model).startsWith('kimi-k2.7-code')
+    const disabled = ['off', 'disabled', 'none', 'false'].includes(normalized)
+    body.thinking = { type: canDisable && disabled ? 'disabled' : 'enabled' }
+    return
+  }
+  if (usesQwenThinking(options.baseUrl, options.model)) {
+    body.enable_thinking = !['off', 'disabled', 'none', 'false'].includes(normalized)
+    return
+  }
   const includeThinking = options.includeThinking !== false
   switch (normalized) {
     case 'off':
@@ -735,6 +764,20 @@ function applyReasoningEffort(
       body.reasoning_effort = 'max'
       if (includeThinking) body.thinking = { type: 'enabled' }
       break
+  }
+}
+
+function usesQwenThinking(baseUrl: string | undefined, model: string | undefined): boolean {
+  const normalizedModel = normalizeModelId(model)
+  if (normalizedModel.startsWith('qwen')) return true
+  try {
+    const host = new URL(baseUrl ?? '').hostname.toLowerCase()
+    return (host.endsWith('.aliyuncs.com') || host.endsWith('.maas.aliyuncs.com')) &&
+      !normalizedModel.startsWith('glm') &&
+      !normalizedModel.startsWith('kimi') &&
+      !normalizedModel.startsWith('deepseek')
+  } catch {
+    return false
   }
 }
 

@@ -44,10 +44,13 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
     t,
     tCommon,
     form,
+    provider,
+    activeProvider,
     kun,
     activeApiKey,
     update,
     updateKun,
+    selectModelProvider,
     updateSharedCredential,
     sharedApiKey,
     sharedBaseUrl,
@@ -139,6 +142,21 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
   return (
             <>
               <SettingsCard title={t('sectionGeneral')}>
+                <SettingRow
+                  title={t('activeModelProvider')}
+                  description={t('activeModelProviderDesc')}
+                  control={
+                    <select
+                      className={selectControlClass}
+                      value={activeProvider.id}
+                      onChange={(e) => selectModelProvider(e.target.value)}
+                    >
+                      {provider.providers.map((item: { id: string; name: string }) => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                  }
+                />
                 <SettingRow
                   title={t('apiKey')}
                   description={t('apiKeySharedDesc')}

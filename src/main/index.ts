@@ -491,7 +491,7 @@ async function ensureKunRuntime(settings: AppSettingsV1): Promise<void> {
   if (!hasApiKey) {
     throw runtimeJsonError(
       'missing_api_key',
-      'DeepSeek API Key is required before the GUI can start Kun.'
+      'An API key for the selected model provider is required before the GUI can start Kun.'
     )
   }
   if (!runtime.autoStart) {

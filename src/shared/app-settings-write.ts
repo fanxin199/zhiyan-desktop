@@ -14,7 +14,7 @@ import {
   type WriteSettingsV1
 } from './app-settings-types'
 import { getActiveAgentApiKey, getKunRuntimeSettings } from './app-settings-kun'
-import { resolveModelProviderBaseUrl } from './app-settings-provider'
+import { resolveKunRuntimeSettings } from './app-settings-provider'
 import { compactStrings } from './app-settings-normalizers'
 
 export function defaultWriteSettings(): WriteSettingsV1 {
@@ -111,7 +111,7 @@ export function resolveWriteInlineCompletionBaseUrl(settings: AppSettingsV1): st
   if (configured && configured !== DEFAULT_WRITE_INLINE_COMPLETION_BASE_URL) {
     return configured
   }
-  return resolveModelProviderBaseUrl(settings)
+  return resolveKunRuntimeSettings(settings).baseUrl
 }
 
 export function resolveWriteInlineCompletionApiKey(settings: AppSettingsV1): string {

@@ -2,10 +2,14 @@ import { type CSSProperties, type ReactElement, useEffect, useState } from 'reac
 import { useTranslation } from 'react-i18next'
 import {
   getActiveAgentApiKey,
+  getKunRuntimeSettings,
+  getModelProviderProfile,
   getModelProviderSettings,
+  MODEL_PROVIDER_PRESETS,
   normalizeAppSettings,
   type AppSettingsPatch,
-  type AppSettingsV1
+  type AppSettingsV1,
+  type ModelProviderProfileV1
 } from '@shared/app-settings'
 import { rendererRuntimeClient } from '../agent/runtime-client'
 import { applyTheme } from '../lib/apply-theme'
@@ -21,8 +25,6 @@ const themeOptions: { value: ThemePref; icon: typeof Sun; labelKey: string }[] =
   { value: 'light', icon: Sun, labelKey: 'themeLight' },
   { value: 'dark', icon: Moon, labelKey: 'themeDark' }
 ]
-const DEEPSEEK_USAGE_URL = 'https://platform.deepseek.com/usage'
-
 export function InitialSetupDialog(): ReactElement {
   const { t } = useTranslation('settings')
   const initialSetupMode = useChatStore((s) => s.initialSetupMode)
@@ -36,7 +38,10 @@ export function InitialSetupDialog(): ReactElement {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const isPreview = initialSetupMode === 'preview'
-  const provider = form ? getModelProviderSettings(form) : null
+  const providerSettings = form ? getModelProviderSettings(form) : null
+  const kun = form ? getKunRuntimeSettings(form) : null
+  const activeProvider = form ? getModelProviderProfile(form, kun?.providerId) : null
+  const activePreset = MODEL_PROVIDER_PRESETS.find((preset) => preset.id === activeProvider?.id)
 
   useEffect(() => {
     let cancelled = false
@@ -64,8 +69,40 @@ export function InitialSetupDialog(): ReactElement {
     setForm(next)
   }
 
-  const updateProvider = (patch: Partial<AppSettingsV1['provider']>): void => {
-    updateForm({ provider: patch })
+  const updateActiveProvider = (patch: Partial<ModelProviderProfileV1>): void => {
+    if (!providerSettings || !activeProvider) return
+    const providers = providerSettings.providers.map((provider) =>
+      provider.id === activeProvider.id ? { ...provider, ...patch } : provider
+    )
+    updateForm({
+      provider: {
+        ...(activeProvider.id === 'deepseek'
+          ? {
+              apiKey: patch.apiKey ?? activeProvider.apiKey,
+              baseUrl: patch.baseUrl ?? activeProvider.baseUrl
+            }
+          : {}),
+        providers
+      }
+    })
+  }
+
+  const handleProviderChange = (providerId: string): void => {
+    if (!form || !providerSettings) return
+    const provider = providerSettings.providers.find((item) => item.id === providerId)
+    if (!provider) return
+    const preset = MODEL_PROVIDER_PRESETS.find((item) => item.id === providerId)
+    updateForm({
+      agents: {
+        kun: {
+          ...form.agents.kun,
+          providerId,
+          apiKey: '',
+          baseUrl: '',
+          model: preset?.recommendedModel ?? provider.models[0] ?? form.agents.kun.model
+        }
+      }
+    })
   }
 
   const handleThemeChange = (theme: ThemePref) => {
@@ -82,7 +119,8 @@ export function InitialSetupDialog(): ReactElement {
 
   const handleOpenOfficialApiPage = () => {
     if (typeof window.dsGui?.openExternal !== 'function') return
-    void window.dsGui.openExternal(DEEPSEEK_USAGE_URL).catch(() => undefined)
+    if (!activePreset?.consoleUrl) return
+    void window.dsGui.openExternal(activePreset.consoleUrl).catch(() => undefined)
   }
 
   const handleSave = async () => {
@@ -133,7 +171,7 @@ export function InitialSetupDialog(): ReactElement {
     'w-full rounded-xl border border-slate-300/75 bg-white/88 px-4 py-3 text-[15px] text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] outline-none transition focus:border-[#1388ff]/70 focus:ring-2 focus:ring-[#1388ff]/15 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:shadow-none dark:focus:border-[#3aa0ff]/70 dark:focus:ring-[#3aa0ff]/15 dark:placeholder:text-slate-500'
   const labelClass = 'text-sm font-semibold text-slate-700 dark:text-slate-200'
   const apiKeyMaskStyle: MaskedInputStyle | undefined =
-    !showApiKey && provider?.apiKey ? { WebkitTextSecurity: 'disc' } : undefined
+    !showApiKey && activeProvider?.apiKey ? { WebkitTextSecurity: 'disc' } : undefined
 
   return (
     <div className="ds-no-drag fixed inset-0 z-50 overflow-y-auto bg-[#eef2fb]/45 p-3 backdrop-blur-[18px] dark:bg-black/62 dark:backdrop-blur-[22px] sm:p-6">
@@ -217,13 +255,37 @@ export function InitialSetupDialog(): ReactElement {
 
           <div className="space-y-2.5 sm:space-y-3.5">
             <label className={labelClass}>
+              {t('firstRunProvider')}
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+              {providerSettings?.providers.map((provider) => {
+                const isActive = activeProvider?.id === provider.id
+                return (
+                  <button
+                    key={provider.id}
+                    type="button"
+                    onClick={() => handleProviderChange(provider.id)}
+                    className={choiceButtonClass(isActive)}
+                  >
+                    <span className="min-w-0 text-center leading-tight">{provider.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-[13px] leading-5 text-slate-500 dark:text-slate-400">
+              {t('firstRunProviderHint')}
+            </p>
+          </div>
+
+          <div className="space-y-2.5 sm:space-y-3.5">
+            <label className={labelClass}>
               {t('apiKey')}
             </label>
             <div className="relative">
               <input
                 type="text"
-                value={provider?.apiKey ?? ''}
-                onChange={(e) => updateProvider({ apiKey: e.target.value })}
+                value={activeProvider?.apiKey ?? ''}
+                onChange={(e) => updateActiveProvider({ apiKey: e.target.value })}
                 placeholder="sk-..."
                 autoComplete="off"
                 autoCorrect="off"
@@ -244,14 +306,16 @@ export function InitialSetupDialog(): ReactElement {
               <p className="min-w-0 leading-6">
                 {t('firstRunBuyApiHint')}
               </p>
-              <button
-                type="button"
-                onClick={handleOpenOfficialApiPage}
-                className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#1388ff]/24 bg-[#1388ff]/[0.06] px-3 py-1.5 text-[12.5px] font-semibold text-[#1377df] transition hover:bg-[#1388ff]/[0.1] dark:border-[#3aa0ff]/22 dark:bg-[#3aa0ff]/[0.12] dark:text-[#88c8ff] dark:hover:bg-[#3aa0ff]/[0.18]"
-              >
-                <span className="min-w-0 text-center leading-tight">{t('firstRunBuyApiAction')}</span>
-                <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.9} />
-              </button>
+              {activePreset ? (
+                <button
+                  type="button"
+                  onClick={handleOpenOfficialApiPage}
+                  className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#1388ff]/24 bg-[#1388ff]/[0.06] px-3 py-1.5 text-[12.5px] font-semibold text-[#1377df] transition hover:bg-[#1388ff]/[0.1] dark:border-[#3aa0ff]/22 dark:bg-[#3aa0ff]/[0.12] dark:text-[#88c8ff] dark:hover:bg-[#3aa0ff]/[0.18]"
+                >
+                  <span className="min-w-0 text-center leading-tight">{t('firstRunBuyApiAction')}</span>
+                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.9} />
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -261,9 +325,9 @@ export function InitialSetupDialog(): ReactElement {
             </label>
             <input
               type="text"
-              value={provider?.baseUrl ?? ''}
-              onChange={(e) => updateProvider({ baseUrl: e.target.value })}
-              placeholder="https://api.deepseek.com"
+              value={activeProvider?.baseUrl ?? ''}
+              onChange={(e) => updateActiveProvider({ baseUrl: e.target.value })}
+              placeholder={activePreset?.baseUrl ?? 'https://api.example.com/v1'}
               className={fieldClass}
             />
           </div>

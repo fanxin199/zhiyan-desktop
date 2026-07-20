@@ -293,7 +293,7 @@ export function buildResearchEvidencePrompt(): string {
     '- 【摘要/元数据】：只获得摘要、题名或书目信息；不得据此声称已核查全文。',
     '- 【数据库结果】：来自 PubMed、OpenAlex、Crossref 或其他数据库的检索记录。',
     '- 【相关性推断】：数据或文献只支持关联，不写成因果关系。',
-    '- 【机制假设】：基于免疫学逻辑的解释，需要进一步实验验证。',
+    '- 【机制假设】：基于生物医学机制逻辑的解释，需要进一步实验验证。',
     '',
     '文献引用必须保留题名、年份、来源以及 DOI/PMID 等可核验标识。无法获得 DOI/PMID 时留空并在正文标明“标识未核验”，严禁编造。',
     '回答末尾追加以下隐藏记录；每条关键结论一个 record，kind 只能使用 user_material、full_text、abstract_metadata、database_result、correlation_inference、mechanism_hypothesis：',

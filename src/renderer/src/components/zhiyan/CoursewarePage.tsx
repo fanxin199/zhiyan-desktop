@@ -838,7 +838,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                         ...current,
                         focus: event.target.value
                       }))}
-                      placeholder="例如：突出三信号模型，并加入免疫耐受临床案例"
+                      placeholder="例如：突出血压调节的机制链，并加入高血压临床案例"
                       className={fieldClass}
                     />
                   </label>
@@ -1130,7 +1130,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                 <input
                   value={blueprintInstruction}
                   onChange={(event) => setBlueprintInstruction(event.target.value)}
-                  placeholder="例如：增加一个自身免疫病临床案例，压缩受体结构部分"
+                  placeholder="例如：增加一个药物不良反应案例，压缩历史背景部分"
                   className={fieldClass}
                 />
                 <button

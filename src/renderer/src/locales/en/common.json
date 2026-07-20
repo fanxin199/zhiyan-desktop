@@ -851,7 +851,7 @@
   "runtimeActionNeedsConnection": "Connect to the runtime first (see status bar).",
   "runtimeFetchFailed": "Could not reach Kun. Make sure `kun serve` is running, or enable auto-start in Settings.",
   "runtimeBinaryNotInstalled": "The Kun CLI was not found. Reinstall ZhiYan Assistant, or set the binary path in advanced settings.",
-  "runtimeMissingApiKey": "DeepSeek API Key is missing. Open Settings and add it before the GUI can start the local runtime.",
+  "runtimeMissingApiKey": "The selected model provider has no API key. Add it in Settings before the app starts the local AI assistant.",
   "runtimeAutoStartDisabled": "Kun is offline. Enable automatic startup in Settings, or start `kun serve` manually.",
   "runtimeUnhealthy": "The local runtime is currently unavailable. Check the port, token, or runtime status.",
   "runtimeAuthRequired": "The local runtime requires a bearer token for thread APIs. Add the runtime token in Settings, or restart the GUI so it can manage the local runtime again.",

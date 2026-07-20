@@ -14,12 +14,53 @@ import { DEFAULT_COMPOSER_MODEL_IDS } from './default-composer-models'
 
 const DEFAULT_MODEL_PROVIDER_NAME = 'DeepSeek'
 
+export type ModelProviderPreset = Omit<ModelProviderProfileV1, 'apiKey'> & {
+  recommendedModel: string
+  consoleUrl: string
+}
+
+export const MODEL_PROVIDER_PRESETS: readonly ModelProviderPreset[] = [
+  {
+    id: DEFAULT_MODEL_PROVIDER_ID,
+    name: DEFAULT_MODEL_PROVIDER_NAME,
+    baseUrl: DEFAULT_DEEPSEEK_BASE_URL,
+    models: DEFAULT_COMPOSER_MODEL_IDS.filter((id) => id !== 'auto'),
+    recommendedModel: 'deepseek-v4-pro',
+    consoleUrl: 'https://platform.deepseek.com/api_keys'
+  },
+  {
+    id: 'kimi',
+    name: 'Kimi',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    models: ['kimi-k3', 'kimi-k2.6', 'kimi-k2.5'],
+    recommendedModel: 'kimi-k3',
+    consoleUrl: 'https://platform.moonshot.cn/console/api-keys'
+  },
+  {
+    id: 'qwen',
+    name: '通义千问',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    models: ['qwen3.7-plus', 'qwen3.7-max', 'qwen3.6-flash'],
+    recommendedModel: 'qwen3.7-plus',
+    consoleUrl: 'https://bailian.console.aliyun.com/'
+  },
+  {
+    id: 'glm',
+    name: '智谱 GLM',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    models: ['glm-5.2', 'glm-5', 'glm-4.7'],
+    recommendedModel: 'glm-5.2',
+    consoleUrl: 'https://bigmodel.cn/usercenter/proj-mgmt/apikeys'
+  }
+]
+
 export function defaultModelProviderSettings(): ModelProviderSettingsV1 {
-  const defaultProvider = defaultModelProviderProfile('', DEFAULT_DEEPSEEK_BASE_URL)
+  const providers = defaultModelProviderProfiles('', DEFAULT_DEEPSEEK_BASE_URL)
+  const defaultProvider = providers[0]
   return {
-    apiKey: defaultProvider.apiKey,
-    baseUrl: defaultProvider.baseUrl,
-    providers: [defaultProvider]
+    apiKey: defaultProvider?.apiKey ?? '',
+    baseUrl: defaultProvider?.baseUrl ?? DEFAULT_DEEPSEEK_BASE_URL,
+    providers
   }
 }
 
@@ -34,8 +75,9 @@ export function normalizeModelProviderSettings(
       : defaults.baseUrl
   const rawProviders = Array.isArray(input?.providers) ? input.providers : []
   const providersById = new Map<string, ModelProviderProfileV1>()
-  const defaultProvider = defaultModelProviderProfile(apiKey, baseUrl)
-  providersById.set(defaultProvider.id, defaultProvider)
+  const defaultProfiles = defaultModelProviderProfiles(apiKey, baseUrl)
+  const defaultProvider = defaultProfiles[0] ?? defaultModelProviderProfile(apiKey, baseUrl)
+  for (const provider of defaultProfiles) providersById.set(provider.id, provider)
   for (const rawProvider of rawProviders) {
     const provider = normalizeModelProviderProfile(rawProvider)
     if (!provider) continue
@@ -133,6 +175,18 @@ function defaultModelProviderProfile(apiKey: string, baseUrl: string): ModelProv
     baseUrl: normalizeDeepseekBaseUrl(baseUrl),
     models: DEFAULT_COMPOSER_MODEL_IDS.filter((id) => id !== 'auto')
   }
+}
+
+function defaultModelProviderProfiles(apiKey: string, baseUrl: string): ModelProviderProfileV1[] {
+  return MODEL_PROVIDER_PRESETS.map((preset) => ({
+    id: preset.id,
+    name: preset.name,
+    apiKey: preset.id === DEFAULT_MODEL_PROVIDER_ID ? apiKey.trim() : '',
+    baseUrl: preset.id === DEFAULT_MODEL_PROVIDER_ID
+      ? normalizeDeepseekBaseUrl(baseUrl)
+      : preset.baseUrl,
+    models: [...preset.models]
+  }))
 }
 
 function normalizeModelProviderProfile(

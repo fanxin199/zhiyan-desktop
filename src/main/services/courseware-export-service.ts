@@ -92,7 +92,7 @@ function safeFileName(value: string): string {
     .replace(/\.+$/g, '')
     .replace(/\s+/g, ' ')
     .trim()
-  return (cleaned || '医学免疫学课件').slice(0, 90)
+  return (cleaned || '生物医学课件').slice(0, 90)
 }
 
 function escapeHtml(value: string): string {

@@ -57,6 +57,32 @@ function settings(): AppSettingsV1 {
 }
 
 describe('model provider settings', () => {
+  it('offers ready-to-configure presets for major Chinese model providers', () => {
+    const providers = defaultModelProviderSettings().providers
+
+    expect(providers.map((provider) => provider.id)).toEqual([
+      'deepseek',
+      'kimi',
+      'qwen',
+      'glm'
+    ])
+    expect(providers.find((provider) => provider.id === 'kimi')).toMatchObject({
+      name: 'Kimi',
+      baseUrl: 'https://api.moonshot.cn/v1',
+      models: expect.arrayContaining(['kimi-k3', 'kimi-k2.6'])
+    })
+    expect(providers.find((provider) => provider.id === 'qwen')).toMatchObject({
+      name: '通义千问',
+      baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      models: expect.arrayContaining(['qwen3.7-plus', 'qwen3.7-max'])
+    })
+    expect(providers.find((provider) => provider.id === 'glm')).toMatchObject({
+      name: '智谱 GLM',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      models: expect.arrayContaining(['glm-5.2', 'glm-5'])
+    })
+  })
+
   it('resolves Kun runtime credentials from the selected provider', () => {
     const runtime = resolveKunRuntimeSettings(settings())
 

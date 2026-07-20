@@ -75,9 +75,9 @@ function audienceInstruction(audience: CoursewareAudience): string {
     return '面向研究生：增加机制深度、争议点、实验设计、检测方法、替代解释和证据边界。'
   }
   if (audience === 'international') {
-    return '面向国际学生：使用清晰英文作为课件主语言，关键免疫学术语附中英对照，避免中文语境隐含知识。'
+    return '面向国际学生：使用清晰英文作为课件主语言，关键专业术语附中英对照，避免中文语境隐含知识。'
   }
-  return '面向本科二年级：先讲清主线和概念边界，少堆名词，多用机制链条和临床例子，强调为什么免疫系统这样设计。'
+  return '面向本科二年级：先讲清主线和概念边界，少堆名词，多用机制链条和临床或实验例子，强调结构、功能与调控之间的关系。'
 }
 
 function clipText(text: string, maxChars: number): string {
@@ -269,7 +269,7 @@ export async function generateCoursewareBlueprint(
       {
         role: 'system',
         content: [
-          '你是医学免疫学课程设计专家。',
+          '你是生物医学课程设计专家。严格围绕教师提供的学科、主题和材料工作，不擅自改成免疫学课程。',
           audienceInstruction(input.request.audience),
           '先设计教学蓝图，不生成逐页课件。',
           '无论教材多长，全部 section 的 slideCount 总和不得超过 35 页。',
@@ -518,7 +518,7 @@ async function generateSlideBatch(
       {
         role: 'system',
         content: [
-          '你是医学免疫学课件编写专家。',
+          '你是生物医学课件编写专家。严格围绕教师提供的学科、主题和材料工作，不擅自改成免疫学课程。',
           audienceInstruction(input.request.audience),
           '交付物必须是教师可直接投屏授课的正式课件，不是教学大纲、写作建议或备课提示。',
           '严格按逐页任务清单生成课件，每一页必须解决不同的教学问题。',
@@ -696,7 +696,7 @@ export async function regenerateCoursewareSlide(
       {
         role: 'system',
         content: [
-          '你只重写一页医学免疫学课件。',
+          '你只重写一页生物医学课件，并保持教师原有学科与主题不变。',
           audienceInstruction(input.request.audience),
           '保持 slide id 与 sectionId 不变，只按教师指令修改当前页。',
           '只返回单个合法 JSON 对象。',

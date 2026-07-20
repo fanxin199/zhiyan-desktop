@@ -168,6 +168,40 @@ describe('requestWriteInlineCompletion', () => {
     })
   })
 
+  it('uses OpenAI-compatible chat completions for non-DeepSeek providers', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({
+        choices: [{ message: { content: '<<<SHORT\n only a test\n>>>' } }]
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const settings = createSettings({ maxTokens: 64 })
+    const kimi = settings.provider.providers.find((profile) => profile.id === 'kimi')
+    if (!kimi) throw new Error('Missing Kimi provider preset')
+    kimi.apiKey = 'sk-kimi'
+    settings.agents.kun = {
+      ...settings.agents.kun,
+      providerId: 'kimi',
+      apiKey: '',
+      baseUrl: '',
+      model: 'kimi-k3'
+    }
+    const request = { ...createRequest(), model: 'kimi-k3' }
+
+    const result = await requestWriteInlineCompletion(settings, request)
+
+    expect(result).toMatchObject({ ok: true, completion: ' only a test', model: 'kimi-k3' })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://api.moonshot.cn/v1/chat/completions')
+    expect(init.headers).toMatchObject({ Authorization: 'Bearer sk-kimi' })
+    const body = JSON.parse(String(init.body)) as { messages?: unknown[]; prompt?: string }
+    expect(body.messages).toHaveLength(2)
+    expect(body.prompt).toBeUndefined()
+  })
+
   it('retries transient inline completion provider failures', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response('temporary overload', { status: 503 }))
