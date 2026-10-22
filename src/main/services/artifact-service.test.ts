@@ -70,6 +70,9 @@ describe('ArtifactRegistry', () => {
     expect(second.createdAt).toBe(first.createdAt)
     expect(second).toMatchObject({ title: '第八章 呼吸系统教案', stage: '已导出' })
     expect(await registry.list()).toHaveLength(1)
+
+    const kept = await registry.register({ ...input, kind: 'document', toolId: 'write', title: 'draft', ifMissing: true })
+    expect(kept).toMatchObject({ id: first.id, kind: 'lesson-plan', toolId: 'syllabus', title: '第八章 呼吸系统教案' })
   })
 
   it('updates the stage and progress and can clear the progress', async () => {

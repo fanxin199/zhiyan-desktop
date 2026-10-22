@@ -70,6 +70,7 @@ export class ArtifactRegistry {
     return this.mutate((file) => {
       const timestamp = this.now().toISOString()
       const existing = file.artifacts.find((artifact) => samePath(artifact.storage.path, storagePath))
+      if (existing && request.ifMissing) return { file, result: existing }
       if (existing) {
         // Saving the same file again refreshes its entry instead of adding a duplicate.
         const updated: ArtifactRecord = {

@@ -300,3 +300,25 @@ describe('module output to free writing draft', () => {
     )).toBe('自然基金 B TLS 项目-2026-06-30T02-03-04-005Z.md')
   })
 })
+
+describe('module drafts in the writing workspace', () => {
+  it('registers lesson plans as lesson plans and other module results as documents', () => {
+    expect(workbench.moduleWriteDraftArtifact(
+      { title: '智能教案', content: '…', sourceModule: 'syllabus' },
+      '/write',
+      '/write/智能教案.md'
+    )).toEqual({
+      kind: 'lesson-plan',
+      title: '智能教案',
+      toolId: 'syllabus',
+      workspaceRoot: '/write',
+      storage: { type: 'file', path: '/write/智能教案.md' },
+      stage: '初稿'
+    })
+    expect(workbench.moduleWriteDraftArtifact(
+      { title: '综述撰写结果', content: '…', sourceModule: 'review-writing' },
+      '/write',
+      '/write/综述.md'
+    )).toMatchObject({ kind: 'document', toolId: 'review-writing' })
+  })
+})

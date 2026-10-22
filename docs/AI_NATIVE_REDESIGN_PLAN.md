@@ -427,7 +427,7 @@ type TeacherPreference = {
 
 - [x] **1.1.1** 在 `src/shared/` 定义 §6.1 的类型与 zod schema；实现 `src/main/services/artifact-service.ts`（登记、查询、更新阶段与进度）；同步 `app-ipc-schemas.ts`、`register-app-ipc-handlers.ts`、`src/preload/index.ts` 和 `index.d.ts`。类型与 zod schema 在 `src/shared/artifact.ts`；登记表为应用数据目录下的 `zhiyan-artifacts.json`（先写临时文件再替换，单个损坏条目不影响其余条目）。`ArtifactRecord` 比 §6.1 多一个 `workspaceRoot`：登记时路径按该工作区做边界校验，成果文件和版本都必须留在其中。同一文件再次登记时更新原条目，不重复登记；列表按更新时间倒序，文件被移走的条目标记为不可用（`available: false`）而不删除。IPC：`artifact:register`（要求工作区已配置或经老师选择）、`artifact:update`、`artifact:get`、`artifact:list`。新增 `artifact-service.test.ts` 和 `register-app-ipc-handlers.test.ts` 用例。
 - [x] **1.1.2** 实现版本服务：创建、列出、恢复（恢复也生成新版本）和保留策略；所有路径经过工作区边界校验。`src/main/services/artifact-version-service.ts`。确认的存放方案：版本放在成果所在目录的 `.zhiyan/versions/<artifactId>/`，`versions.json` 记录版本，内容按 SHA-256 存在 `blobs/` 下；文本成果存整份文件，课件项目包拆成包内文件分别存放，图片在各版本间只存一份，恢复时重新打包。与最新版本内容相同的保存（如自动保存）不新增版本；恢复把旧内容写回并生成新版本（来源 `restore`），恢复时校验内容哈希，损坏则拒绝。保留最近 50 个版本，更早的每天保留最后一个，并清理不再引用的内容。成果文件和版本目录都按登记时的工作区做边界校验；保存与恢复还要求该工作区当前仍已授权。IPC：`artifact:create-version`（不接受 `restore` 来源）、`artifact:list-versions`、`artifact:restore-version`。新增 `artifact-version-service.test.ts` 和 IPC 用例。
-- [ ] **1.1.3** 现有产出接入登记：教案导出、课件项目保存（`courseware-project-service.ts`）、写作文件保存（`write-workspace-store.ts`）、数据分析输出清单（`analysis-reproducibility.ts`）。
+- [x] **1.1.3** 现有产出接入登记：教案导出、课件项目保存（`courseware-project-service.ts`）、写作文件保存（`write-workspace-store.ts`）、数据分析输出清单（`analysis-reproducibility.ts`）。实际接入点：课件在 `courseware:export-package` 导出成功后由主进程登记项目包并保存第一个版本；教案、文本写作、综述、基金结果“整理到自由写作台”时登记为教案或文稿（`moduleWriteDraftArtifact`）并保存初稿版本；写作台每次保存登记为文稿（`ifMissing`，不覆盖已有条目的类型和标题）并保存“手动修改”版本，10 分钟内的连续手改合并为一个版本（`TEACHER_EDIT_MERGE_WINDOW_MS`），避免自动保存刷出大量版本；数据分析建立可复现记录时登记分析清单（暂不存版本，内容由 AI 后续填写）。登记失败只记日志，不影响原有保存和导出（`src/renderer/src/lib/artifact-records.ts`）。文件列表隐藏 `.zhiyan` 目录。遗留：写作助手通过智能体直接改写文件时尚未生成 `ai-revise` 版本（Task 1.3/1.4 处理）；课件默认导出到教材所在目录，该目录只在本次会话中授权，之后从界面恢复版本需要重新选择目录。
 - 验收：创建、修改、恢复、路径越界、文件被移走等情况均有单元测试。
 
 #### Task 1.2 · AI 工作页组件
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 1.1.2 已完成。下一项为 Task 1.1.3（现有产出接入登记）。Task 0.6.1 仍差自由写作台的 README 截图。**
+当前执行任务：**Task 1.1 全部完成。下一项为 Task 1.2.1（AI 工作页组件）。Task 0.6.1 仍差自由写作台的 README 截图。**

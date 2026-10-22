@@ -14,6 +14,7 @@ import type { WriteWorkspaceState } from './write-workspace-store-types'
 import { createWriteSettingsActions } from './write-workspace-settings-actions'
 import { createWriteFileActions } from './write-workspace-file-actions'
 import { writeBrowserStorageItem } from '../lib/browser-storage'
+import { recordWriteDocumentSave } from '../lib/artifact-records'
 import {
   WRITE_ASSISTANT_MODEL_KEY,
   WRITE_ASSISTANT_OPEN_KEY,
@@ -30,6 +31,7 @@ import {
   readStoredFilesPanelOpen,
   readStoredPreviewMode,
   writeBasenameFromPath,
+  writeDocumentTitle,
   writeJoinPath,
   writeRelativeToWorkspace
 } from './write-workspace-store-helpers'
@@ -295,6 +297,11 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
       }
       lastSavedContent = state.fileContent
       set({ saveStatus: 'saved', fileError: null })
+      void recordWriteDocumentSave({
+        workspaceRoot,
+        path: state.activeFilePath,
+        title: writeDocumentTitle(writeBasenameFromPath(state.activeFilePath))
+      })
       return true
     } catch (error) {
       set({

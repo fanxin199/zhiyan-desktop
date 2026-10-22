@@ -44,6 +44,30 @@ describe('write document titles', () => {
 })
 
 describe('write workspace store', () => {
+  it('records each successful save as a teacher edit of the document', async () => {
+    const registerArtifact = vi.fn(async () => ({ id: 'art_1' }))
+    const createArtifactVersion = vi.fn(async () => ({ version: 1 }))
+    installDsGui({
+      writeWorkspaceFile: vi.fn(async () => ({ ok: true as const, path: '/tmp/write/第八章 教案.md' })),
+      registerArtifact,
+      createArtifactVersion
+    } as never)
+    activateTextFile('/tmp/write/第八章 教案.md')
+    useWriteWorkspaceStore.setState({ fileContent: 'new content', saveStatus: 'dirty' })
+
+    await expect(useWriteWorkspaceStore.getState().flushSave('/tmp/write')).resolves.toBe(true)
+    await vi.waitFor(() => expect(createArtifactVersion).toHaveBeenCalled())
+
+    expect(registerArtifact).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'document',
+      title: '第八章 教案',
+      workspaceRoot: '/tmp/write',
+      storage: { type: 'file', path: '/tmp/write/第八章 教案.md' },
+      ifMissing: true
+    }))
+    expect(createArtifactVersion).toHaveBeenCalledWith({ id: 'art_1', source: 'teacher-edit', summary: '手动修改' })
+  })
+
   it('keeps the writing assistant closed until the user explicitly opens it', () => {
     const values = new Map<string, string>()
     vi.stubGlobal('localStorage', {

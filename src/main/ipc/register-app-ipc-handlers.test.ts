@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { dialog } from 'electron'
+import JSZip from 'jszip'
 import {
   defaultClawSettings,
   defaultKunRuntimeSettings,
@@ -17,6 +18,9 @@ import { ArtifactVersionStore } from '../services/artifact-version-service'
 import { emptyPythonRuntimeStatus } from '../../shared/python-runtime'
 
 const handlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>()
+const exportCoursewarePackage = vi.hoisted(() => vi.fn())
+
+vi.mock('../services/courseware-export-service', () => ({ exportCoursewarePackage }))
 
 vi.mock('electron', () => ({
   app: {
@@ -401,6 +405,59 @@ describe('registerAppIpcHandlers', () => {
       configuredRoot = join(dir, 'elsewhere')
       await expect(handlers.get('artifact:restore-version')?.({}, { id: artifact.id, version: 1 }))
         .rejects.toThrow(/workspace must be selected or configured/iu)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('records an exported courseware project without letting the registry fail the export', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-artifact-ipc-'))
+    try {
+      const outputDirectory = join(dir, 'output')
+      await mkdir(outputDirectory)
+      const projectPath = join(outputDirectory, '呼吸系统.zhiyan-courseware')
+      const zip = new JSZip()
+      zip.file('project.json', '{}')
+      await writeFile(projectPath, await zip.generateAsync({ type: 'nodebuffer' }))
+      exportCoursewarePackage.mockResolvedValue({ ok: true, projectPath })
+      vi.mocked(dialog.showOpenDialog).mockResolvedValue({ canceled: false, filePaths: [outputDirectory], bookmarks: [] })
+      const artifactRegistry = new ArtifactRegistry({ dataDirectory: join(dir, 'data') })
+      registerAppIpcHandlers(registerOptions({
+        artifactRegistry,
+        artifactVersions: new ArtifactVersionStore({ registry: artifactRegistry })
+      }))
+      await handlers.get('workspace:pick-directory')?.({}, undefined)
+      const exportRequest = {
+        project: {
+          version: 2,
+          request: {
+            sourcePath: join(dir, 'source.pdf'), pageStart: 1, pageEnd: 1, topic: '呼吸系统', durationMinutes: 45,
+            audience: 'undergraduate', focus: '', includeRecentLiterature: false, maxLiteratureResults: 6
+          },
+          sourceDocument: { kind: 'pdf', path: join(dir, 'source.pdf'), pageCount: 1, searchable: true },
+          blueprint: {
+            title: '呼吸系统', audience: 'undergraduate', durationMinutes: 45, teachingGoal: '理解通气与换气。',
+            sections: [{ id: 'section-1', title: '通气', objective: '建立主线。', summary: '肺通气。', slideCount: 1, emphasis: [] }]
+          },
+          slides: [{
+            id: 'slide-1', sectionId: 'section-1', kind: 'content', title: '肺通气', bullets: ['呼吸肌运动'],
+            speakerNotes: '说明肺通气。', visual: { type: 'none' }, evidenceRefs: []
+          }],
+          sourceVisuals: [],
+          evidence: [],
+          generatedAt: '2026-10-23T00:00:00.000Z'
+        },
+        outputDirectory
+      }
+      const handler = handlers.get('courseware:export-package')
+
+      await expect(handler?.({}, exportRequest)).resolves.toMatchObject({ ok: true })
+      await expect(artifactRegistry.list()).resolves.toMatchObject([
+        { kind: 'courseware', title: '呼吸系统', toolId: 'ppt-gen', stage: '已导出', currentVersion: 1 }
+      ])
+
+      exportCoursewarePackage.mockResolvedValue({ ok: true, projectPath: join(outputDirectory, 'missing.zhiyan-courseware') })
+      await expect(handler?.({}, exportRequest)).resolves.toMatchObject({ ok: true })
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

@@ -1,7 +1,7 @@
 import { app, dialog, ipcMain, shell, type BrowserWindow, type WebContents } from 'electron'
 import { watch, type FSWatcher } from 'node:fs'
 import { randomUUID } from 'node:crypto'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import {
@@ -637,10 +637,27 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     } else {
       await requireAuthorizedFileReadPath(request.project.request.sourcePath)
     }
-    return exportCoursewarePackage({
-      ...request,
-      outputDirectory: request.outputDirectory || dirname(request.project.request.sourcePath)
-    })
+    const outputDirectory = request.outputDirectory || dirname(request.project.request.sourcePath)
+    const result = await exportCoursewarePackage({ ...request, outputDirectory })
+    if (result.ok) {
+      // The registry is secondary to the export; a failure here must not fail the export.
+      try {
+        const artifact = await artifactRegistry.register({
+          kind: 'courseware',
+          title: request.project.request.topic.trim() || basename(result.projectPath),
+          toolId: 'ppt-gen',
+          workspaceRoot: outputDirectory,
+          storage: { type: 'courseware-project', path: result.projectPath },
+          stage: '已导出'
+        })
+        await artifactVersions.createVersion({ id: artifact.id, source: 'ai-generate', summary: '导出课件' })
+      } catch (error) {
+        logError('artifact-record', 'Failed to record exported courseware', {
+          message: error instanceof Error ? error.message : String(error)
+        })
+      }
+    }
+    return result
   })
 
   ipcMain.handle('textbook:generate-outline', async (_, payload: unknown) =>

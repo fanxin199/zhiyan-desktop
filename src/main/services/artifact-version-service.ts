@@ -20,6 +20,8 @@ import { resolveTargetPathWithinWorkspace } from './workspace-paths'
 export const ARTIFACT_VERSIONS_DIRECTORY = join('.zhiyan', 'versions')
 /** The latest versions kept in full; older ones keep only the last version of each day. */
 export const ARTIFACT_RECENT_VERSION_LIMIT = 50
+/** A teacher's edits saved within this window of the previous edit version join that version. */
+export const TEACHER_EDIT_MERGE_WINDOW_MS = 10 * 60 * 1000
 
 const MANIFEST_FILE_NAME = 'versions.json'
 const BLOB_DIRECTORY_NAME = 'blobs'
@@ -185,13 +187,18 @@ export class ArtifactVersionStore {
     if (latest && options.skipIfUnchanged && sameSnapshot(latest.snapshot, snapshot)) {
       return publicVersion(latest)
     }
-    const version: StoredVersion = {
-      version: (latest?.version ?? 0) + 1,
-      createdAt: this.now().toISOString(),
-      ...details,
-      snapshot
-    }
-    const versions = retainedVersions([...manifest.versions, version])
+    const createdAt = this.now().toISOString()
+    // Autosave writes every few seconds while a teacher types; one editing session is one version.
+    const continuesEdit = latest !== undefined
+      && details.source === 'teacher-edit'
+      && latest.source === 'teacher-edit'
+      && Date.parse(createdAt) - Date.parse(latest.createdAt) < TEACHER_EDIT_MERGE_WINDOW_MS
+    const version: StoredVersion = continuesEdit
+      ? { ...latest, createdAt, snapshot }
+      : { version: (latest?.version ?? 0) + 1, createdAt, ...details, snapshot }
+    const versions = retainedVersions(continuesEdit
+      ? [...manifest.versions.slice(0, -1), version]
+      : [...manifest.versions, version])
     await this.writeManifest(location, { ...manifest, versions })
     await this.removeUnusedBlobs(location, versions)
     await this.registry.setCurrentVersion(location.artifact.id, version.version)

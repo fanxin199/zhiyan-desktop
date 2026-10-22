@@ -70,7 +70,9 @@ export const artifactRegisterInputSchema = z.object({
   storage: artifactStorageSchema,
   stage: z.string().trim().max(80).optional(),
   progress: z.number().min(0).max(1).optional(),
-  projectId: trimmed(MAX_ID_LENGTH).nullable().optional()
+  projectId: trimmed(MAX_ID_LENGTH).nullable().optional(),
+  /** Leave an existing entry for the same file untouched, e.g. when a later save should not rename it. */
+  ifMissing: z.boolean().optional()
 }).strict()
 
 export const artifactUpdateInputSchema = z.object({

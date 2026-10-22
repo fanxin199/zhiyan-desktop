@@ -106,6 +106,7 @@ describe('workspace-service boundary checks', () => {
 
   it('lists directories and files inside the selected workspace', async () => {
     await mkdir(join(workspaceRoot, 'notes'), { recursive: true })
+    await mkdir(join(workspaceRoot, '.zhiyan', 'versions'), { recursive: true })
     await writeFile(join(workspaceRoot, 'notes', 'draft.md'), '# draft', 'utf8')
     const result = await listWorkspaceDirectory({ workspaceRoot, path: workspaceRoot })
 

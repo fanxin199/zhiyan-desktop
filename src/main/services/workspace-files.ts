@@ -69,7 +69,8 @@ export async function listWorkspaceDirectory(
     const root = await resolveWorkspaceDirectory(payload)
     const entries = await readdir(root, { withFileTypes: true })
     const normalized = entries
-      .filter((entry) => entry.name !== '.DS_Store')
+      // .zhiyan holds artifact versions; teachers reach them through the version menu, not the file list.
+      .filter((entry) => entry.name !== '.DS_Store' && entry.name !== '.zhiyan')
       .map((entry) => ({
         name: entry.name,
         path: join(root, entry.name),

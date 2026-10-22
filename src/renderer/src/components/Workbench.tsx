@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import type { SkillListItem } from '@shared/ds-gui-api'
+import type { ArtifactRegisterInput } from '@shared/artifact'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
 import type { SendMessageOverrides, TeacherProjectStartContext } from '../store/chat-store-types'
@@ -20,6 +21,7 @@ import {
   type ComposerFileContextEntry
 } from '../lib/composer-file-references'
 import { composeWritePrompt } from '../write/quoted-selection'
+import { recordArtifact } from '../lib/artifact-records'
 import { useWriteWorkspaceStore, writeJoinPath } from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
 import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
@@ -169,6 +171,22 @@ export function buildModuleWriteDraftMarkdown(seed: ModuleWriteDraftSeed): strin
     content,
     ''
   ].join('\n')
+}
+
+/** Module results sent to the writing workspace: a lesson plan from the lesson plan tool, otherwise a document. */
+export function moduleWriteDraftArtifact(
+  seed: ModuleWriteDraftSeed,
+  workspaceRoot: string,
+  path: string
+): ArtifactRegisterInput {
+  return {
+    kind: seed.sourceModule === 'syllabus' ? 'lesson-plan' : 'document',
+    title: seed.title.trim() || '自由写作草稿',
+    toolId: seed.sourceModule,
+    workspaceRoot,
+    storage: { type: 'file', path },
+    stage: '初稿'
+  }
 }
 
 function teacherProjectNameFromDisplayText(displayText: string | undefined, fallback: string): string {
@@ -600,7 +618,13 @@ export function Workbench(): ReactElement {
       const root = readyState.rootDirectory || targetWorkspace
       const draftPath = writeJoinPath(root, moduleWriteDraftFileName(seed.title))
       const markdown = buildModuleWriteDraftMarkdown(seed)
-      await readyState.createFile(targetWorkspace, draftPath, markdown)
+      const createdPath = await readyState.createFile(targetWorkspace, draftPath, markdown)
+      if (createdPath) {
+        void recordArtifact(
+          moduleWriteDraftArtifact(seed, targetWorkspace, createdPath),
+          { source: 'ai-generate', summary: '生成初稿' }
+        )
+      }
     })()
   }
   const openRecentThread = (threadId: string): void => {

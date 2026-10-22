@@ -136,6 +136,40 @@ describe('ArtifactVersionStore', () => {
   })
 })
 
+describe('teacher edit versions', () => {
+  it('joins edits saved within ten minutes into one version and starts a new one after a pause', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'zhiyan-versions-'))
+    tempDirs.push(root)
+    const workspace = join(root, 'workspace')
+    await mkdir(workspace, { recursive: true })
+    const path = join(workspace, '文稿.md')
+    await writeFile(path, 'v1', 'utf8')
+    let minutes = 0
+    const now = () => new Date(Date.UTC(2026, 9, 23, 8, minutes))
+    const registry = new ArtifactRegistry({ dataDirectory: join(root, 'data'), now })
+    const versions = new ArtifactVersionStore({ registry, now })
+    const artifact = await registry.register({
+      kind: 'document', title: '文稿', toolId: 'write', workspaceRoot: workspace, storage: { type: 'file', path }
+    })
+
+    await versions.createVersion({ id: artifact.id, source: 'ai-generate', summary: '生成初稿' })
+    for (const [minute, content] of [[1, 'v2'], [5, 'v3'], [14, 'v4'], [30, 'v5']] as const) {
+      minutes = minute
+      await writeFile(path, content, 'utf8')
+      await versions.createVersion({ id: artifact.id, source: 'teacher-edit', summary: '手动修改' })
+    }
+
+    // Edits at minutes 1, 5 and 14 are one session; the edit at minute 30 starts another.
+    expect((await versions.listVersions(artifact.id)).map((version) => [version.version, version.source])).toEqual([
+      [3, 'teacher-edit'],
+      [2, 'teacher-edit'],
+      [1, 'ai-generate']
+    ])
+    await versions.restoreVersion({ id: artifact.id, version: 2 })
+    expect(await readFile(path, 'utf8')).toBe('v4')
+  })
+})
+
 describe('retainedVersions', () => {
   it('keeps the latest versions in full and one version per earlier day', () => {
     const versions = Array.from({ length: 8 }, (_, index) => ({

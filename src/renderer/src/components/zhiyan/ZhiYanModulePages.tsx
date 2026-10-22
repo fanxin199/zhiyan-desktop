@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
+import { recordArtifact } from '@renderer/lib/artifact-records'
 import type { AppSettingsV1, WritingBlueprintModuleContextV1 } from '@shared/app-settings'
 import { wrapUntrustedPromptMaterial } from '@shared/prompt-boundary'
 import {
@@ -665,7 +666,15 @@ function ResearchTaskEntry({
           files: researchTask.materials,
           runtime
         })
-        await persistAnalysisReproducibilityManifest(workspaceRoot, manifest)
+        const manifestPath = await persistAnalysisReproducibilityManifest(workspaceRoot, manifest)
+        void recordArtifact({
+          kind: 'analysis-report',
+          title: displayText,
+          toolId: 'bioinformatics',
+          workspaceRoot,
+          storage: { type: 'file', path: manifestPath },
+          stage: '等待分析'
+        })
         prompt = `${basePrompt}\n\n${buildAnalysisReproducibilityPrompt(manifest)}`
       } catch (manifestError) {
         setError(`无法创建可复现分析记录：${manifestError instanceof Error ? manifestError.message : String(manifestError)}`)
