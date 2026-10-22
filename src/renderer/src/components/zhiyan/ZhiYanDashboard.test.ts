@@ -7,6 +7,8 @@ import {
   filterDashboardActionCards,
   getDashboardTaskRecommendations,
   getRecentDashboardThreads,
+  recentThreadFeatureLabel,
+  recentThreadTitle,
   ZhiYanDashboard
 } from './ZhiYanDashboard'
 
@@ -50,6 +52,51 @@ describe('ZhiYanDashboard recent use', () => {
     ])
 
     expect(recent.map((item) => item.id)).toEqual(['one', 'two', 'three', 'four', 'five'])
+  })
+
+  it('hides conversations that still carry a placeholder title', () => {
+    const recent = getRecentDashboardThreads([
+      thread('thr_empty01', '新会话', '2026-06-29T06:00:00.000Z'),
+      thread('thr_legacy1', 'New Thread', '2026-06-29T05:00:00.000Z'),
+      thread('thr_idfallb', 'thr_idfa', '2026-06-29T04:00:00.000Z'),
+      thread('thr_named01', '第八章呼吸系统教案', '2026-06-29T03:00:00.000Z')
+    ])
+
+    expect(recent.map((item) => item.id)).toEqual(['thr_named01'])
+  })
+
+  it('names recent conversations by task and shows the feature they belong to', () => {
+    const literature = thread('lit', '文献阅读 · 精读：Smith2024', '2026-06-29T06:00:00.000Z', {
+      projectId: 'teacher-project:literature:abc'
+    })
+    const syllabus = thread('syl', '智能教案生成：第八章 呼吸系统', '2026-06-29T05:00:00.000Z', {
+      projectId: 'teacher-project:syllabus:def'
+    })
+    const writing = thread('wr', 'Write Assistant', '2026-06-29T04:00:00.000Z')
+    const chat = thread('chat', '帮我设计一节翻转课堂', '2026-06-29T03:00:00.000Z')
+
+    expect([literature, syllabus, writing, chat].map(recentThreadTitle)).toEqual([
+      '精读：Smith2024',
+      '第八章 呼吸系统',
+      '写作助手对话',
+      '帮我设计一节翻转课堂'
+    ])
+    expect([literature, syllabus, writing, chat].map(recentThreadFeatureLabel)).toEqual([
+      '文献阅读',
+      '智能教案',
+      '自由写作台',
+      'AI 对话'
+    ])
+
+    const legacyLiterature = thread('old-lit', '你正在处理「文献阅读」模块中的科研任务', '2026-06-26T03:00:00.000Z')
+    const legacySyllabus = thread('old-syl', '你是一个高校教学辅助AI，专门为大学教师生成...', '2026-06-16T03:00:00.000Z')
+    expect([legacyLiterature, legacySyllabus].map(recentThreadTitle)).toEqual(['文献阅读任务', '智能教案任务'])
+    expect([legacyLiterature, legacySyllabus].map(recentThreadFeatureLabel)).toEqual(['文献阅读', '智能教案'])
+
+    const html = renderToStaticMarkup(dashboard({ recentThreads: [writing, chat], onOpenRecentThread: noop }))
+    expect(html).toContain('写作助手对话')
+    expect(html).toContain('自由写作台')
+    expect(html).not.toContain('Write Assistant')
   })
 
   it('does not render the recent section when there is no history', () => {

@@ -50,6 +50,14 @@ export function deriveThreadTitleFromPrompt(prompt: string): string {
   return trimmed || fallback
 }
 
+/**
+ * Threads started from the chat page or a module page are named after the teacher's first request.
+ * Writing assistant threads keep their fixed title, which identifies them as writing threads.
+ */
+export function routeAutoTitlesThreads(route: string): boolean {
+  return route !== 'write'
+}
+
 export function isInternalPlaceholderThreadTitle(title: string | null | undefined): boolean {
   const raw = title?.trim() ?? ''
   return INTERNAL_PLACEHOLDER_TITLE_PATTERN.test(raw)

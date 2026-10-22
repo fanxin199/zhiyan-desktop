@@ -11,11 +11,15 @@ import {
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
 import { teacherLabel } from '../../lib/teacher-label'
+import { isInternalPlaceholderThreadTitle, shouldAutoTitleThread } from '../../lib/thread-title'
+import { isWriteThreadId, WRITE_ASSISTANT_THREAD_TITLE } from '../../write/write-thread-registry'
+import { WRITE_CONTEXT_HEADING } from '../../write/quoted-selection'
 import { ICON_TONE_CLASSES } from './PageHeader'
 import {
   ZHIYAN_MODULE_SECTIONS,
   getZhiYanDashboardModules,
   getZhiYanModule,
+  getZhiYanSidebarModules,
   isZhiYanModuleRoute,
   type ZhiYanModuleRouteId,
   type ZhiYanModuleSectionId
@@ -136,14 +140,60 @@ function moduleIdFromProjectId(projectId: string | undefined): string {
   return match?.[1] ?? ''
 }
 
-function recentThreadIcon(thread: NormalizedThread): LucideIcon {
+function isWriteAssistantThread(thread: NormalizedThread): boolean {
+  const title = thread.title?.trim() ?? ''
+  return title === WRITE_ASSISTANT_THREAD_TITLE || title.startsWith(WRITE_CONTEXT_HEADING) || isWriteThreadId(thread.id)
+}
+
+// Early module tasks were named after the first line of the instructions sent to the model.
+const MODULE_TASK_PROMPT_TITLE = /^你正在处理「(.+?)」模块/u
+const SYLLABUS_PROMPT_TITLE = /^你是一个高校教学辅助\s*AI/u
+
+function moduleIdFromPromptTitle(title: string): ZhiYanModuleRouteId | null {
+  if (SYLLABUS_PROMPT_TITLE.test(title)) return 'syllabus'
+  const label = MODULE_TASK_PROMPT_TITLE.exec(title)?.[1]
+  if (!label) return null
+  return getZhiYanSidebarModules().find((module) => module.sidebarLabel === label)?.id ?? null
+}
+
+function recentThreadModuleId(thread: NormalizedThread): ZhiYanModuleRouteId | null {
+  if (isWriteAssistantThread(thread)) return 'write'
   const moduleId = moduleIdFromProjectId(thread.projectId)
-  return isZhiYanModuleRoute(moduleId) ? getZhiYanModule(moduleId)?.icon ?? MessageCircle : MessageCircle
+  if (isZhiYanModuleRoute(moduleId)) return moduleId
+  return moduleIdFromPromptTitle(thread.title?.trim() ?? '')
+}
+
+function recentThreadIcon(thread: NormalizedThread): LucideIcon {
+  const moduleId = recentThreadModuleId(thread)
+  return moduleId ? getZhiYanModule(moduleId)?.icon ?? MessageCircle : MessageCircle
+}
+
+/** The feature a recent conversation belongs to, as named in the sidebar. */
+export function recentThreadFeatureLabel(thread: NormalizedThread): string {
+  const moduleId = recentThreadModuleId(thread)
+  return (moduleId ? getZhiYanModule(moduleId)?.sidebarLabel : undefined) ?? 'AI 对话'
+}
+
+/**
+ * A readable name for a recent conversation, or null for a conversation that never got past its
+ * placeholder title, which means the teacher has not asked anything in it yet.
+ */
+export function recentThreadTitle(thread: NormalizedThread): string | null {
+  if (isWriteAssistantThread(thread)) return '写作助手对话'
+  const title = thread.title?.trim() ?? ''
+  if (shouldAutoTitleThread(thread) || isInternalPlaceholderThreadTitle(title)) return null
+  if (moduleIdFromPromptTitle(title)) return `${recentThreadFeatureLabel(thread)}任务`
+  // Module tasks are named like “文献阅读 · 精读：…”; the feature is shown separately, so drop it here.
+  const feature = recentThreadFeatureLabel(thread)
+  const prefixed = /^(.{2,12}?)\s*[：:·]\s*(.+)$/u.exec(title)
+  if (prefixed && (prefixed[1].startsWith(feature) || feature.startsWith(prefixed[1]))) return prefixed[2]
+  return title
 }
 
 export function getRecentDashboardThreads(threads: NormalizedThread[]): NormalizedThread[] {
   return [...threads]
     .filter((thread) => !thread.archived && thread.status !== 'archived')
+    .filter((thread) => recentThreadTitle(thread) !== null)
     .sort((left, right) => {
       const leftTime = new Date(left.updatedAt).getTime()
       const rightTime = new Date(right.updatedAt).getTime()
@@ -231,23 +281,26 @@ function DashboardCardSection({
 
 function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): ReactElement {
   const Icon = recentThreadIcon(thread)
+  const title = recentThreadTitle(thread) ?? thread.title
   return (
     <button
       type="button"
       onClick={() => onOpen(thread.id)}
       className="group flex min-w-0 items-center gap-3 rounded-xl border border-ds-border-muted bg-ds-card px-3.5 py-3 text-left shadow-sm transition hover:border-accent/30 hover:bg-ds-hover"
-      aria-label={`继续会话：${thread.title}`}
+      aria-label={`继续：${title}`}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ds-subtle text-ds-muted transition group-hover:text-accent">
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body font-semibold text-ds-text">
-          {thread.title}
+          {title}
         </span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-caption text-ds-faint">
-          <Clock3 className="h-3 w-3" strokeWidth={1.8} />
-          <span>{formatRelativeTime(thread.updatedAt, locale)}</span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-caption text-ds-muted">
+          <span className="truncate">{recentThreadFeatureLabel(thread)}</span>
+          <span aria-hidden>·</span>
+          <Clock3 className="h-3 w-3 shrink-0" strokeWidth={1.8} />
+          <span className="shrink-0">{formatRelativeTime(thread.updatedAt, locale)}</span>
         </span>
       </span>
     </button>

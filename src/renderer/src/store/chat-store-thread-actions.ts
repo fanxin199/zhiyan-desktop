@@ -8,6 +8,7 @@ import { formatRuntimeError, getRuntimeErrorCode } from '../lib/format-runtime-e
 import {
   deriveThreadTitleFromPrompt,
   getDefaultThreadTitle,
+  routeAutoTitlesThreads,
   shouldAutoTitleThread
 } from '../lib/thread-title'
 import { filterThreadsForSidebar } from '../lib/thread-sidebar-visibility'
@@ -430,7 +431,7 @@ export function createThreadActions(
     const displayText = queued?.displayText ?? overrides?.displayText?.trim() ?? trimmedText
     const userDisplayText = displayText !== trimmedText ? displayText : undefined
     const generatedTitle = deriveThreadTitleFromPrompt(displayText)
-    const shouldAutoRenameForRoute = get().route === 'chat'
+    const shouldAutoRenameForRoute = routeAutoTitlesThreads(get().route)
     const activeThread = activeThreadId
       ? get().threads.find((thread) => thread.id === activeThreadId) ?? null
       : null
