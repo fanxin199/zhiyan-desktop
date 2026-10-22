@@ -404,7 +404,7 @@ type TeacherPreference = {
 #### Task 0.3 · 主导航不再被替换
 
 - [x] **0.3.1** 设置改为覆盖层：`AppShell.tsx` 不再用 `SettingsView` 整体替换 `Workbench`，关闭后回到原页面并保留状态。设置不再是路由：`AppRoute` 去掉 `settings`，以 `settingsOpen` 和 `closeSettings` 代替 `settingsReturnRoute`（原先关闭设置后，除写作和插件页外一律回到首页）；运行出错时自动打开设置的 29 处同步改为打开覆盖层。工作台在设置下方保持挂载并设为 `inert`，覆盖层可用“返回”、Esc 或点击外部关闭，关闭前先保存；从设置进入插件页时先关闭设置。新增 `chat-store-app-actions.test.ts` 和 `AppShell.test.ts` 用例。
-- [ ] **0.3.2** 自由写作台保留主导航：写作空间文件树改为写作页内可收起的二级面板，`WriteSidebar` 不再替换 `ZhiYanSidebar`。
+- [x] **0.3.2** 自由写作台保留主导航：写作空间文件树改为写作页内可收起的二级面板，`WriteSidebar` 不再替换 `ZhiYanSidebar`。`WriteSidebar` 改为 `WriteFilesPanel`，放在写作页工具栏下方、编辑区左侧（224px），去掉与主导航重复的“工作台”和“设置”入口；收起后工具栏显示“显示文稿列表”按钮，展开状态记在本机（`filesPanelOpen`，默认展开）。在写作页从主导航打开设置时仍直接进入写作设置。新增 `Workbench.write-navigation.test.ts`。
 
 #### Task 0.4 · 首页去噪
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.3.1 已完成。下一项为 Task 0.3.2（自由写作台保留主导航）。**
+当前执行任务：**Task 0.3.2 已完成，Task 0.3 全部完成。下一项为 Task 0.4.2（“最近使用”显示可读名称）。**

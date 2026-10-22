@@ -17,6 +17,7 @@ import { writeBrowserStorageItem } from '../lib/browser-storage'
 import {
   WRITE_ASSISTANT_MODEL_KEY,
   WRITE_ASSISTANT_OPEN_KEY,
+  WRITE_FILES_PANEL_OPEN_KEY,
   WRITE_PREVIEW_MODE_KEY,
   commonPrefixLength,
   emptySelection,
@@ -26,6 +27,7 @@ import {
   pathsEqual,
   readStoredAssistantModel,
   readStoredAssistantOpen,
+  readStoredFilesPanelOpen,
   readStoredPreviewMode,
   writeBasenameFromPath,
   writeJoinPath,
@@ -74,6 +76,7 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
   previewMode: readStoredPreviewMode(),
   assistantOpen: readStoredAssistantOpen(),
   assistantModel: readStoredAssistantModel(),
+  filesPanelOpen: readStoredFilesPanelOpen(),
 
   ...createWriteSettingsActions({ set, get }),
   ...createWriteFileActions({
@@ -312,6 +315,11 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
     const normalized = model.trim()
     writeBrowserStorageItem(WRITE_ASSISTANT_MODEL_KEY, normalized)
     set({ assistantModel: normalized })
+  },
+
+  setFilesPanelOpen: (open) => {
+    writeBrowserStorageItem(WRITE_FILES_PANEL_OPEN_KEY, open ? '1' : '0')
+    set({ filesPanelOpen: open })
   },
 
   setSelection: (selection) => set({ selection }),

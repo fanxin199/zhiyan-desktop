@@ -47,7 +47,6 @@ import { SessionHeader } from './SessionHeader'
 import { RuntimeBanner } from './RuntimeBanner'
 import { SidebarTitlebarToggleButton } from './sidebar/SidebarPrimitives'
 import { WriteAssistantPanel } from './write/WriteAssistantPanel'
-import { WriteSidebar } from './write/WriteSidebar'
 import { WriteWorkspaceView } from './write/WriteWorkspaceView'
 import { ModuleConversationPanel } from './zhiyan/ModuleConversationPanel'
 import {
@@ -758,20 +757,13 @@ export function Workbench(): ReactElement {
     <div className="ds-workbench-shell ds-drag flex h-full min-h-0 w-full min-w-0 bg-ds-main">
       {!leftSidebarCollapsed ? (
         <div className="min-h-0 w-[240px] shrink-0 border-r border-ds-border-muted">
-          {route === 'write' ? (
-            <WriteSidebar
-              onOpenDashboard={() => openRegisteredModule('dashboard')}
-              onOpenSettings={(section) => openSettings(section)}
-              onToggleSidebar={() => setLeftSidebarCollapsed(true)}
-            />
-          ) : (
-            <ZhiYanSidebar
-              activeRoute={route}
-              onOpenModule={openRegisteredModule}
-              onOpenSettings={(section) => openSettings(section)}
-              onToggleSidebar={() => setLeftSidebarCollapsed(true)}
-            />
-          )}
+          <ZhiYanSidebar
+            activeRoute={route}
+            onOpenModule={openRegisteredModule}
+            onOpenSettings={(section) => openSettings(route === 'write' ? 'write' : section)}
+            onToggleSidebar={() => setLeftSidebarCollapsed(true)}
+          />
+
         </div>
       ) : null}
 

@@ -7,16 +7,14 @@ import {
   Folder,
   FolderOpen,
   FolderPlus,
-  Home,
-  Plus,
+  PanelLeftClose,
   RefreshCw,
-  Settings,
   Trash2
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
-import { useChatStore, type SettingsRouteSection } from '../../store/chat-store'
+import { useChatStore } from '../../store/chat-store'
 import {
   useWriteWorkspaceStore,
   writeBasenameFromPath,
@@ -26,17 +24,13 @@ import {
 } from '../../write/write-workspace-store'
 import {
   SidebarCommandRow,
-  SidebarFrame,
   SidebarIconButton,
-  SidebarSectionHeader,
   SidebarTreeRow
 } from '../sidebar/SidebarPrimitives'
 import { WriteFileTree } from './WriteFileTree'
 
 type Props = {
-  onOpenDashboard: () => void
-  onOpenSettings: (section?: SettingsRouteSection) => void
-  onToggleSidebar: () => void
+  onCollapse: () => void
 }
 
 type EntryDialog =
@@ -47,11 +41,8 @@ type EntryDialog =
 
 type Translate = (key: string, opts?: Record<string, unknown>) => string
 
-export function WriteSidebar({
-  onOpenDashboard,
-  onOpenSettings,
-  onToggleSidebar
-}: Props): ReactElement {
+/** Writing-space file tree shown inside the writing page, next to the editor. */
+export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
   const { t } = useTranslation('common')
   const ensureWriteThreadForWorkspace = useChatStore((s) => s.ensureWriteThreadForWorkspace)
   const runtimeConnection = useChatStore((s) => s.runtimeConnection)
@@ -215,26 +206,23 @@ export function WriteSidebar({
 
   return (
     <>
-    <SidebarFrame
-      title={t('appName')}
-      onCollapse={onToggleSidebar}
-      footer={
-        <div className="space-y-1">
-          <SidebarCommandRow
-            icon={<Settings className="h-4 w-4" strokeWidth={1.75} />}
-            label={t('settings')}
-            onClick={() => onOpenSettings('write')}
-            variant="footer"
-          />
-        </div>
-      }
+    <aside
+      data-testid="write-files-panel"
+      className="ds-no-drag flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-ds-border-muted bg-ds-card px-2 py-2"
     >
-      <div className="ds-no-drag flex flex-col px-0.5">
-        <SidebarCommandRow
-          icon={<Home className="h-4 w-4" strokeWidth={1.75} />}
-          label="工作台"
-          onClick={onOpenDashboard}
-        />
+      <div className="flex items-center justify-between px-2.5 pb-1 pt-1">
+        <span className="min-w-0 truncate text-small font-semibold text-ds-ink">
+          {t('writeSpaces')}
+        </span>
+        <SidebarIconButton
+          onClick={onCollapse}
+          title={t('writeHideFilesPanel')}
+          ariaLabel={t('writeHideFilesPanel')}
+        >
+          <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
+        </SidebarIconButton>
+      </div>
+      <div className="flex flex-col">
         <SidebarCommandRow
           icon={<FilePlus2 className="h-4 w-4" strokeWidth={1.9} />}
           label={t('writeCreateFile')}
@@ -248,23 +236,7 @@ export function WriteSidebar({
         />
       </div>
 
-      <div className="ds-no-drag mx-1.5 my-3" />
-
-      <div className="ds-no-drag flex min-h-0 flex-1 flex-col">
-        <SidebarSectionHeader
-          label={t('writeSpaces')}
-          actions={
-            <SidebarIconButton
-              onClick={() => void pickWriteWorkspace()}
-              title={t('writeAddWorkspace')}
-              ariaLabel={t('writeAddWorkspace')}
-              stopPropagation
-            >
-              <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
-            </SidebarIconButton>
-          }
-        />
-
+      <div className="mt-2 flex min-h-0 flex-1 flex-col border-t border-ds-border-muted pt-2">
         {settingsError ? (
           <div className="mx-2 mt-1 rounded-lg border border-ds-danger/30 bg-ds-danger-soft px-2.5 py-2 text-caption leading-5 text-ds-danger">
             {settingsError}
@@ -392,7 +364,7 @@ export function WriteSidebar({
           })}
         </div>
       </div>
-    </SidebarFrame>
+    </aside>
     {entryDialog ? (
       <WriteEntryDialog
         dialog={entryDialog}

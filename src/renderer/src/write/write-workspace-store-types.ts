@@ -34,6 +34,7 @@ export type WriteWorkspaceState = {
   previewMode: WritePreviewMode
   assistantOpen: boolean
   assistantModel: string
+  filesPanelOpen: boolean
   selection: WriteEditorSelectionState
   quotedSelections: WriteQuotedSelection[]
   recentEdits: WriteRecentEdit[]
@@ -69,6 +70,7 @@ export type WriteWorkspaceState = {
   setPreviewMode: (mode: WritePreviewMode) => void
   setAssistantOpen: (open: boolean) => void
   setAssistantModel: (model: string) => void
+  setFilesPanelOpen: (open: boolean) => void
   setSelection: (selection: WriteEditorSelectionState) => void
   recordRecentEdits: (edits: WriteRecentEdit[]) => void
   quoteCurrentSelection: (workspaceRoot: string) => void

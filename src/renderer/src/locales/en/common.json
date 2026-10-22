@@ -1077,6 +1077,8 @@
   "sddAssistantResearchSub": "Fill in context and options",
   "sddAssistantResearchPrompt": "Based on the current requirement draft, do implementation-oriented research and summarize feasible approaches, risks, and details that need confirmation.",
   "writeToggleAssistant": "Toggle AI panel",
+  "writeShowFilesPanel": "Show documents",
+  "writeHideFilesPanel": "Hide documents",
   "writeModeSource": "Source editor",
   "writeModeLive": "Live editor",
   "writeModeLiveShort": "Edit",

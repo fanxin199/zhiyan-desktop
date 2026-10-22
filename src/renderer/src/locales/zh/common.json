@@ -1077,6 +1077,8 @@
   "sddAssistantResearchSub": "补齐背景和方案",
   "sddAssistantResearchPrompt": "请基于当前需求草稿做一次实现前调研，整理可行方案、风险和需要确认的细节。",
   "writeToggleAssistant": "切换 AI 面板",
+  "writeShowFilesPanel": "显示文稿列表",
+  "writeHideFilesPanel": "收起文稿列表",
   "writeModeSource": "源码编辑",
   "writeModeLive": "实时编辑",
   "writeModeLiveShort": "编辑",

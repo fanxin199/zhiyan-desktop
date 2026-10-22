@@ -1,5 +1,5 @@
 import type { ReactElement, RefObject } from 'react'
-import { AlertCircle, Check, ChevronDown, Copy, Download, FileCode2, FilePenLine, Loader2, Sparkles } from 'lucide-react'
+import { AlertCircle, Check, ChevronDown, Copy, Download, FileCode2, FilePenLine, Loader2, PanelLeftOpen, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { WriteExportFormat } from '@shared/write-export'
 import type { WritePreviewMode, WriteSaveStatus } from '../../write/write-workspace-store'
@@ -21,6 +21,7 @@ type Props = {
   exportInFlight: boolean
   exportMenuOpen: boolean
   exportMenuRef: RefObject<HTMLDivElement | null>
+  filesPanelOpen: boolean
   leftSidebarCollapsed: boolean
   liveModeActive: boolean
   modeMenuItems: WriteModeMenuItem[]
@@ -28,6 +29,7 @@ type Props = {
   modeMenuRef: RefObject<HTMLDivElement | null>
   onCopyRichText: () => void
   onExportFile: (format: WriteExportFormat) => void
+  onShowFilesPanel: () => void
   onToggleLeftSidebar: () => void
   readOnly: boolean
   saveLabel: string
@@ -46,6 +48,7 @@ export function WriteWorkspaceToolbar({
   exportInFlight,
   exportMenuOpen,
   exportMenuRef,
+  filesPanelOpen,
   leftSidebarCollapsed,
   liveModeActive,
   modeMenuItems,
@@ -53,6 +56,7 @@ export function WriteWorkspaceToolbar({
   modeMenuRef,
   onCopyRichText,
   onExportFile,
+  onShowFilesPanel,
   onToggleLeftSidebar,
   readOnly,
   saveLabel,
@@ -81,6 +85,17 @@ export function WriteWorkspaceToolbar({
                 title={t('sidebarExpand')}
                 ariaLabel={t('sidebarExpand')}
               />
+            ) : null}
+            {!filesPanelOpen ? (
+              <button
+                type="button"
+                onClick={onShowFilesPanel}
+                className={toolbarIconButtonClass()}
+                title={t('writeShowFilesPanel')}
+                aria-label={t('writeShowFilesPanel')}
+              >
+                <PanelLeftOpen className="h-4 w-4" strokeWidth={1.85} />
+              </button>
             ) : null}
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />

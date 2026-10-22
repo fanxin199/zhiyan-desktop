@@ -26,6 +26,7 @@ import { startWriteWorkspaceFileWatch } from '../../write/write-file-watch'
 import { useWriteSplitScrollSync } from './use-write-split-scroll-sync'
 import { WriteWorkspaceEmptyState } from './WriteWorkspaceEmptyState'
 import { WriteWorkspaceToolbar } from './WriteWorkspaceToolbar'
+import { WriteFilesPanel } from './WriteFilesPanel'
 import { WriteInlineAgent } from './WriteInlineAgent'
 import { WriteWorkspaceDocumentPane } from './WriteWorkspaceDocumentPane'
 import {
@@ -75,6 +76,7 @@ export function WriteWorkspaceView({
     saveStatus,
     previewMode,
     assistantOpen,
+    filesPanelOpen,
     selection,
     recentEdits,
     loadWriteSettings,
@@ -88,6 +90,7 @@ export function WriteWorkspaceView({
     setFileError,
     setPreviewMode,
     setAssistantOpen,
+    setFilesPanelOpen,
     setSelection,
     recordRecentEdits,
     quoteCurrentSelection
@@ -547,6 +550,7 @@ export function WriteWorkspaceView({
         exportInFlight={exportInFlight}
         exportMenuOpen={exportMenuOpen}
         exportMenuRef={exportMenuRef}
+        filesPanelOpen={filesPanelOpen}
         leftSidebarCollapsed={leftSidebarCollapsed}
         liveModeActive={liveModeActive}
         modeMenuItems={modeMenuItems}
@@ -561,9 +565,15 @@ export function WriteWorkspaceView({
         setPreviewMode={setPreviewMode}
         onCopyRichText={() => void copyCurrentFileAsRichText()}
         onExportFile={(format) => void exportCurrentFile(format)}
+        onShowFilesPanel={() => setFilesPanelOpen(true)}
         onToggleLeftSidebar={onToggleLeftSidebar}
       />
       <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden pb-3 pt-3">
+        {filesPanelOpen ? (
+          <div className="h-full w-56 shrink-0">
+            <WriteFilesPanel onCollapse={() => setFilesPanelOpen(false)} />
+          </div>
+        ) : null}
         <div className="min-w-0 flex-1 overflow-hidden rounded-[28px] border border-ds-border bg-ds-card/90 shadow-[0_20px_56px_rgba(15,23,42,0.06)] backdrop-blur-xl">
           <WriteWorkspaceDocumentPane
             activeFilePath={activeFilePath}

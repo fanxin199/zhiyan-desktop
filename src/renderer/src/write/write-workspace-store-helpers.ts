@@ -29,6 +29,7 @@ import type { WritePreviewMode, WriteWorkspaceState } from './write-workspace-st
 export const WRITE_PREVIEW_MODE_KEY = 'deepseekgui.write.preview-mode'
 export const WRITE_ASSISTANT_OPEN_KEY = 'deepseekgui.write.assistant-open'
 export const WRITE_ASSISTANT_MODEL_KEY = 'deepseekgui.write.assistant-model'
+export const WRITE_FILES_PANEL_OPEN_KEY = 'deepseekgui.write.files-panel-open'
 const DEFAULT_WRITE_ASSISTANT_MODEL = 'auto'
 
 export function readStoredPreviewMode(): WritePreviewMode {
@@ -38,6 +39,10 @@ export function readStoredPreviewMode(): WritePreviewMode {
 
 export function readStoredAssistantOpen(): boolean {
   return readBrowserStorageItem(WRITE_ASSISTANT_OPEN_KEY) === '1'
+}
+
+export function readStoredFilesPanelOpen(): boolean {
+  return readBrowserStorageItem(WRITE_FILES_PANEL_OPEN_KEY) !== '0'
 }
 
 export function readStoredAssistantModel(): string {
