@@ -2,10 +2,8 @@ import { useEffect, useRef, useState, type DragEvent as ReactDragEvent, type Rea
 import JSZip from 'jszip'
 import {
   GraduationCap,
-  Presentation,
   PenTool,
   Search,
-  BookOpen,
   Microscope,
   Upload,
   Trash2,
@@ -27,6 +25,7 @@ import {
   persistModuleProjectContext
 } from '../../lib/module-context'
 import { CoursewarePage } from './CoursewarePage'
+import { PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import {
@@ -58,6 +57,7 @@ import {
   type FileManagerModuleFile,
   type FileManagerModuleTarget
 } from './FileManagerWorkspacePage'
+import type { ZhiYanModuleSectionId } from './zhiyan-module-registry'
 
 export type InlineModuleId =
   | 'literature'
@@ -272,7 +272,7 @@ type ModuleConfig = {
   icon: LucideIcon
   title: string
   subtitle: string
-  iconTone: string
+  tone: ZhiYanModuleSectionId
   moduleNotice?: string
   features: Array<{
     title: string
@@ -1002,20 +1002,8 @@ function ModulePageShell({
 
   return (
     <div className={`flex h-full flex-col overflow-y-auto bg-ds-main ${className}`}>
-      <div className="mx-auto w-full max-w-3xl px-6 py-8 sm:px-8 md:px-12">
-        {/* Module Header */}
-        <div className="mb-8 flex items-center gap-4">
-          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${config.iconTone}`}>
-            <Icon className="h-7 w-7" strokeWidth={1.8} />
-          </div>
-          <div>
-            <h1 className="text-display font-bold text-ds-text">{config.title}</h1>
-            <p className="text-body leading-5 text-ds-muted">{config.subtitle}</p>
-            {config.moduleNotice ? (
-              <p className="mt-2 text-caption leading-relaxed text-ds-muted">{config.moduleNotice}</p>
-            ) : null}
-          </div>
-        </div>
+      <PageColumn width="start" className="py-8">
+        <PageHeader icon={Icon} tone={config.tone} title={config.title} description={config.subtitle} />
 
         {config.comingSoon ? (
           <div className="mt-12 flex flex-col items-center justify-center text-center">
@@ -1031,13 +1019,21 @@ function ModulePageShell({
           <div className="space-y-8">
             {config.dataGuide ? <ModuleDataGuidePanel guide={config.dataGuide} /> : null}
 
-            <ResearchTaskEntry
-              config={config}
-              onStartChat={onStartChat}
-              handoffFile={handoffFile}
-              onHandoffFileConsumed={onHandoffFileConsumed}
-              researchTaskExecution={researchTaskExecution}
-            />
+            <div className="space-y-3">
+              {config.moduleNotice ? (
+                <p className="flex items-start gap-1.5 text-caption leading-relaxed text-ds-muted">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+                  <span>{config.moduleNotice}</span>
+                </p>
+              ) : null}
+              <ResearchTaskEntry
+                config={config}
+                onStartChat={onStartChat}
+                handoffFile={handoffFile}
+                onHandoffFileConsumed={onHandoffFileConsumed}
+                researchTaskExecution={researchTaskExecution}
+              />
+            </div>
 
             {showInlineConversation && inlineConversation ? (
               <div ref={conversationRef}>{inlineConversation}</div>
@@ -1090,34 +1086,16 @@ function ModulePageShell({
             )}
           </div>
         )}
-      </div>
+      </PageColumn>
     </div>
   )
-}
-
-const PPT_CONFIG: ModuleConfig = {
-  icon: Presentation,
-  title: '课件 PPT 生成',
-  subtitle: '上传教材或讲义 PDF，AI 自动生成教学课件',
-  iconTone: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
-  features: [
-    { title: 'PDF 解析', description: '自动识别教材章节结构和核心内容' },
-    { title: '智能配图', description: 'AI 生成配套教学示意图' },
-    { title: '多种模板', description: '内置多套学术风格 PPT 模板' },
-    { title: '导出 PPTX', description: '直接导出可编辑的 .pptx 文件' }
-  ],
-  quickPrompts: [
-    '帮我把上传的 PDF 教材转化为教学用的 PPT 课件',
-    '帮我制作一个关于“心血管生理调节”的 20 页教学 PPT',
-    '将我的实验方案制作成组会汇报用的PPT'
-  ]
 }
 
 export const PAPER_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '科研文本写作',
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
-  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
+  tone: 'research',
   inlineConversationModule: 'paper-polish',
   moduleNotice: '如需专门撰写国自然申请书，推荐使用「自然基金撰写」模块，内置国自然各模块模板。',
   taskEntry: {
@@ -1176,7 +1154,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
   icon: Search,
   title: '文献阅读',
   subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
-  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
+  tone: 'research',
   inlineConversationModule: 'literature',
   taskEntry: {
     title: '开始文献阅读任务',
@@ -1234,7 +1212,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
   icon: Search,
   title: '综述撰写',
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
-  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
+  tone: 'research',
   inlineConversationModule: 'review-writing',
   moduleNotice: '本模块专注于综述文章撰写。如需修改已有论文或基金，请使用「文本写作」模块。',
   taskEntry: {
@@ -1293,7 +1271,7 @@ export const GRANT_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '自然基金撰写',
   subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
-  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
+  tone: 'research',
   inlineConversationModule: 'grant-writing',
   taskEntry: {
     title: '开始自然基金撰写任务',
@@ -1353,29 +1331,11 @@ export const GRANT_CONFIG: ModuleConfig = {
   ]
 }
 
-const TEXTBOOK_CONFIG: ModuleConfig = {
-  icon: BookOpen,
-  title: '教材与基金撰写',
-  subtitle: 'AI 辅助撰写教材章节、基金申请书和学术综述',
-  iconTone: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
-  features: [
-    { title: '教材写作', description: '按章节结构撰写教材内容' },
-    { title: '国自然申请', description: '辅助撰写国家自然科学基金申请书' },
-    { title: '综述写作', description: 'IMRaD 框架学术综述撰写' },
-    { title: '全文连贯', description: '跨章节术语一致性和逻辑检查' }
-  ],
-  quickPrompts: [
-    '帮我撰写国自然面上项目的立项依据部分，研究方向是代谢稳态与器官损伤',
-    '帮我写教材《生理学》中“心血管活动调节”的内容',
-    '帮我撰写一篇关于单细胞测序在生物医学研究中应用的综述文章'
-  ]
-}
-
 export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   icon: Microscope,
   title: '科研数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
-  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
+  tone: 'research',
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
@@ -1890,17 +1850,13 @@ export function SyllabusPage({
 
     return (
     <div className={`flex h-full flex-col overflow-y-auto bg-ds-main ${className}`}>
-      <div className="mx-auto w-full max-w-3xl px-6 py-8 sm:px-8 md:px-12">
-        {/* Module Header */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ds-domain-teaching-soft text-ds-domain-teaching">
-            <GraduationCap className="h-7 w-7" strokeWidth={1.8} />
-          </div>
-          <div>
-            <h1 className="text-display font-bold text-ds-text">智能教案生成</h1>
-            <p className="text-body leading-5 text-ds-muted">AI 辅助生成符合规范的课程教案，可直接导出为 Word 文档</p>
-          </div>
-        </div>
+      <PageColumn width="start" className="py-8">
+        <PageHeader
+          icon={GraduationCap}
+          tone="teaching"
+          title="智能教案生成"
+          description="AI 辅助生成符合规范的课程教案，可直接导出为 Word 文档"
+        />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {formError ? (
@@ -2205,7 +2161,7 @@ export function SyllabusPage({
         {showInlineConversation && inlineConversation ? (
           <div ref={conversationRef} className="mt-8">{inlineConversation}</div>
         ) : null}
-      </div>
+      </PageColumn>
     </div>
   )
 }

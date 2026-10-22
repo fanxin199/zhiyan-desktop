@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import { useChatStore } from '../../store/chat-store'
+import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 
 export type FileManagerModuleTarget = 'syllabus' | 'literature'
 
@@ -485,26 +486,25 @@ export function FileManagerWorkspacePage({
 
   return (
     <div className={`flex h-full min-h-0 flex-col overflow-hidden bg-ds-main ${className}`}>
-      <header className="shrink-0 border-b border-ds-border-muted bg-ds-card px-6 py-4 sm:px-8">
-        <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-title font-semibold text-ds-text">
-              <FolderOpen className="h-5 w-5 text-accent" strokeWidth={1.8} />
-              文件管理
-            </div>
-            <p className="mt-1 truncate text-caption text-ds-muted" title={workspaceRoot || undefined}>
-              {workspaceRoot || '请选择需要管理的项目文件夹'}
-            </p>
-          </div>
-          <button type="button" onClick={() => void chooseWorkspace()} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover">
-            <FolderOpen className="h-4 w-4" strokeWidth={1.8} />
-            选择文件夹
-          </button>
-          <button type="button" onClick={() => void loadDirectory()} disabled={!workspaceRoot || loading} className="ds-sidebar-toggle-button disabled:opacity-40" title="刷新文件列表" aria-label="刷新文件列表">
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} strokeWidth={1.8} />
-          </button>
-        </div>
-      </header>
+      <PageColumn width="work" className="shrink-0 pt-8">
+        <PageHeader
+          icon={FolderOpen}
+          tone="capabilities"
+          title="文件管理"
+          description="浏览、预览和整理项目文件夹里的文件"
+          actions={
+            <>
+              <button type="button" onClick={() => void chooseWorkspace()} className={PAGE_HEADER_ACTION_CLASS}>
+                <FolderOpen className="h-4 w-4" strokeWidth={1.8} />
+                选择文件夹
+              </button>
+              <button type="button" onClick={() => void loadDirectory()} disabled={!workspaceRoot || loading} className="ds-sidebar-toggle-button disabled:opacity-40" title="刷新文件列表" aria-label="刷新文件列表">
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} strokeWidth={1.8} />
+              </button>
+            </>
+          }
+        />
+      </PageColumn>
 
       {!workspaceRoot ? (
         <div className="flex min-h-0 flex-1 items-center justify-center px-6">
@@ -518,7 +518,7 @@ export function FileManagerWorkspacePage({
           </div>
         </div>
       ) : (
-        <div className="mx-auto flex min-h-0 w-full max-w-[1440px] flex-1 flex-col px-4 py-4 sm:px-6">
+        <PageColumn width="work" className="flex min-h-0 flex-1 flex-col pb-8">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => parent && setDirectory(parent)} disabled={!parent} className="ds-sidebar-toggle-button disabled:opacity-35" title="返回上级目录" aria-label="返回上级目录">
               <ArrowUp className="h-4 w-4" strokeWidth={1.8} />
@@ -688,7 +688,7 @@ export function FileManagerWorkspacePage({
               )}
             </aside>
           </div>
-        </div>
+        </PageColumn>
       )}
       {fileContextMenu ? (
         <div

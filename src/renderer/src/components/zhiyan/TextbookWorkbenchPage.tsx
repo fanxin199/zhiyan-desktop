@@ -34,6 +34,7 @@ import {
   type TextbookReference,
   type TextbookSection
 } from '@shared/textbook'
+import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
 type TextbookWorkbenchPageProps = {
@@ -670,734 +671,727 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
 
   return (
     <div className={`flex h-full flex-col overflow-hidden bg-ds-main ${className}`}>
-      <div className="flex shrink-0 items-center justify-between border-b border-ds-border-muted px-6 py-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ds-domain-teaching-soft text-ds-domain-teaching">
-            <BookOpen className="h-5 w-5" strokeWidth={1.9} />
+      <PageColumn width="work" className="shrink-0 pt-8">
+        <PageHeader
+          icon={BookOpen}
+          tone="teaching"
+          title="教材编写工作台"
+          description={`当前阶段：${progressLabel} · ${completedCount}/${sectionCount} 节已有正文`}
+          actions={
+            <button type="button" onClick={() => void openProject()} className={PAGE_HEADER_ACTION_CLASS}>
+              {busy === 'load' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
+              打开项目
+            </button>
+          }
+        />
+
+        <div className="flex gap-2 border-b border-ds-border-muted pb-3">
+          {renderStepButton('setup', '项目设置')}
+          {renderStepButton('outline', '大纲设计')}
+          {renderStepButton('writing', '逐节写作')}
+          {renderStepButton('check', '检查导出')}
+        </div>
+
+        {message ? (
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-ds-warning/30 bg-ds-warning-soft px-3 py-2 text-small text-ds-warning">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{message}</span>
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-title font-bold text-ds-text">教材编写工作台</h1>
-            <p className="truncate text-small text-ds-muted">
-              当前阶段：{progressLabel} · {completedCount}/{sectionCount} 节已有正文
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void openProject()}
-            className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover"
-          >
-            {busy === 'load' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
-            打开项目
-          </button>
-        </div>
-      </div>
+        ) : null}
+      </PageColumn>
 
-      <div className="flex shrink-0 gap-2 border-b border-ds-border-muted px-6 py-3">
-        {renderStepButton('setup', '项目设置')}
-        {renderStepButton('outline', '大纲设计')}
-        {renderStepButton('writing', '逐节写作')}
-        {renderStepButton('check', '检查导出')}
-      </div>
-
-      {message ? (
-        <div className="mx-6 mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-ds-warning/30 bg-ds-warning-soft px-3 py-2 text-small text-ds-warning">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{message}</span>
-        </div>
-      ) : null}
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-        {step === 'setup' && (
-          <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="space-y-5">
-              <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-4 flex items-center gap-2 text-heading font-bold text-ds-text">
-                  <FileText className="h-4 w-4 text-accent" />
-                  基本信息
-                </h2>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label>
-                    <span className={labelClass}>教材题名</span>
-                    <input
-                      value={metadata.title}
-                      onChange={(event) => setMetadata({ ...metadata, title: event.target.value })}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>学科方向</span>
-                    <input
-                      value={metadata.subject}
-                      onChange={(event) => setMetadata({ ...metadata, subject: event.target.value })}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>作者 / 主编</span>
-                    <input
-                      value={metadata.author}
-                      onChange={(event) => setMetadata({ ...metadata, author: event.target.value })}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>引用格式</span>
-                    <select
-                      value={metadata.citationStyle}
-                      onChange={(event) => setMetadata({
-                        ...metadata,
-                        citationStyle: event.target.value as TextbookCitationStyle
-                      })}
-                      className={fieldClass}
-                    >
-                      {citationOptions.map((option) => (
-                        <option key={option.id} value={option.id}>{option.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <div className="mt-4">
-                  <span className={labelClass}>目标读者</span>
-                  <div className="flex flex-wrap gap-2">
-                    {audienceOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setMetadata({ ...metadata, audience: option.id })}
-                        className={`rounded-lg border px-3 py-2 text-small font-semibold ${
-                          metadata.audience === option.id
-                            ? 'border-accent bg-accent text-white'
-                            : 'border-ds-border bg-ds-card text-ds-text hover:bg-ds-hover'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <label className="mt-4 block">
-                  <span className={labelClass}>教材写作目标</span>
-                  <ResizableTextArea
-                    value={metadata.writingGoal}
-                    onChange={(event) => setMetadata({ ...metadata, writingGoal: event.target.value })}
-                    rows={3}
-                    className={fieldClass}
-                  />
-                </label>
-              </div>
-
-              <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="flex items-center gap-2 text-heading font-bold text-ds-text">
-                    <Save className="h-4 w-4 text-accent" />
-                    出版社要求
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <PageColumn width="work" className="py-5">
+          {step === 'setup' && (
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+              <section className="space-y-5">
+                <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <h2 className="mb-4 flex items-center gap-2 text-heading font-bold text-ds-text">
+                    <FileText className="h-4 w-4 text-accent" />
+                    基本信息
                   </h2>
-                  <button
-                    type="button"
-                    onClick={() => void pickPublisherFile()}
-                    className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-caption font-semibold text-ds-text hover:bg-ds-hover"
-                  >
-                    <FolderOpen className="h-3.5 w-3.5" />
-                    读取 txt/md
-                  </button>
-                </div>
-                <ResizableTextArea
-                  value={publisherGuidelines}
-                  onChange={(event) => handlePublisherGuidelinesChange(event.target.value)}
-                  rows={8}
-                  className={`${fieldClass} min-h-[220px]`}
-                  placeholder="粘贴出版社给出的写作与排版要求，例如字体、字号、行距、标题编号、标点符号、参考文献格式、图表规范等。"
-                />
-              </div>
-            </section>
-
-            <aside className="space-y-5">
-              <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-4 text-heading font-bold text-ds-text">可解析格式规则</h2>
-                <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 p-3">
-                  <button
-                    type="button"
-                    data-testid="textbook-ai-parse-format-rules"
-                    disabled={!publisherGuidelines.trim() || busy !== null}
-                    onClick={() => void parseFormatRulesWithAi()}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
-                  >
-                    {busy === 'format' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    AI 解析出版社要求
-                  </button>
-                  <p className="mt-2 text-caption leading-5 text-ds-muted">
-                    粘贴或读取要求后会先自动抽取常见格式；复杂规则可由 AI 补全，老师只需校正。
-                  </p>
-                </div>
-                <div className="space-y-3" data-format-rules-panel="auto-parse">
-                  <label>
-                    <span className={labelClass}>正文字体</span>
-                    <select
-                      value={TEXTBOOK_FONT_OPTIONS.includes(formatRules.fontFamily as typeof TEXTBOOK_FONT_OPTIONS[number])
-                        ? formatRules.fontFamily
-                        : '__custom__'}
-                      onChange={(event) => {
-                        if (event.target.value === '__custom__') return
-                        applyFormatRules({ ...formatRules, fontFamily: event.target.value })
-                      }}
-                      className={fieldClass}
-                    >
-                      {fontOptions.map((option) => (
-                        <option key={option.id} value={option.id}>{option.label}</option>
-                      ))}
-                      <option value="__custom__">其他字体</option>
-                    </select>
-                    {!TEXTBOOK_FONT_OPTIONS.includes(formatRules.fontFamily as typeof TEXTBOOK_FONT_OPTIONS[number]) && (
-                      <input
-                        value={formatRules.fontFamily}
-                        onChange={(event) => applyFormatRules({ ...formatRules, fontFamily: event.target.value })}
-                        className={`${fieldClass} mt-2`}
-                      />
-                    )}
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <label>
-                      <span className={labelClass}>字号 pt</span>
-                      <select
-                        value={fontSizeOptions.some((option) => option.value === formatRules.fontSizePt)
-                          ? String(formatRules.fontSizePt)
-                          : '__custom__'}
-                        onChange={(event) => {
-                          if (event.target.value === '__custom__') return
-                          applyFormatRules({
-                            ...formatRules,
-                            fontSizePt: Number(event.target.value)
-                          })
-                        }}
+                      <span className={labelClass}>教材题名</span>
+                      <input
+                        value={metadata.title}
+                        onChange={(event) => setMetadata({ ...metadata, title: event.target.value })}
                         className={fieldClass}
-                      >
-                        {fontSizeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                        <option value="__custom__">自定义</option>
-                      </select>
-                      {!fontSizeOptions.some((option) => option.value === formatRules.fontSizePt) && (
-                        <input
-                          type="number"
-                          min={7}
-                          max={42}
-                          step={0.5}
-                          value={formatRules.fontSizePt}
-                          onChange={(event) => applyFormatRules({
-                            ...formatRules,
-                            fontSizePt: Number(event.target.value)
-                          })}
-                          className={`${fieldClass} mt-2`}
-                        />
-                      )}
+                      />
                     </label>
                     <label>
-                      <span className={labelClass}>行距</span>
-                      <select
-                        value={lineSpacingOptions.some((option) => option.value === formatRules.lineSpacing)
-                          ? String(formatRules.lineSpacing)
-                          : '__custom__'}
-                        onChange={(event) => {
-                          if (event.target.value === '__custom__') return
-                          applyFormatRules({
-                            ...formatRules,
-                            lineSpacing: Number(event.target.value)
-                          })
-                        }}
+                      <span className={labelClass}>学科方向</span>
+                      <input
+                        value={metadata.subject}
+                        onChange={(event) => setMetadata({ ...metadata, subject: event.target.value })}
                         className={fieldClass}
-                      >
-                        {lineSpacingOptions.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                        <option value="__custom__">自定义</option>
-                      </select>
-                      {!lineSpacingOptions.some((option) => option.value === formatRules.lineSpacing) && (
-                        <input
-                          type="number"
-                          min={1}
-                          max={3}
-                          step={0.05}
-                          value={formatRules.lineSpacing}
-                          onChange={(event) => applyFormatRules({
-                            ...formatRules,
-                            lineSpacing: Number(event.target.value)
-                          })}
-                          className={`${fieldClass} mt-2`}
-                        />
-                      )}
+                      />
                     </label>
-                  </div>
-                  <label>
-                    <span className={labelClass}>标题层级</span>
-                    <ResizableTextArea
-                      value={formatRules.headingPattern}
-                      onChange={(event) => applyFormatRules({
-                        ...formatRules,
-                        headingPattern: event.target.value
-                      })}
-                      rows={3}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>符号 / 标点规则</span>
-                    <ResizableTextArea
-                      value={formatRules.symbolRules}
-                      onChange={(event) => applyFormatRules({
-                        ...formatRules,
-                        symbolRules: event.target.value
-                      })}
-                      rows={3}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>需人工复核的出版社规则</span>
-                    <ResizableTextArea
-                      value={formatRules.unresolvedRules.join('\n')}
-                      onChange={(event) => applyFormatRules({
-                        ...formatRules,
-                        unresolvedRules: event.target.value.split('\n').map((item) => item.trim()).filter(Boolean)
-                      })}
-                      rows={3}
-                      className={fieldClass}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 text-heading font-bold text-ds-text">大纲生成说明</h2>
-                <ResizableTextArea
-                  value={teacherBrief}
-                  onChange={(event) => setTeacherBrief(event.target.value)}
-                  rows={6}
-                  className={fieldClass}
-                  placeholder="例如：重点覆盖细胞稳态、器官功能、疾病机制和药物干预；每章设置临床案例和思考题。"
-                />
-                <button
-                  type="button"
-                  disabled={!canGenerateOutline || busy !== null}
-                  onClick={() => void generateOutline()}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-body font-semibold text-white disabled:opacity-50"
-                >
-                  {busy === 'outline' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  生成全书大纲
-                </button>
-              </div>
-            </aside>
-          </div>
-        )}
-
-        {step === 'outline' && outline && (
-          <div className="mx-auto max-w-6xl space-y-4">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
-                <h2 className="text-title font-bold text-ds-text">{outline.title}</h2>
-                <p className="mt-1 text-small leading-6 text-ds-muted">{outline.rationale}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={addChapter}
-                  className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover"
-                >
-                  <Plus className="h-4 w-4" />
-                  增加章
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStep('writing')}
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-small font-semibold text-white"
-                >
-                  <Check className="h-4 w-4" />
-                  确认大纲并写作
-                </button>
-              </div>
-            </div>
-
-            {outline.chapters.map((chapter, chapterIndex) => (
-              <section key={chapter.id} className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <div className="mb-3 flex items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <input
-                      value={chapter.title}
-                      onChange={(event) => updateChapter(chapterIndex, { title: event.target.value })}
-                      className={`${fieldClass} text-heading font-bold`}
-                    />
-                    <input
-                      value={chapter.writingGoal}
-                      onChange={(event) => updateChapter(chapterIndex, { writingGoal: event.target.value })}
-                      className={`${fieldClass} mt-2`}
-                      placeholder="本章写作目标"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    title="上移"
-                    onClick={() => updateOutline((current) => ({
-                      ...current,
-                      chapters: moveItem(current.chapters, chapterIndex, chapterIndex - 1)
-                    }))}
-                    className="rounded-lg p-2 text-ds-muted hover:bg-ds-hover"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="下移"
-                    onClick={() => updateOutline((current) => ({
-                      ...current,
-                      chapters: moveItem(current.chapters, chapterIndex, chapterIndex + 1)
-                    }))}
-                    className="rounded-lg p-2 text-ds-muted hover:bg-ds-hover"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="删除章"
-                    onClick={() => deleteChapter(chapterIndex)}
-                    className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {chapter.sections.map((section, sectionIndex) => (
-                    <div
-                      key={section.id}
-                      className="grid gap-2 rounded-lg border border-ds-border-muted bg-ds-main/45 p-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)_130px_130px]"
-                    >
+                    <label>
+                      <span className={labelClass}>作者 / 主编</span>
                       <input
-                        value={section.title}
-                        onChange={(event) => updateSection(chapterIndex, sectionIndex, { title: event.target.value })}
+                        value={metadata.author}
+                        onChange={(event) => setMetadata({ ...metadata, author: event.target.value })}
                         className={fieldClass}
                       />
-                      <input
-                        value={section.writingGoal}
-                        onChange={(event) => updateSection(chapterIndex, sectionIndex, { writingGoal: event.target.value })}
-                        className={fieldClass}
-                        placeholder="本节写作目标"
-                      />
-                      <input
-                        type="number"
-                        value={section.estimatedWords}
-                        onChange={(event) => updateSection(chapterIndex, sectionIndex, {
-                          estimatedWords: Number(event.target.value)
+                    </label>
+                    <label>
+                      <span className={labelClass}>引用格式</span>
+                      <select
+                        value={metadata.citationStyle}
+                        onChange={(event) => setMetadata({
+                          ...metadata,
+                          citationStyle: event.target.value as TextbookCitationStyle
                         })}
                         className={fieldClass}
-                      />
-                      <div className="flex items-center justify-end gap-1">
+                      >
+                        {citationOptions.map((option) => (
+                          <option key={option.id} value={option.id}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-4">
+                    <span className={labelClass}>目标读者</span>
+                    <div className="flex flex-wrap gap-2">
+                      {audienceOptions.map((option) => (
                         <button
+                          key={option.id}
                           type="button"
-                          onClick={() => updateSection(chapterIndex, sectionIndex, {
-                            confirmed: !section.confirmed
-                          })}
-                          className={`rounded-lg px-2 py-1.5 text-caption font-semibold ${
-                            section.confirmed ? 'bg-ds-success text-white' : 'border border-ds-border text-ds-muted'
+                          onClick={() => setMetadata({ ...metadata, audience: option.id })}
+                          className={`rounded-lg border px-3 py-2 text-small font-semibold ${
+                            metadata.audience === option.id
+                              ? 'border-accent bg-accent text-white'
+                              : 'border-ds-border bg-ds-card text-ds-text hover:bg-ds-hover'
                           }`}
                         >
-                          {section.confirmed ? '已确认' : '待确认'}
+                          {option.label}
                         </button>
-                        <button
-                          type="button"
-                          title="删除节"
-                          onClick={() => deleteSection(chapterIndex, sectionIndex)}
-                          className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <input
-                        value={section.keyConcepts.join('；')}
-                        onChange={(event) => updateSection(chapterIndex, sectionIndex, {
-                          keyConcepts: event.target.value.split(/[;；]/).map((item) => item.trim()).filter(Boolean)
-                        })}
-                        className={`${fieldClass} lg:col-span-4`}
-                        placeholder="关键概念，用分号分隔"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => addSection(chapterIndex)}
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-ds-border px-3 py-2 text-small font-semibold text-ds-muted hover:border-accent hover:text-accent"
-                >
-                  <Plus className="h-4 w-4" />
-                  增加小节
-                </button>
-              </section>
-            ))}
-          </div>
-        )}
-
-        {step === 'writing' && project && activeSection && (
-          <div className="grid min-h-[calc(100vh-220px)] gap-4 xl:grid-cols-[270px_minmax(0,1fr)_360px]">
-            <aside className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-3">
-              <h2 className="mb-3 px-1 text-small font-bold text-ds-text">章节树</h2>
-              <div className="max-h-[calc(100vh-270px)] space-y-3 overflow-y-auto pr-1">
-                {project.outline?.chapters.map((chapter, chapterIndex) => (
-                  <div key={chapter.id}>
-                    <p className="mb-1 px-2 text-caption font-semibold text-ds-muted">
-                      第 {chapterIndex + 1} 章 {chapter.title}
-                    </p>
-                    <div className="space-y-1">
-                      {chapter.sections.map((outlineSection, sectionIndex) => {
-                        const section = project.sections.find((item) => item.id === outlineSection.id)
-                        const active = activeSection.id === outlineSection.id
-                        return (
-                          <button
-                            key={outlineSection.id}
-                            type="button"
-                            onClick={() => setActiveSectionId(outlineSection.id)}
-                            className={`w-full rounded-lg px-2 py-2 text-left transition ${
-                              active ? 'bg-accent text-white' : 'text-ds-text hover:bg-ds-hover'
-                            }`}
-                          >
-                            <span className="block truncate text-small font-semibold">
-                              {chapterIndex + 1}.{sectionIndex + 1} {outlineSection.title}
-                            </span>
-                            <span className={`mt-1 block text-caption ${active ? 'text-white/70' : 'text-ds-faint'}`}>
-                              {statusLabel(section?.status ?? 'draft')}
-                            </span>
-                          </button>
-                        )
-                      })}
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </aside>
-
-            <main className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-4">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="truncate text-heading font-bold text-ds-text">{activeSection.title}</h2>
-                  <p className="mt-1 text-caption text-ds-muted">{activeSection.path} · {statusLabel(activeSection.status)}</p>
+                  <label className="mt-4 block">
+                    <span className={labelClass}>教材写作目标</span>
+                    <ResizableTextArea
+                      value={metadata.writingGoal}
+                      onChange={(event) => setMetadata({ ...metadata, writingGoal: event.target.value })}
+                      rows={3}
+                      className={fieldClass}
+                    />
+                  </label>
                 </div>
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void generateActiveSection(sectionInstruction)}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
-                >
-                  {busy === 'section' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  生成本节
-                </button>
-              </div>
-              <ResizableTextArea
-                value={activeSection.content}
-                onChange={(event) => updateActiveSection({ content: event.target.value })}
-                rows={22}
-                className={`${fieldClass} min-h-[520px] font-mono leading-7`}
-                placeholder="本节教材正文将在这里生成，也可以直接手动编辑 Markdown。"
-              />
-            </main>
 
-            <aside className="space-y-4">
-              <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-3 text-small font-bold text-ds-text">AI 写作助手</h2>
-                <ResizableTextArea
-                  value={sectionInstruction}
-                  onChange={(event) => setSectionInstruction(event.target.value)}
-                  rows={4}
-                  className={fieldClass}
-                  placeholder="输入对当前节的要求，例如：增加机制图与临床案例；压缩到 2500 字；改成本科教材语气。"
-                />
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  {[
-                    '扩展机制深度',
-                    '压缩文字密度',
-                    '改写为本科教材风格',
-                    '检查出版社规范'
-                  ].map((instruction) => (
+                <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h2 className="flex items-center gap-2 text-heading font-bold text-ds-text">
+                      <Save className="h-4 w-4 text-accent" />
+                      出版社要求
+                    </h2>
                     <button
-                      key={instruction}
                       type="button"
-                      disabled={busy !== null}
-                      onClick={() => void reviseActiveSection(instruction)}
-                      className="rounded-lg border border-ds-border px-2 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover disabled:opacity-50"
+                      onClick={() => void pickPublisherFile()}
+                      className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-caption font-semibold text-ds-text hover:bg-ds-hover"
                     >
-                      {instruction}
+                      <FolderOpen className="h-3.5 w-3.5" />
+                      读取 txt/md
                     </button>
-                  ))}
+                  </div>
+                  <ResizableTextArea
+                    value={publisherGuidelines}
+                    onChange={(event) => handlePublisherGuidelinesChange(event.target.value)}
+                    rows={8}
+                    className={`${fieldClass} min-h-[220px]`}
+                    placeholder="粘贴出版社给出的写作与排版要求，例如字体、字号、行距、标题编号、标点符号、参考文献格式、图表规范等。"
+                  />
                 </div>
-                <button
-                  type="button"
-                  disabled={!sectionInstruction.trim() || busy !== null}
-                  onClick={() => void reviseActiveSection(sectionInstruction)}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
-                >
-                  {busy === 'revise' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  按指令修订当前节
-                </button>
               </section>
 
-              <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
-                  <Search className="h-4 w-4 text-accent" />
-                  PubMed 文献
-                </h2>
-                <div className="flex gap-2">
-                  <input
-                    value={pubmedQuery}
-                    onChange={(event) => setPubmedQuery(event.target.value)}
+              <aside className="space-y-5">
+                <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <h2 className="mb-4 text-heading font-bold text-ds-text">可解析格式规则</h2>
+                  <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 p-3">
+                    <button
+                      type="button"
+                      data-testid="textbook-ai-parse-format-rules"
+                      disabled={!publisherGuidelines.trim() || busy !== null}
+                      onClick={() => void parseFormatRulesWithAi()}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
+                    >
+                      {busy === 'format' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      AI 解析出版社要求
+                    </button>
+                    <p className="mt-2 text-caption leading-5 text-ds-muted">
+                      粘贴或读取要求后会先自动抽取常见格式；复杂规则可由 AI 补全，老师只需校正。
+                    </p>
+                  </div>
+                  <div className="space-y-3" data-format-rules-panel="auto-parse">
+                    <label>
+                      <span className={labelClass}>正文字体</span>
+                      <select
+                        value={TEXTBOOK_FONT_OPTIONS.includes(formatRules.fontFamily as typeof TEXTBOOK_FONT_OPTIONS[number])
+                          ? formatRules.fontFamily
+                          : '__custom__'}
+                        onChange={(event) => {
+                          if (event.target.value === '__custom__') return
+                          applyFormatRules({ ...formatRules, fontFamily: event.target.value })
+                        }}
+                        className={fieldClass}
+                      >
+                        {fontOptions.map((option) => (
+                          <option key={option.id} value={option.id}>{option.label}</option>
+                        ))}
+                        <option value="__custom__">其他字体</option>
+                      </select>
+                      {!TEXTBOOK_FONT_OPTIONS.includes(formatRules.fontFamily as typeof TEXTBOOK_FONT_OPTIONS[number]) && (
+                        <input
+                          value={formatRules.fontFamily}
+                          onChange={(event) => applyFormatRules({ ...formatRules, fontFamily: event.target.value })}
+                          className={`${fieldClass} mt-2`}
+                        />
+                      )}
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label>
+                        <span className={labelClass}>字号 pt</span>
+                        <select
+                          value={fontSizeOptions.some((option) => option.value === formatRules.fontSizePt)
+                            ? String(formatRules.fontSizePt)
+                            : '__custom__'}
+                          onChange={(event) => {
+                            if (event.target.value === '__custom__') return
+                            applyFormatRules({
+                              ...formatRules,
+                              fontSizePt: Number(event.target.value)
+                            })
+                          }}
+                          className={fieldClass}
+                        >
+                          {fontSizeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                          <option value="__custom__">自定义</option>
+                        </select>
+                        {!fontSizeOptions.some((option) => option.value === formatRules.fontSizePt) && (
+                          <input
+                            type="number"
+                            min={7}
+                            max={42}
+                            step={0.5}
+                            value={formatRules.fontSizePt}
+                            onChange={(event) => applyFormatRules({
+                              ...formatRules,
+                              fontSizePt: Number(event.target.value)
+                            })}
+                            className={`${fieldClass} mt-2`}
+                          />
+                        )}
+                      </label>
+                      <label>
+                        <span className={labelClass}>行距</span>
+                        <select
+                          value={lineSpacingOptions.some((option) => option.value === formatRules.lineSpacing)
+                            ? String(formatRules.lineSpacing)
+                            : '__custom__'}
+                          onChange={(event) => {
+                            if (event.target.value === '__custom__') return
+                            applyFormatRules({
+                              ...formatRules,
+                              lineSpacing: Number(event.target.value)
+                            })
+                          }}
+                          className={fieldClass}
+                        >
+                          {lineSpacingOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                          <option value="__custom__">自定义</option>
+                        </select>
+                        {!lineSpacingOptions.some((option) => option.value === formatRules.lineSpacing) && (
+                          <input
+                            type="number"
+                            min={1}
+                            max={3}
+                            step={0.05}
+                            value={formatRules.lineSpacing}
+                            onChange={(event) => applyFormatRules({
+                              ...formatRules,
+                              lineSpacing: Number(event.target.value)
+                            })}
+                            className={`${fieldClass} mt-2`}
+                          />
+                        )}
+                      </label>
+                    </div>
+                    <label>
+                      <span className={labelClass}>标题层级</span>
+                      <ResizableTextArea
+                        value={formatRules.headingPattern}
+                        onChange={(event) => applyFormatRules({
+                          ...formatRules,
+                          headingPattern: event.target.value
+                        })}
+                        rows={3}
+                        className={fieldClass}
+                      />
+                    </label>
+                    <label>
+                      <span className={labelClass}>符号 / 标点规则</span>
+                      <ResizableTextArea
+                        value={formatRules.symbolRules}
+                        onChange={(event) => applyFormatRules({
+                          ...formatRules,
+                          symbolRules: event.target.value
+                        })}
+                        rows={3}
+                        className={fieldClass}
+                      />
+                    </label>
+                    <label>
+                      <span className={labelClass}>需人工复核的出版社规则</span>
+                      <ResizableTextArea
+                        value={formatRules.unresolvedRules.join('\n')}
+                        onChange={(event) => applyFormatRules({
+                          ...formatRules,
+                          unresolvedRules: event.target.value.split('\n').map((item) => item.trim()).filter(Boolean)
+                        })}
+                        rows={3}
+                        className={fieldClass}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <h2 className="mb-3 text-heading font-bold text-ds-text">大纲生成说明</h2>
+                  <ResizableTextArea
+                    value={teacherBrief}
+                    onChange={(event) => setTeacherBrief(event.target.value)}
+                    rows={6}
                     className={fieldClass}
-                    placeholder={activeSection.title}
+                    placeholder="例如：重点覆盖细胞稳态、器官功能、疾病机制和药物干预；每章设置临床案例和思考题。"
                   />
+                  <button
+                    type="button"
+                    disabled={!canGenerateOutline || busy !== null}
+                    onClick={() => void generateOutline()}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-body font-semibold text-white disabled:opacity-50"
+                  >
+                    {busy === 'outline' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    生成全书大纲
+                  </button>
+                </div>
+              </aside>
+            </div>
+          )}
+
+          {step === 'outline' && outline && (
+            <div className="space-y-4">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <h2 className="text-title font-bold text-ds-text">{outline.title}</h2>
+                  <p className="mt-1 text-small leading-6 text-ds-muted">{outline.rationale}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={addChapter}
+                    className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover"
+                  >
+                    <Plus className="h-4 w-4" />
+                    增加章
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('writing')}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-small font-semibold text-white"
+                  >
+                    <Check className="h-4 w-4" />
+                    确认大纲并写作
+                  </button>
+                </div>
+              </div>
+
+              {outline.chapters.map((chapter, chapterIndex) => (
+                <section key={chapter.id} className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                  <div className="mb-3 flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <input
+                        value={chapter.title}
+                        onChange={(event) => updateChapter(chapterIndex, { title: event.target.value })}
+                        className={`${fieldClass} text-heading font-bold`}
+                      />
+                      <input
+                        value={chapter.writingGoal}
+                        onChange={(event) => updateChapter(chapterIndex, { writingGoal: event.target.value })}
+                        className={`${fieldClass} mt-2`}
+                        placeholder="本章写作目标"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      title="上移"
+                      onClick={() => updateOutline((current) => ({
+                        ...current,
+                        chapters: moveItem(current.chapters, chapterIndex, chapterIndex - 1)
+                      }))}
+                      className="rounded-lg p-2 text-ds-muted hover:bg-ds-hover"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title="下移"
+                      onClick={() => updateOutline((current) => ({
+                        ...current,
+                        chapters: moveItem(current.chapters, chapterIndex, chapterIndex + 1)
+                      }))}
+                      className="rounded-lg p-2 text-ds-muted hover:bg-ds-hover"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title="删除章"
+                      onClick={() => deleteChapter(chapterIndex)}
+                      className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {chapter.sections.map((section, sectionIndex) => (
+                      <div
+                        key={section.id}
+                        className="grid gap-2 rounded-lg border border-ds-border-muted bg-ds-main/45 p-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)_130px_130px]"
+                      >
+                        <input
+                          value={section.title}
+                          onChange={(event) => updateSection(chapterIndex, sectionIndex, { title: event.target.value })}
+                          className={fieldClass}
+                        />
+                        <input
+                          value={section.writingGoal}
+                          onChange={(event) => updateSection(chapterIndex, sectionIndex, { writingGoal: event.target.value })}
+                          className={fieldClass}
+                          placeholder="本节写作目标"
+                        />
+                        <input
+                          type="number"
+                          value={section.estimatedWords}
+                          onChange={(event) => updateSection(chapterIndex, sectionIndex, {
+                            estimatedWords: Number(event.target.value)
+                          })}
+                          className={fieldClass}
+                        />
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => updateSection(chapterIndex, sectionIndex, {
+                              confirmed: !section.confirmed
+                            })}
+                            className={`rounded-lg px-2 py-1.5 text-caption font-semibold ${
+                              section.confirmed ? 'bg-ds-success text-white' : 'border border-ds-border text-ds-muted'
+                            }`}
+                          >
+                            {section.confirmed ? '已确认' : '待确认'}
+                          </button>
+                          <button
+                            type="button"
+                            title="删除节"
+                            onClick={() => deleteSection(chapterIndex, sectionIndex)}
+                            className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <input
+                          value={section.keyConcepts.join('；')}
+                          onChange={(event) => updateSection(chapterIndex, sectionIndex, {
+                            keyConcepts: event.target.value.split(/[;；]/).map((item) => item.trim()).filter(Boolean)
+                          })}
+                          className={`${fieldClass} lg:col-span-4`}
+                          placeholder="关键概念，用分号分隔"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addSection(chapterIndex)}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-ds-border px-3 py-2 text-small font-semibold text-ds-muted hover:border-accent hover:text-accent"
+                  >
+                    <Plus className="h-4 w-4" />
+                    增加小节
+                  </button>
+                </section>
+              ))}
+            </div>
+          )}
+
+          {step === 'writing' && project && activeSection && (
+            <div className="grid min-h-[calc(100vh-235px)] gap-4 xl:grid-cols-[270px_minmax(0,1fr)_360px]">
+              <aside className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-3">
+                <h2 className="mb-3 px-1 text-small font-bold text-ds-text">章节树</h2>
+                <div className="max-h-[calc(100vh-285px)] space-y-3 overflow-y-auto pr-1">
+                  {project.outline?.chapters.map((chapter, chapterIndex) => (
+                    <div key={chapter.id}>
+                      <p className="mb-1 px-2 text-caption font-semibold text-ds-muted">
+                        第 {chapterIndex + 1} 章 {chapter.title}
+                      </p>
+                      <div className="space-y-1">
+                        {chapter.sections.map((outlineSection, sectionIndex) => {
+                          const section = project.sections.find((item) => item.id === outlineSection.id)
+                          const active = activeSection.id === outlineSection.id
+                          return (
+                            <button
+                              key={outlineSection.id}
+                              type="button"
+                              onClick={() => setActiveSectionId(outlineSection.id)}
+                              className={`w-full rounded-lg px-2 py-2 text-left transition ${
+                                active ? 'bg-accent text-white' : 'text-ds-text hover:bg-ds-hover'
+                              }`}
+                            >
+                              <span className="block truncate text-small font-semibold">
+                                {chapterIndex + 1}.{sectionIndex + 1} {outlineSection.title}
+                              </span>
+                              <span className={`mt-1 block text-caption ${active ? 'text-white/70' : 'text-ds-faint'}`}>
+                                {statusLabel(section?.status ?? 'draft')}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </aside>
+
+              <main className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-heading font-bold text-ds-text">{activeSection.title}</h2>
+                    <p className="mt-1 text-caption text-ds-muted">{activeSection.path} · {statusLabel(activeSection.status)}</p>
+                  </div>
                   <button
                     type="button"
                     disabled={busy !== null}
-                    onClick={() => void searchPubMed()}
-                    className="shrink-0 rounded-lg bg-accent px-3 text-caption font-semibold text-white disabled:opacity-50"
+                    onClick={() => void generateActiveSection(sectionInstruction)}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
                   >
-                    {busy === 'pubmed' ? <Loader2 className="h-4 w-4 animate-spin" /> : '检索'}
+                    {busy === 'section' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    生成本节
                   </button>
                 </div>
-                <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
-                  {pubmedRecords.map((reference) => (
-                    <div key={reference.key} className="rounded-lg border border-ds-border-muted p-3">
-                      <p className="line-clamp-2 text-small font-semibold text-ds-text">{reference.title}</p>
-                      <p className="mt-1 text-caption text-ds-muted">
-                        {reference.journal || 'PubMed'} {reference.year ? `· ${reference.year}` : ''} {reference.pmid ? `· PMID ${reference.pmid}` : ''}
-                      </p>
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => addReference(reference)}
-                          className="rounded-md border border-ds-border px-2 py-1 text-caption font-semibold text-ds-text"
-                        >
-                          {selectedReferenceKeys.has(reference.key) ? '已入库' : '加入库'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => insertReference(reference)}
-                          className="rounded-md bg-accent px-2 py-1 text-caption font-semibold text-white"
-                        >
-                          插入引用
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
+                <ResizableTextArea
+                  value={activeSection.content}
+                  onChange={(event) => updateActiveSection({ content: event.target.value })}
+                  rows={22}
+                  className={`${fieldClass} min-h-[520px] font-mono leading-7`}
+                  placeholder="本节教材正文将在这里生成，也可以直接手动编辑 Markdown。"
+                />
+              </main>
 
-              <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-2 text-small font-bold text-ds-text">项目参考文献库</h2>
-                <div className="max-h-44 space-y-2 overflow-y-auto">
-                  {project.references.length === 0 ? (
-                    <p className="text-caption text-ds-muted">尚未加入文献。</p>
-                  ) : project.references.map((reference) => (
-                    <p key={reference.key} className="rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">
-                      [@{reference.key}] {reference.title}
-                    </p>
-                  ))}
-                </div>
-              </section>
-            </aside>
-          </div>
-        )}
-
-        {step === 'check' && project && (
-          <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-heading font-bold text-ds-text">一致性与规范检查</h2>
-                  <p className="mt-1 text-small text-ds-muted">检查出版社格式、术语一致性、章节衔接、引用缺失和证据边界。</p>
-                </div>
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void runProjectCheck()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
-                >
-                  {busy === 'check' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  开始检查
-                </button>
-              </div>
-              <div className="space-y-3">
-                {project.checks.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-ds-border px-4 py-10 text-center text-small text-ds-muted">
-                    尚未运行检查。
-                  </div>
-                ) : project.checks.map((item: TextbookCheckItem) => (
-                  <div key={item.id} className="rounded-lg border border-ds-border-muted p-4">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-caption font-bold ${
-                        item.severity === 'error'
-                          ? 'bg-ds-danger-soft text-ds-danger'
-                          : item.severity === 'warning'
-                            ? 'bg-ds-warning-soft text-ds-warning'
-                            : 'bg-accent-soft text-accent-strong'
-                      }`}>
-                        {item.severity}
-                      </span>
-                      <span className="text-caption font-semibold text-ds-muted">{item.scope}</span>
-                    </div>
-                    <p className="text-small font-semibold text-ds-text">{item.message}</p>
-                    {item.suggestion ? <p className="mt-1 text-small text-ds-muted">{item.suggestion}</p> : null}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <aside className="space-y-4">
-              <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 flex items-center gap-2 text-heading font-bold text-ds-text">
-                  <Download className="h-4 w-4 text-accent" />
-                  导出教材项目
-                </h2>
-                <p className="mb-3 text-small leading-6 text-ds-muted">
-                  导出普通项目文件夹，包含出版社要求、大纲、参考文献、逐节 Markdown、合并 Markdown、DOCX 和项目文件。
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void chooseOutputDirectory()}
-                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text"
-                >
-                  <FolderOpen className="h-4 w-4" />
-                  {outputDirectory ? '更改导出文件夹' : '选择导出文件夹'}
-                </button>
-                {outputDirectory ? (
-                  <p className="mb-3 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">{outputDirectory}</p>
-                ) : null}
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void exportProject()}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-3 text-small font-semibold text-white disabled:opacity-50"
-                >
-                  {busy === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  导出 Markdown / DOCX / 项目包
-                </button>
-                {exportPaths.length > 0 ? (
-                  <div className="mt-3 space-y-1 rounded-lg border border-ds-success/30 bg-ds-success-soft p-3 text-caption text-ds-success">
-                    {exportPaths.map((path) => (
-                      <p key={path} className="break-all">{path}</p>
+              <aside className="space-y-4">
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                  <h2 className="mb-3 text-small font-bold text-ds-text">AI 写作助手</h2>
+                  <ResizableTextArea
+                    value={sectionInstruction}
+                    onChange={(event) => setSectionInstruction(event.target.value)}
+                    rows={4}
+                    className={fieldClass}
+                    placeholder="输入对当前节的要求，例如：增加机制图与临床案例；压缩到 2500 字；改成本科教材语气。"
+                  />
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {[
+                      '扩展机制深度',
+                      '压缩文字密度',
+                      '改写为本科教材风格',
+                      '检查出版社规范'
+                    ].map((instruction) => (
+                      <button
+                        key={instruction}
+                        type="button"
+                        disabled={busy !== null}
+                        onClick={() => void reviseActiveSection(instruction)}
+                        className="rounded-lg border border-ds-border px-2 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover disabled:opacity-50"
+                      >
+                        {instruction}
+                      </button>
                     ))}
                   </div>
-                ) : null}
-              </section>
+                  <button
+                    type="button"
+                    disabled={!sectionInstruction.trim() || busy !== null}
+                    onClick={() => void reviseActiveSection(sectionInstruction)}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                  >
+                    {busy === 'revise' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    按指令修订当前节
+                  </button>
+                </section>
 
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                  <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
+                    <Search className="h-4 w-4 text-accent" />
+                    PubMed 文献
+                  </h2>
+                  <div className="flex gap-2">
+                    <input
+                      value={pubmedQuery}
+                      onChange={(event) => setPubmedQuery(event.target.value)}
+                      className={fieldClass}
+                      placeholder={activeSection.title}
+                    />
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void searchPubMed()}
+                      className="shrink-0 rounded-lg bg-accent px-3 text-caption font-semibold text-white disabled:opacity-50"
+                    >
+                      {busy === 'pubmed' ? <Loader2 className="h-4 w-4 animate-spin" /> : '检索'}
+                    </button>
+                  </div>
+                  <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
+                    {pubmedRecords.map((reference) => (
+                      <div key={reference.key} className="rounded-lg border border-ds-border-muted p-3">
+                        <p className="line-clamp-2 text-small font-semibold text-ds-text">{reference.title}</p>
+                        <p className="mt-1 text-caption text-ds-muted">
+                          {reference.journal || 'PubMed'} {reference.year ? `· ${reference.year}` : ''} {reference.pmid ? `· PMID ${reference.pmid}` : ''}
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => addReference(reference)}
+                            className="rounded-md border border-ds-border px-2 py-1 text-caption font-semibold text-ds-text"
+                          >
+                            {selectedReferenceKeys.has(reference.key) ? '已入库' : '加入库'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertReference(reference)}
+                            className="rounded-md bg-accent px-2 py-1 text-caption font-semibold text-white"
+                          >
+                            插入引用
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                  <h2 className="mb-2 text-small font-bold text-ds-text">项目参考文献库</h2>
+                  <div className="max-h-44 space-y-2 overflow-y-auto">
+                    {project.references.length === 0 ? (
+                      <p className="text-caption text-ds-muted">尚未加入文献。</p>
+                    ) : project.references.map((reference) => (
+                      <p key={reference.key} className="rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">
+                        [@{reference.key}] {reference.title}
+                      </p>
+                    ))}
+                  </div>
+                </section>
+              </aside>
+            </div>
+          )}
+
+          {step === 'check' && project && (
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 text-heading font-bold text-ds-text">项目摘要</h2>
-                <div className="space-y-2 text-small text-ds-muted">
-                  <p>教材：{project.metadata.title}</p>
-                  <p>章节：{project.outline?.chapters.length ?? 0} 章 / {project.sections.length} 节</p>
-                  <p>已写：{completedCount} 节</p>
-                  <p>参考文献：{project.references.length} 条</p>
-                  <p>格式：{project.formatRules.fontFamily}，{project.formatRules.fontSizePt}pt，{project.formatRules.lineSpacing} 倍行距</p>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-heading font-bold text-ds-text">一致性与规范检查</h2>
+                    <p className="mt-1 text-small text-ds-muted">检查出版社格式、术语一致性、章节衔接、引用缺失和证据边界。</p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void runProjectCheck()}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
+                  >
+                    {busy === 'check' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    开始检查
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {project.checks.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-ds-border px-4 py-10 text-center text-small text-ds-muted">
+                      尚未运行检查。
+                    </div>
+                  ) : project.checks.map((item: TextbookCheckItem) => (
+                    <div key={item.id} className="rounded-lg border border-ds-border-muted p-4">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-caption font-bold ${
+                          item.severity === 'error'
+                            ? 'bg-ds-danger-soft text-ds-danger'
+                            : item.severity === 'warning'
+                              ? 'bg-ds-warning-soft text-ds-warning'
+                              : 'bg-accent-soft text-accent-strong'
+                        }`}>
+                          {item.severity}
+                        </span>
+                        <span className="text-caption font-semibold text-ds-muted">{item.scope}</span>
+                      </div>
+                      <p className="text-small font-semibold text-ds-text">{item.message}</p>
+                      {item.suggestion ? <p className="mt-1 text-small text-ds-muted">{item.suggestion}</p> : null}
+                    </div>
+                  ))}
                 </div>
               </section>
-            </aside>
-          </div>
-        )}
+
+              <aside className="space-y-4">
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <h2 className="mb-3 flex items-center gap-2 text-heading font-bold text-ds-text">
+                    <Download className="h-4 w-4 text-accent" />
+                    导出教材项目
+                  </h2>
+                  <p className="mb-3 text-small leading-6 text-ds-muted">
+                    导出普通项目文件夹，包含出版社要求、大纲、参考文献、逐节 Markdown、合并 Markdown、DOCX 和项目文件。
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void chooseOutputDirectory()}
+                    className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text"
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    {outputDirectory ? '更改导出文件夹' : '选择导出文件夹'}
+                  </button>
+                  {outputDirectory ? (
+                    <p className="mb-3 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">{outputDirectory}</p>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void exportProject()}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-3 text-small font-semibold text-white disabled:opacity-50"
+                  >
+                    {busy === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    导出 Markdown / DOCX / 项目包
+                  </button>
+                  {exportPaths.length > 0 ? (
+                    <div className="mt-3 space-y-1 rounded-lg border border-ds-success/30 bg-ds-success-soft p-3 text-caption text-ds-success">
+                      {exportPaths.map((path) => (
+                        <p key={path} className="break-all">{path}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <h2 className="mb-3 text-heading font-bold text-ds-text">项目摘要</h2>
+                  <div className="space-y-2 text-small text-ds-muted">
+                    <p>教材：{project.metadata.title}</p>
+                    <p>章节：{project.outline?.chapters.length ?? 0} 章 / {project.sections.length} 节</p>
+                    <p>已写：{completedCount} 节</p>
+                    <p>参考文献：{project.references.length} 条</p>
+                    <p>格式：{project.formatRules.fontFamily}，{project.formatRules.fontSizePt}pt，{project.formatRules.lineSpacing} 倍行距</p>
+                  </div>
+                </section>
+              </aside>
+            </div>
+          )}
+        </PageColumn>
       </div>
     </div>
   )

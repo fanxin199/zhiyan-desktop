@@ -397,7 +397,7 @@ type TeacherPreference = {
 
 #### Task 0.2 · 统一页头与图标
 
-- [ ] **0.2.1** 新增 `PageHeader` 组件（图标、标题、一句说明、右侧操作区），替换 `ModulePageShell`、`SyllabusPage`、`CoursewarePage`、`TextbookWorkbenchPage`、`FileManagerWorkspacePage` 各自的页头，统一内容宽度。
+- [x] **0.2.1** 新增 `PageHeader` 组件（图标、标题、一句说明、右侧操作区）和 `PageColumn` 内容列，替换 `ModulePageShell`、`SyllabusPage`、`CoursewarePage`、`TextbookWorkbenchPage`、`FileManagerWorkspacePage` 各自的页头，统一内容宽度：左右留白 32px，开始态内容 720px，课件、教材、文件管理等工作页 1152px；教材页的步骤条随内容列对齐，文件管理页去掉通栏白底页头。图标色块按注册表分区取教学、科研或中性色，与首页卡片共用 `ICON_TONE_CLASSES`（`tone` 直接使用分区 id，供 Task 0.2.2 接入注册表）。课件页标题由宣传语改为“课件 PPT 生成”，文件管理页说明改为一句话（路径仍显示在下方路径栏），文本写作和综述页的模块提示移到任务卡上方；删除未使用的 `PPT_CONFIG`、`TEXTBOOK_CONFIG`。新增 `PageHeader.test.ts`，渲染这五个页面，断言每页只有一个标题且位于统一页头，内容宽度只取 720px 或 1152px。
 - [ ] **0.2.2** 页面图标统一取自 `zhiyan-module-registry.ts`，删除各 `*_CONFIG.icon`。
 - [ ] **0.2.3** 删除模块页的“核心功能特点”区块（`config.features`）；示例最多保留 3 条。
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.1.4 已完成，Task 0.4.1 随之提前完成。下一项为 Task 0.2.1（统一页头组件 `PageHeader`）。**
+当前执行任务：**Task 0.2.1 已完成。下一项为 Task 0.2.2（页面图标统一取自注册表）。**

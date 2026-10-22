@@ -11,6 +11,7 @@ import {
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
 import { teacherLabel } from '../../lib/teacher-label'
+import { ICON_TONE_CLASSES } from './PageHeader'
 import {
   ZHIYAN_MODULE_SECTIONS,
   getZhiYanDashboardModules,
@@ -26,12 +27,6 @@ type QuickActionCardProps = {
   description: string
   tone: ZhiYanModuleSectionId
   onClick: () => void
-}
-
-const ICON_TONE_CLASSES: Record<ZhiYanModuleSectionId, string> = {
-  teaching: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
-  research: 'bg-ds-domain-research-soft text-ds-domain-research',
-  capabilities: 'bg-ds-subtle text-ds-muted'
 }
 
 type DashboardActionCard = QuickActionCardProps & {

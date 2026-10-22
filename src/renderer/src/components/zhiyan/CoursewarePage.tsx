@@ -44,6 +44,7 @@ import {
   type NormalizedCrop
 } from '../../lib/pdf-page-image'
 import { loadCoursewareContextDefaults } from '../../lib/module-context'
+import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
 type CoursewarePageProps = {
@@ -692,30 +693,24 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
   return (
     <div className={`h-full overflow-y-auto bg-ds-main ${className}`}>
-      <div className="mx-auto w-full max-w-6xl px-5 py-7 sm:px-8">
-        <header className="mb-5 flex flex-col gap-4 border-b border-ds-border-muted pb-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-caption font-semibold uppercase tracking-[0.16em] text-accent">
-              <Presentation className="h-4 w-4" />
-              教学课件包
-            </div>
-            <h1 className="text-display font-bold tracking-tight text-ds-text">
-              从教材章节到可直接授课的课件
-            </h1>
-            <p className="mt-1.5 text-small text-ds-muted">
-              先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿。
-            </p>
+      <PageColumn width="work" className="py-8">
+        <PageHeader
+          icon={Presentation}
+          tone="teaching"
+          title="课件 PPT 生成"
+          description="先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿"
+          actions={
             <button
               type="button"
               disabled={busy !== null}
               onClick={() => void openProject()}
-              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-caption font-semibold text-ds-text hover:border-accent"
+              className={PAGE_HEADER_ACTION_CLASS}
             >
-              <FileText className="h-3.5 w-3.5" />
+              <FileText className="h-4 w-4" />
               打开已有课件项目
             </button>
-          </div>
-        </header>
+          }
+        />
 
         <nav
           aria-label="课件生成流程"
@@ -1457,7 +1452,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             </aside>
           </div>
         )}
-      </div>
+      </PageColumn>
     </div>
   )
 }
