@@ -444,7 +444,7 @@ type TeacherPreference = {
 #### Task 1.4 · 文稿（合并写作入口）
 
 - [x] **1.4.1** 注册表新增工具“文稿”；`paper-polish`、`review-writing`、`grant-writing`、`write` 重定向到文稿并带模板参数；旧 id 的会话与 `moduleContext` 映射保持可用。“文稿”沿用原自由写作台的路由 id `write`（避免改动大量写作相关的路由判断），注册表中改名为“文稿”并归入科研分区；`paper-polish`、`review-writing`、`grant-writing` 不再出现在侧栏和首页，打开它们（含首页推荐和旧链接）会进入文稿开始态并预选论文、综述、国自然模板（`src/shared/document-templates.ts` 的 `LEGACY_DOCUMENT_MODULES`）。旧 id 仍保留在注册表里，已有会话的所属功能标签、`moduleContext` 和项目登记照常可用。
-- [ ] **1.4.2** 文稿开始态：一句话输入 + 模板（论文、综述、国自然、空白）；把 `PAPER_CONFIG`、`REVIEW_CONFIG`、`GRANT_CONFIG` 中的任务类型、约束和示例迁移为模板定义（蓝图 → 分段写作 → 润色）。
+- [x] **1.4.2** 文稿开始态：一句话输入 + 模板（论文、综述、国自然、空白）；把 `PAPER_CONFIG`、`REVIEW_CONFIG`、`GRANT_CONFIG` 中的任务类型、约束和示例迁移为模板定义（蓝图 → 分段写作 → 润色）。模板定义在 `src/shared/document-templates.ts`（论文、综述、国自然、空白），沿用原三个模块的写作约束和示例（每个最多 3 条）；前三个模板的初稿是“写作蓝图”——一级标题为题目，“写作主线”写核心问题、假说或中心论点和术语表，其后每个二级标题小节列出“本节要写”，之后逐节写作与润色交给 Task 1.4.4 的“说一句就改”。开始态 `DocumentStartView`：模板单选、一句话输入框（可拖入 PDF、Word、Excel、文本材料，读成文字随请求发送）、示例、最近的文稿；不写要求直接发送则新建空白文稿。主进程 `document-service.ts` 走结构化生成通道写出初稿，存为写作空间根目录下以题目命名的新文件（同名时加序号，绝不覆盖），登记为文稿成果并保存第一个版本；IPC `documents:create` 要求写作空间已授权。文稿页没有打开文档时显示开始态；文件面板的“新建文件”改为“新建文稿”。原文本写作、综述、国自然的页面组件与配置已不在路由中，因多项通用测试仍以它们为样本，暂留，待 Task 1.4 完成后统一清理。
 - [ ] **1.4.3** 文稿工作态 = 现有写作编辑器（`WriteWorkspaceView.tsx`）+ `AiSidePanel`；默认所见即所得，不显示 Markdown 符号和扩展名；移除“整理到自由写作台”（结果本身就是文稿）。
 - [ ] **1.4.4** 文稿接入“说一句就改”：选中段落或小节即可修改；整篇修改按小节分批并合并为一个版本。
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 1.4.1 已完成。下一项为 Task 1.4.2（文稿开始态与模板）。Task 0.6.1 仍差自由写作台的 README 截图。**
+当前执行任务：**Task 1.4.2 已完成。下一项为 Task 1.4.3（文稿工作态：编辑器＋AI 栏）。Task 0.6.1 仍差自由写作台的 README 截图。**

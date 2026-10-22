@@ -40,6 +40,7 @@ import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
 import { ArtifactRegistry } from './services/artifact-service'
 import { ArtifactVersionStore } from './services/artifact-version-service'
 import { ArtifactRevisionService } from './services/artifact-revision-service'
+import { DocumentService } from './services/document-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -770,6 +771,11 @@ app.whenReady().then(async () => {
     artifactRegistry,
     artifactVersions,
     artifactRevisions: new ArtifactRevisionService({
+      registry: artifactRegistry,
+      versions: artifactVersions,
+      loadSettings: () => store.load()
+    }),
+    documents: new DocumentService({
       registry: artifactRegistry,
       versions: artifactVersions,
       loadSettings: () => store.load()

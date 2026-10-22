@@ -53,6 +53,7 @@ import {
   artifactIdPayloadSchema,
   artifactRestoreVersionPayloadSchema,
   artifactRevisionPayloadSchema,
+  documentCreatePayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -114,6 +115,7 @@ import { loadCoursewareProject } from '../services/courseware-project-service'
 import type { ArtifactRegistry } from '../services/artifact-service'
 import type { ArtifactVersionStore } from '../services/artifact-version-service'
 import type { ArtifactRevisionService } from '../services/artifact-revision-service'
+import type { DocumentService } from '../services/document-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -151,6 +153,7 @@ type RegisterAppIpcHandlersOptions = {
   artifactRegistry: Pick<ArtifactRegistry, 'register' | 'update' | 'get' | 'list'>
   artifactVersions: Pick<ArtifactVersionStore, 'createVersion' | 'listVersions' | 'restoreVersion'>
   artifactRevisions: Pick<ArtifactRevisionService, 'revise'>
+  documents: Pick<DocumentService, 'create'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -258,6 +261,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     artifactRegistry,
     artifactVersions,
     artifactRevisions,
+    documents,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -749,6 +753,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('artifact:revise', artifactRevisionPayloadSchema, payload)
     await requireArtifactWorkspace(request.artifactId)
     return artifactRevisions.revise(request)
+  })
+  ipcMain.handle('documents:create', async (_, payload: unknown) => {
+    const request = parseIpcPayload('documents:create', documentCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return documents.create(request)
   })
 
   ipcMain.handle(

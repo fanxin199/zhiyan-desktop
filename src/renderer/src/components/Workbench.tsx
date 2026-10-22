@@ -43,6 +43,7 @@ import { RuntimeBanner } from './RuntimeBanner'
 import { SidebarTitlebarToggleButton } from './sidebar/SidebarPrimitives'
 import { WriteAssistantPanel } from './write/WriteAssistantPanel'
 import { WriteWorkspaceView } from './write/WriteWorkspaceView'
+import { DocumentStartView } from './documents/DocumentStartView'
 import { ModuleConversationPanel } from './zhiyan/ModuleConversationPanel'
 import {
   deriveResearchTaskExecution,
@@ -385,6 +386,8 @@ export function Workbench(): ReactElement {
     useState<InlineResearchTaskIds>({})
   const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
+  const documentStart = useWriteWorkspaceStore((state) => state.documentStart)
+  const activeWriteFilePath = useWriteWorkspaceStore((state) => state.activeFilePath)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
 
   const activeSkillWorkspace = useMemo(
@@ -879,6 +882,8 @@ export function Workbench(): ReactElement {
           <Suspense fallback={<div className="h-full bg-ds-main" />}>
             <PluginMarketplaceView />
           </Suspense>
+        ) : route === 'write' && (documentStart !== null || !activeWriteFilePath) ? (
+          <DocumentStartView template={documentStart ?? 'blank'} />
         ) : route === 'write' ? (
           <>
             {runtimeConnection !== 'ready'

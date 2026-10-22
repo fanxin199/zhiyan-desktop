@@ -61,6 +61,7 @@ import type {
   ArtifactVersion
 } from './artifact'
 import type { RevisionOutcome, RevisionRequest } from './artifact-revision'
+import type { DocumentCreateInput } from './document-templates'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -220,6 +221,11 @@ export type DsGuiApi = {
   restoreArtifactVersion: (id: string, version: number) => Promise<ArtifactVersion>
   /** “说一句就改”: rewrites the chosen part with the AI and saves it as a new version. */
   reviseArtifact: (request: RevisionRequest) => Promise<RevisionOutcome>
+  /** Creates a 文稿 in the writing workspace, with the template's first draft when a sentence or materials are given. */
+  createDocument: (input: DocumentCreateInput) => Promise<
+    | { ok: true; path: string; artifact: ArtifactRecord }
+    | { ok: false; code: string; message: string }
+  >
   extractPdfRange: (
     path: string,
     pageStart: number,

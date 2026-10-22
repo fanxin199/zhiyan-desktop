@@ -35,6 +35,8 @@ type IntentComposerProps = {
   busy?: boolean
   onStop?: () => void
   autoFocus?: boolean
+  /** Send even when there is no text or material, e.g. to start a blank document. */
+  allowEmpty?: boolean
 }
 
 /**
@@ -52,7 +54,8 @@ export function IntentComposer({
   onRemoveAttachment,
   busy = false,
   onStop,
-  autoFocus = false
+  autoFocus = false,
+  allowEmpty = false
 }: IntentComposerProps): ReactElement {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -68,7 +71,7 @@ export function IntentComposer({
 
   const submit = (): void => {
     if (busy) return
-    if (!value.trim() && attachments.length === 0) {
+    if (!allowEmpty && !value.trim() && attachments.length === 0) {
       textareaRef.current?.focus()
       return
     }

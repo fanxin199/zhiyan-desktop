@@ -51,6 +51,7 @@ import {
   artifactUpdateInputSchema
 } from '../../shared/artifact'
 import { revisionRequestSchema } from '../../shared/artifact-revision'
+import { documentCreateInputSchema } from '../../shared/document-templates'
 import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
@@ -890,6 +891,7 @@ export const artifactIdPayloadSchema = artifactIdInputSchema
 export const artifactCreateVersionPayloadSchema = artifactCreateVersionInputSchema
 export const artifactRestoreVersionPayloadSchema = artifactRestoreVersionInputSchema
 export const artifactRevisionPayloadSchema = revisionRequestSchema
+export const documentCreatePayloadSchema = documentCreateInputSchema
 
 export const logErrorPayloadSchema = z
   .object({

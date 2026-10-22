@@ -85,6 +85,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
       restoreVersion: vi.fn()
     } as never,
     artifactRevisions: { revise: vi.fn() } as never,
+    documents: { create: vi.fn(async () => ({ ok: true })) } as never,
     getMainWindow: () => null,
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,
@@ -419,6 +420,14 @@ describe('registerAppIpcHandlers', () => {
         artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: '润色'
       })).rejects.toThrow(/workspace must be selected or configured/iu)
       expect(revise).toHaveBeenCalledOnce()
+
+      await expect(handlers.get('documents:create')?.({}, {
+        workspaceRoot: join(dir, 'unknown'), template: 'paper', instruction: '写论文', materials: []
+      })).rejects.toThrow(/workspace must be selected or configured/iu)
+      configuredRoot = workspace
+      await expect(handlers.get('documents:create')?.({}, {
+        workspaceRoot: workspace, template: 'paper', instruction: '写论文', materials: []
+      })).resolves.toEqual({ ok: true })
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

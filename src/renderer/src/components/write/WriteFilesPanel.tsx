@@ -231,8 +231,8 @@ export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
       <div className="flex flex-col">
         <SidebarCommandRow
           icon={<FilePlus2 className="h-4 w-4" strokeWidth={1.9} />}
-          label={t('writeCreateFile')}
-          onClick={() => void openCreateFileDialog()}
+          label="新建文稿"
+          onClick={() => useWriteWorkspaceStore.getState().openDocumentStart('blank')}
           variant="accent"
         />
         <SidebarCommandRow
