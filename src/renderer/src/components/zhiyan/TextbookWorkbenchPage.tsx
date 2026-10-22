@@ -3,7 +3,6 @@ import {
   AlertCircle,
   ArrowDown,
   ArrowUp,
-  BookOpen,
   Check,
   Download,
   FileText,
@@ -673,8 +672,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
     <div className={`flex h-full flex-col overflow-hidden bg-ds-main ${className}`}>
       <PageColumn width="work" className="shrink-0 pt-8">
         <PageHeader
-          icon={BookOpen}
-          tone="teaching"
+          module="textbook"
           title="教材编写工作台"
           description={`当前阶段：${progressLabel} · ${completedCount}/${sectionCount} 节已有正文`}
           actions={

@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent as ReactDragEvent, type ReactElement } from 'react'
 import JSZip from 'jszip'
 import {
-  GraduationCap,
-  PenTool,
-  Search,
-  Microscope,
   Upload,
   Trash2,
   Check,
@@ -12,8 +8,7 @@ import {
   Info,
   Loader2,
   AlertCircle,
-  CheckCircle2,
-  type LucideIcon
+  CheckCircle2
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
 import type { AppSettingsV1, WritingBlueprintModuleContextV1 } from '@shared/app-settings'
@@ -57,7 +52,7 @@ import {
   type FileManagerModuleFile,
   type FileManagerModuleTarget
 } from './FileManagerWorkspacePage'
-import type { ZhiYanModuleSectionId } from './zhiyan-module-registry'
+import { getZhiYanSectionModule, type ZhiYanSectionModuleId } from './zhiyan-module-registry'
 
 export type InlineModuleId =
   | 'literature'
@@ -269,10 +264,9 @@ type ModuleDataGuide = {
 }
 
 type ModuleConfig = {
-  icon: LucideIcon
+  moduleId: ZhiYanSectionModuleId
   title: string
   subtitle: string
-  tone: ZhiYanModuleSectionId
   moduleNotice?: string
   features: Array<{
     title: string
@@ -992,7 +986,7 @@ function ModulePageShell({
   researchTaskExecution?: ResearchTaskExecution | null
   className?: string
 }): ReactElement {
-  const Icon = config.icon
+  const Icon = getZhiYanSectionModule(config.moduleId).icon
   const conversationRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -1003,7 +997,7 @@ function ModulePageShell({
   return (
     <div className={`flex h-full flex-col overflow-y-auto bg-ds-main ${className}`}>
       <PageColumn width="start" className="py-8">
-        <PageHeader icon={Icon} tone={config.tone} title={config.title} description={config.subtitle} />
+        <PageHeader module={config.moduleId} title={config.title} description={config.subtitle} />
 
         {config.comingSoon ? (
           <div className="mt-12 flex flex-col items-center justify-center text-center">
@@ -1092,10 +1086,9 @@ function ModulePageShell({
 }
 
 export const PAPER_CONFIG: ModuleConfig = {
-  icon: PenTool,
+  moduleId: 'paper-polish',
   title: '科研文本写作',
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
-  tone: 'research',
   inlineConversationModule: 'paper-polish',
   moduleNotice: '如需专门撰写国自然申请书，推荐使用「自然基金撰写」模块，内置国自然各模块模板。',
   taskEntry: {
@@ -1151,10 +1144,9 @@ export const PAPER_CONFIG: ModuleConfig = {
 }
 
 export const LITERATURE_CONFIG: ModuleConfig = {
-  icon: Search,
+  moduleId: 'literature',
   title: '文献阅读',
   subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
-  tone: 'research',
   inlineConversationModule: 'literature',
   taskEntry: {
     title: '开始文献阅读任务',
@@ -1209,10 +1201,9 @@ export const LITERATURE_CONFIG: ModuleConfig = {
 }
 
 export const REVIEW_CONFIG: ModuleConfig = {
-  icon: Search,
+  moduleId: 'review-writing',
   title: '综述撰写',
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
-  tone: 'research',
   inlineConversationModule: 'review-writing',
   moduleNotice: '本模块专注于综述文章撰写。如需修改已有论文或基金，请使用「文本写作」模块。',
   taskEntry: {
@@ -1268,10 +1259,9 @@ export const REVIEW_CONFIG: ModuleConfig = {
 }
 
 export const GRANT_CONFIG: ModuleConfig = {
-  icon: PenTool,
+  moduleId: 'grant-writing',
   title: '自然基金撰写',
   subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
-  tone: 'research',
   inlineConversationModule: 'grant-writing',
   taskEntry: {
     title: '开始自然基金撰写任务',
@@ -1332,10 +1322,9 @@ export const GRANT_CONFIG: ModuleConfig = {
 }
 
 export const BIOINFORMATICS_CONFIG: ModuleConfig = {
-  icon: Microscope,
+  moduleId: 'bioinformatics',
   title: '科研数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
-  tone: 'research',
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
@@ -1852,8 +1841,7 @@ export function SyllabusPage({
     <div className={`flex h-full flex-col overflow-y-auto bg-ds-main ${className}`}>
       <PageColumn width="start" className="py-8">
         <PageHeader
-          icon={GraduationCap}
-          tone="teaching"
+          module="syllabus"
           title="智能教案生成"
           description="AI 辅助生成符合规范的课程教案，可直接导出为 Word 文档"
         />

@@ -193,6 +193,11 @@ export type ZhiYanDashboardModuleDefinition = Extract<
   ZhiYanModuleDefinitionV1,
   { readonly dashboard: unknown }
 >
+export type ZhiYanSectionModuleDefinition = Extract<
+  ZhiYanModuleDefinitionV1,
+  { readonly section: ZhiYanModuleSectionId }
+>
+export type ZhiYanSectionModuleId = ZhiYanSectionModuleDefinition['id']
 
 export const ZHIYAN_MODULE_ROUTE_IDS: readonly ZhiYanModuleRouteId[] =
   ZHIYAN_MODULE_REGISTRY.map((module) => module.id)
@@ -205,6 +210,14 @@ export function isZhiYanModuleRoute(value: string): value is ZhiYanModuleRouteId
 
 export function getZhiYanModule(id: ZhiYanModuleRouteId): ZhiYanModuleDefinitionV1 | undefined {
   return ZHIYAN_MODULE_REGISTRY.find((module) => module.id === id)
+}
+
+export function getZhiYanSectionModule(id: ZhiYanSectionModuleId): ZhiYanSectionModuleDefinition {
+  const module = ZHIYAN_MODULE_REGISTRY.find(
+    (candidate): candidate is ZhiYanSectionModuleDefinition => candidate.id === id
+  )
+  if (!module) throw new Error(`Unknown ZhiYan module: ${id}`)
+  return module
 }
 
 export function getZhiYanSidebarModules(): ZhiYanModuleDefinitionV1[] {

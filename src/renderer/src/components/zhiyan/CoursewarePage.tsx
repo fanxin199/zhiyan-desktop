@@ -695,8 +695,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
     <div className={`h-full overflow-y-auto bg-ds-main ${className}`}>
       <PageColumn width="work" className="py-8">
         <PageHeader
-          icon={Presentation}
-          tone="teaching"
+          module="ppt-gen"
           title="课件 PPT 生成"
           description="先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿"
           actions={

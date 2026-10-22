@@ -1,6 +1,9 @@
 import type { ReactElement, ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
-import type { ZhiYanModuleSectionId } from './zhiyan-module-registry'
+import {
+  getZhiYanSectionModule,
+  type ZhiYanModuleSectionId,
+  type ZhiYanSectionModuleId
+} from './zhiyan-module-registry'
 
 export const ICON_TONE_CLASSES: Record<ZhiYanModuleSectionId, string> = {
   teaching: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
@@ -32,17 +35,18 @@ export function PageColumn({
 }
 
 type PageHeaderProps = {
-  icon: LucideIcon
-  tone: ZhiYanModuleSectionId
+  module: ZhiYanSectionModuleId
   title: string
   description?: ReactNode
   actions?: ReactNode
 }
 
-export function PageHeader({ icon: Icon, tone, title, description, actions }: PageHeaderProps): ReactElement {
+// The icon and its tone come from the module registry, so a page matches its sidebar entry and dashboard card.
+export function PageHeader({ module, title, description, actions }: PageHeaderProps): ReactElement {
+  const { icon: Icon, section } = getZhiYanSectionModule(module)
   return (
     <header className="mb-6 flex items-center gap-4">
-      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ICON_TONE_CLASSES[tone]}`}>
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ICON_TONE_CLASSES[section]}`}>
         <Icon className="h-5 w-5" strokeWidth={1.8} />
       </div>
       <div className="min-w-0 flex-1">

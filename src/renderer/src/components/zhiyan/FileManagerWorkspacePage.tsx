@@ -488,8 +488,7 @@ export function FileManagerWorkspacePage({
     <div className={`flex h-full min-h-0 flex-col overflow-hidden bg-ds-main ${className}`}>
       <PageColumn width="work" className="shrink-0 pt-8">
         <PageHeader
-          icon={FolderOpen}
-          tone="capabilities"
+          module="file-manager"
           title="文件管理"
           description="浏览、预览和整理项目文件夹里的文件"
           actions={
