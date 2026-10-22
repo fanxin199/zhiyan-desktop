@@ -344,7 +344,7 @@ export function createSideActions(ctx: SideContext): Pick<
         ctx.set({
           error: ctx.formatRuntimeError(e),
           ...(ctx.shouldOpenSettingsForError(e)
-            ? { route: 'settings' as const, settingsSection: 'agents' as const }
+            ? { settingsOpen: true, settingsSection: 'agents' as const }
             : {})
         })
         return null
@@ -516,7 +516,7 @@ export function createSideActions(ctx: SideContext): Pick<
           ctx.set({
             error: ctx.formatRuntimeError(e),
             ...(ctx.shouldOpenSettingsForError(e)
-              ? { route: 'settings' as const, settingsSection: 'agents' as const }
+              ? { settingsOpen: true, settingsSection: 'agents' as const }
               : {})
           })
         }

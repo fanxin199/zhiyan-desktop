@@ -74,7 +74,7 @@ export type TeacherProjectStartContext = {
 
 export type InitialSetupMode = 'required' | 'preview'
 export type SettingsRouteSection = 'general' | 'write' | 'agents' | 'skill' | 'mcp' | 'api-keys'
-export type AppRoute = ZhiYanModuleRouteId | 'settings' | 'plugins'
+export type AppRoute = ZhiYanModuleRouteId | 'plugins'
 export type PluginHostRoute = 'chat'
 
 /**
@@ -113,7 +113,7 @@ export type SidePanelState = {
 
 export type ChatState = {
   route: AppRoute
-  settingsReturnRoute: Exclude<AppRoute, 'settings'>
+  settingsOpen: boolean
   pluginHostRoute: PluginHostRoute
   settingsSection: SettingsRouteSection
   initialSetupOpen: boolean
@@ -165,6 +165,7 @@ export type ChatState = {
   createWriteThread: (workspaceRoot?: string) => Promise<string | null>
   selectWriteThread: (threadId: string, workspaceRoot?: string) => Promise<void>
   openSettings: (section?: SettingsRouteSection) => void
+  closeSettings: () => void
   openPlugins: (host?: PluginHostRoute) => void
   openDashboard: () => void
   openSyllabus: () => void

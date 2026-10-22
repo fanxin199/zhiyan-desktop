@@ -257,7 +257,7 @@ export function createNavigationActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return null
@@ -310,7 +310,7 @@ export function createNavigationActions(
           error: msg,
           runtimeErrorDetail: detail,
           ...(needsSettings
-            ? { route: 'settings' as const, settingsSection: 'agents' as const }
+            ? { settingsOpen: true, settingsSection: 'agents' as const }
             : {})
         })
       } else if (prev === 'ready') {
@@ -320,7 +320,7 @@ export function createNavigationActions(
           error: msg,
           runtimeErrorDetail: detail,
           ...(needsSettings
-            ? { route: 'settings' as const, settingsSection: 'agents' as const }
+            ? { settingsOpen: true, settingsSection: 'agents' as const }
             : {})
         })
       }
@@ -376,7 +376,7 @@ export function createNavigationActions(
           initialSetupOpen: false,
           initialSetupMode: 'required',
           ...(shouldOpenSettingsForError(e)
-            ? { route: 'settings' as const, settingsSection: 'agents' as const }
+            ? { settingsOpen: true, settingsSection: 'agents' as const }
             : {})
         })
       }
@@ -519,7 +519,7 @@ export function createNavigationActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       await get().refreshThreads()
@@ -638,7 +638,7 @@ export function createNavigationActions(
         runtimeConnection: 'offline',
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }

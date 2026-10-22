@@ -102,7 +102,7 @@ class FakeProvider implements AgentProvider {
 function buildHarness(overrides: Partial<ChatState> = {}): Harness {
   const state: ChatState = {
     route: 'chat',
-    settingsReturnRoute: 'chat',
+    settingsOpen: false,
     pluginHostRoute: 'chat',
     settingsSection: 'general',
     initialSetupOpen: false,

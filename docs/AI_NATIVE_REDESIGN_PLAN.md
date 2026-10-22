@@ -403,7 +403,7 @@ type TeacherPreference = {
 
 #### Task 0.3 · 主导航不再被替换
 
-- [ ] **0.3.1** 设置改为覆盖层：`AppShell.tsx` 不再用 `SettingsView` 整体替换 `Workbench`，关闭后回到原页面并保留状态。
+- [x] **0.3.1** 设置改为覆盖层：`AppShell.tsx` 不再用 `SettingsView` 整体替换 `Workbench`，关闭后回到原页面并保留状态。设置不再是路由：`AppRoute` 去掉 `settings`，以 `settingsOpen` 和 `closeSettings` 代替 `settingsReturnRoute`（原先关闭设置后，除写作和插件页外一律回到首页）；运行出错时自动打开设置的 29 处同步改为打开覆盖层。工作台在设置下方保持挂载并设为 `inert`，覆盖层可用“返回”、Esc 或点击外部关闭，关闭前先保存；从设置进入插件页时先关闭设置。新增 `chat-store-app-actions.test.ts` 和 `AppShell.test.ts` 用例。
 - [ ] **0.3.2** 自由写作台保留主导航：写作空间文件树改为写作页内可收起的二级面板，`WriteSidebar` 不再替换 `ZhiYanSidebar`。
 
 #### Task 0.4 · 首页去噪
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.2.3 已完成，Task 0.2 全部完成。下一项为 Task 0.3.1（设置改为覆盖层）。**
+当前执行任务：**Task 0.3.1 已完成。下一项为 Task 0.3.2（自由写作台保留主导航）。**

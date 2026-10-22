@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense, useEffect, type ErrorInfo, type ReactNode } from 'react'
 import { useChatStore } from './store/chat-store'
+import type { AppRoute } from './store/chat-store-types'
 import { supportsDesktopTitleBar, WindowsTitleBar } from './components/WindowsTitleBar'
 
 const Workbench = lazy(() =>
@@ -54,8 +55,32 @@ class RouteErrorBoundary extends Component<
   }
 }
 
+// Settings is an overlay: the workbench stays mounted (and inert) underneath, so closing settings
+// returns to the same page with its state and the main navigation intact.
+export function ShellLayers({ route, settingsOpen }: { route: AppRoute; settingsOpen: boolean }): React.ReactElement {
+  return (
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div inert={settingsOpen} className="flex min-h-0 flex-1 flex-col">
+        <RouteErrorBoundary key={route}>
+          <Suspense fallback={<RouteFallback />}>
+            <Workbench />
+          </Suspense>
+        </RouteErrorBoundary>
+      </div>
+      {settingsOpen ? (
+        <RouteErrorBoundary>
+          <Suspense fallback={null}>
+            <SettingsView />
+          </Suspense>
+        </RouteErrorBoundary>
+      ) : null}
+    </div>
+  )
+}
+
 export default function AppShell(): React.ReactElement {
   const route = useChatStore((s) => s.route)
+  const settingsOpen = useChatStore((s) => s.settingsOpen)
   const boot = useChatStore((s) => s.boot)
   const initialSetupOpen = useChatStore((s) => s.initialSetupOpen)
   const platform = typeof window !== 'undefined' ? window.dsGui?.platform ?? 'unknown' : 'unknown'
@@ -77,13 +102,7 @@ export default function AppShell(): React.ReactElement {
   return (
     <div className={hasDesktopTitleBar ? 'ds-windows-app-frame flex h-full min-h-0 flex-col bg-ds-main' : 'flex h-full min-h-0 flex-col bg-transparent'}>
       {hasDesktopTitleBar ? <WindowsTitleBar platform={platform} /> : null}
-      <div className="flex min-h-0 flex-1 flex-col">
-        <RouteErrorBoundary key={route}>
-          <Suspense fallback={<RouteFallback />}>
-            {route === 'settings' ? <SettingsView /> : <Workbench />}
-          </Suspense>
-        </RouteErrorBoundary>
-      </div>
+      <ShellLayers route={route} settingsOpen={settingsOpen} />
       {initialSetupOpen ? (
         <Suspense fallback={null}>
           <InitialSetupDialog />

@@ -26,6 +26,7 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
   | 'setRoute'
   | 'openWrite'
   | 'openSettings'
+  | 'closeSettings'
   | 'openPlugins'
   | 'openDashboard'
   | 'openSyllabus'
@@ -97,11 +98,9 @@ export function createAppActions(options: CreateAppActionsOptions): Pick<
     },
 
     openSettings: (section: SettingsRouteSection = 'general') =>
-      set((state) => ({
-        route: 'settings',
-        settingsSection: section,
-        settingsReturnRoute: state.route === 'settings' ? state.settingsReturnRoute : state.route
-      })),
+      set({ settingsOpen: true, settingsSection: section }),
+
+    closeSettings: () => set({ settingsOpen: false }),
 
     openPlugins: (host?: PluginHostRoute) =>
       set(() => ({

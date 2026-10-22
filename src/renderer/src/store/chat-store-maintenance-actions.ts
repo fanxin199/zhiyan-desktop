@@ -182,7 +182,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -234,7 +234,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -264,7 +264,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -311,7 +311,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -349,7 +349,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -377,7 +377,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -407,7 +407,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -444,7 +444,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -471,7 +471,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -509,7 +509,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return false
@@ -537,7 +537,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       return null
@@ -583,7 +583,7 @@ export function createMaintenanceActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -673,7 +673,7 @@ export function createMaintenanceActions(
       set((s) => ({
         error: msg,
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {}),
         blocks: s.blocks.map((b) =>
           b.id === blockId && b.kind === 'approval'
@@ -760,7 +760,7 @@ export function createMaintenanceActions(
       set((s) => ({
         error: msg,
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {}),
         blocks: s.blocks.map((b) =>
           b.id === blockId && b.kind === 'user_input'
@@ -786,7 +786,7 @@ export function createMaintenanceActions(
       set({
         error: msg,
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }

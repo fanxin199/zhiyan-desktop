@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -64,13 +64,49 @@ type InlineNotice = {
   tone: 'success' | 'error' | 'info'
   message: string
 }
+// Settings opens over the current page, so closing it returns to that page with its state intact.
+function SettingsOverlay({
+  title,
+  onClose,
+  children
+}: {
+  title: string
+  onClose?: () => void
+  children: ReactNode
+}): ReactElement {
+  useEffect(() => {
+    if (!onClose) return
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
+  return (
+    <div
+      className="ds-no-drag absolute inset-0 z-50 flex bg-ds-overlay p-6"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.()
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="mx-auto flex h-full min-h-0 w-full max-w-[1120px] overflow-hidden rounded-2xl border border-ds-border-muted bg-ds-main shadow-xl"
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export function SettingsView(): ReactElement {
   const { t } = useTranslation('settings')
   const { t: tCommon } = useTranslation('common')
-  const setRoute = useChatStore((s) => s.setRoute)
-  const settingsReturnRoute = useChatStore((s) => s.settingsReturnRoute)
+  const closeSettings = useChatStore((s) => s.closeSettings)
   const settingsSection = useChatStore((s) => s.settingsSection)
-  const openWrite = useChatStore((s) => s.openWrite)
   const openInitialSetup = useChatStore((s) => s.openInitialSetup)
   const openPlugins = useChatStore((s) => s.openPlugins)
   const applyI18n = useChatStore((s) => s.applyI18nFromSettings)
@@ -505,15 +541,16 @@ export function SettingsView(): ReactElement {
     void (async () => {
       await flushPendingSave()
       await reloadUiSettings()
-      if (settingsReturnRoute === 'write') {
-        await openWrite()
-        return
-      }
-      if (settingsReturnRoute === 'plugins') {
-        setRoute('plugins')
-        return
-      }
-      setRoute('dashboard')
+      closeSettings()
+    })()
+  }
+
+  const openPluginsFromSettings = (): void => {
+    void (async () => {
+      await flushPendingSave()
+      await reloadUiSettings()
+      closeSettings()
+      openPlugins()
     })()
   }
 
@@ -528,24 +565,28 @@ export function SettingsView(): ReactElement {
     const msg =
       loadError === 'PRELOAD_BRIDGE' ? t('preloadBridgeError') : t('loadFailed', { message: loadError })
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 bg-ds-main p-6 text-center">
-        <p className="max-w-md text-body leading-5 text-ds-danger">{msg}</p>
-        <button
-          type="button"
-          className="rounded-xl bg-ds-userbubble px-4 py-2 text-body leading-5 font-medium text-ds-userbubbleFg"
-          onClick={goBack}
-        >
-          {t('back')}
-        </button>
-      </div>
+      <SettingsOverlay title={t('title')} onClose={goBack}>
+        <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center">
+          <p className="max-w-md text-body leading-5 text-ds-danger">{msg}</p>
+          <button
+            type="button"
+            className="rounded-xl bg-ds-userbubble px-4 py-2 text-body leading-5 font-medium text-ds-userbubbleFg"
+            onClick={goBack}
+          >
+            {t('back')}
+          </button>
+        </div>
+      </SettingsOverlay>
     )
   }
 
   if (!form) {
     return (
-      <div className="flex h-full items-center justify-center bg-ds-main text-ds-faint">
-        {t('loading')}
-      </div>
+      <SettingsOverlay title={t('title')} onClose={goBack}>
+        <div className="flex h-full w-full items-center justify-center text-ds-faint">
+          {t('loading')}
+        </div>
+      </SettingsOverlay>
     )
   }
 
@@ -739,7 +780,7 @@ export function SettingsView(): ReactElement {
     setSkillRootId,
     skillNotice,
     openSkillRoot,
-    openPlugins,
+    openPlugins: openPluginsFromSettings,
     mcpConfigPath,
     mcpConfigExists,
     mcpConfigText,
@@ -761,7 +802,7 @@ export function SettingsView(): ReactElement {
   }
 
   return (
-    <div className="ds-drag flex h-full min-h-0 w-full min-w-0 bg-ds-main">
+    <SettingsOverlay title={t('title')} onClose={writeDebugModalOpen ? undefined : goBack}>
       <SettingsSidebar category={category} setCategory={setCategory} goBack={goBack} t={t} />
 
       <div className="ds-no-drag min-h-0 min-w-0 flex-1 overflow-y-auto px-10 py-10">
@@ -822,6 +863,6 @@ export function SettingsView(): ReactElement {
           t={t}
         />
       ) : null}
-    </div>
+    </SettingsOverlay>
   )
 }

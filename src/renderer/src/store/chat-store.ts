@@ -111,7 +111,7 @@ let composerModelLoadPromise: Promise<void> | null = null
 
 export const useChatStore = create<ChatState>((set, get) => ({
   route: 'dashboard',
-  settingsReturnRoute: 'dashboard',
+  settingsOpen: false,
   pluginHostRoute: 'chat',
   settingsSection: 'general',
   initialSetupOpen: false,

@@ -192,7 +192,7 @@ export function createThreadActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -258,7 +258,7 @@ export function createThreadActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       if (state.busy) armBusyWatchdog(set, get)
@@ -336,7 +336,7 @@ export function createThreadActions(
       set({
         error: formatRuntimeError(e),
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
     }
@@ -559,7 +559,7 @@ export function createThreadActions(
           queuedMessages: previousQueuedMessages,
           error: formatRuntimeError(e),
           ...(shouldOpenSettingsForError(e)
-            ? { route: 'settings' as const, settingsSection: 'agents' as const }
+            ? { settingsOpen: true, settingsSection: 'agents' as const }
             : {})
         })
         return false
@@ -676,7 +676,7 @@ export function createThreadActions(
         currentTurnId: null,
         queuedMessages: previousQueuedMessages,
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       await get().refreshThreads()
@@ -774,7 +774,7 @@ export function createThreadActions(
         currentTurnId: null,
         currentTurnUserId: null,
         ...(shouldOpenSettingsForError(e)
-          ? { route: 'settings' as const, settingsSection: 'agents' as const }
+          ? { settingsOpen: true, settingsSection: 'agents' as const }
           : {})
       })
       await get().refreshThreads()
