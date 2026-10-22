@@ -147,7 +147,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     icon: Microscope,
     sidebarLabel: '科研数据分析',
     section: 'research',
-    taskDescription: '基于整理后数据生成 bulk 和单细胞可视化分析',
+    taskDescription: '基于整理后数据生成批量转录组和单细胞可视化分析',
     keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
     requiredCapabilities: ['ai', 'workspace-files', 'python-base', 'python-bioinformatics'],
     showInSidebar: true,

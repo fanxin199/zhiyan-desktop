@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { rendererRuntimeClient } from '../agent/runtime-client'
 import { useChatStore } from '../store/chat-store'
 import { formatRelativeTime } from '../lib/format-relative-time'
-import { workspaceLabelFromPath } from '../lib/workspace-label'
 import { formatCompactNumber, formatCost, formatPercent, useThreadUsage } from '../hooks/use-thread-usage'
 import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
 
@@ -29,15 +28,11 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
   const activeThreadId = useChatStore((s) => s.activeThreadId)
   const busy = useChatStore((s) => s.busy)
   const runtimeConnection = useChatStore((s) => s.runtimeConnection)
-  const workspaceLabel = useChatStore((s) => s.workspaceLabel)
   const renameActiveThread = useChatStore((s) => s.renameActiveThread)
   const [showTechnicalMetrics, setShowTechnicalMetrics] = useState(false)
   const [teacherProjects, setTeacherProjects] = useState<TeacherProjectSettingsV1[]>([])
 
   const active = threads.find((th) => th.id === activeThreadId)
-  const activeWorkspaceLabel = active?.workspace
-    ? workspaceLabelFromPath(active.workspace)
-    : workspaceLabel
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const showFullTechnicalMetrics = shouldShowTechnicalMetrics(compact, showTechnicalMetrics)
@@ -116,11 +111,9 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
                   <span className="session-meta-project max-w-[min(44vw,260px)] truncate font-medium text-ds-muted">
                     {activeProjectLabel}
                   </span>
-                  <span className="session-meta-project-separator opacity-70">路</span>
+                  <span className="session-meta-project-separator opacity-70">·</span>
                 </>
               ) : null}
-              <span className="session-meta-workspace max-w-[min(42vw,240px)] truncate">{activeWorkspaceLabel}</span>
-              <span className="session-meta-workspace-separator opacity-70">·</span>
               <span className="session-meta-time shrink-0 tabular-nums">
                 {formatRelativeTime(active.updatedAt, i18n.language)}
               </span>
@@ -128,7 +121,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
           </div>
         ) : (
           <div className="min-w-0 pt-0.5">
-            <div className="truncate text-small font-medium text-ds-faint">{workspaceLabel}</div>
+            <div className="truncate text-small font-medium text-ds-faint">{t('noSessionSelected')}</div>
           </div>
         )}
       </div>
@@ -141,8 +134,12 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
         <>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex min-w-0 items-center gap-2 text-small font-medium text-ds-faint">
-              <span>{activeWorkspaceLabel}</span>
-              <span>·</span>
+              {activeProjectLabel ? (
+                <>
+                  <span>{activeProjectLabel}</span>
+                  <span>·</span>
+                </>
+              ) : null}
               {showFullTechnicalMetrics ? (
                 <>
                   <span className="capitalize">{active.mode}</span>
@@ -188,11 +185,6 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
                   {active.mode}
                 </span>
               ) : null}
-              {active.workspace ? (
-                <span className="truncate rounded-full border border-ds-border bg-ds-card/70 px-2.5 py-1">
-                  {active.workspace.split(/[/\\]/).pop()}
-                </span>
-              ) : null}
               {active.forkedFromThreadId ? (
                 <span
                   className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 font-medium text-accent"
@@ -233,10 +225,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
         </>
       ) : (
         <div className="min-w-0">
-          <div className="text-small font-medium uppercase tracking-[0.16em] text-ds-faint">
-            {workspaceLabel}
-          </div>
-          <div className="mt-1 text-title leading-7 font-semibold tracking-[-0.02em] text-ds-ink">
+          <div className="text-title leading-7 font-semibold tracking-[-0.02em] text-ds-ink">
             {t('noSessionSelected')}
           </div>
           <div className="mt-1 text-body text-ds-faint">{t('sessionHeaderHint')}</div>

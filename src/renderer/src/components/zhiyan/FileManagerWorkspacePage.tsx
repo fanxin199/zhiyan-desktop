@@ -11,6 +11,7 @@ import {
   Folder,
   FolderOpen,
   FolderPlus,
+  FolderSearch,
   Loader2,
   RefreshCw,
   Search,
@@ -104,6 +105,18 @@ function normalizePath(path: string): string {
 
 function basename(path: string): string {
   return normalizePath(path).split('/').filter(Boolean).at(-1) ?? path
+}
+
+/**
+ * Where the teacher is, without the full disk path: “我的文件” for the default folder, otherwise the
+ * folder's name, followed by the subfolders opened inside it.
+ */
+export function workspaceDirectoryLabel(directory: string, workspaceRoot: string, defaultWorkspaceRoot: string): string {
+  const root = normalizePath(workspaceRoot)
+  const rootLabel = defaultWorkspaceRoot && root === normalizePath(defaultWorkspaceRoot) ? '我的文件' : basename(root)
+  const current = normalizePath(directory || workspaceRoot)
+  const relative = current.startsWith(`${root}/`) ? current.slice(root.length + 1) : ''
+  return [rootLabel, ...relative.split('/').filter(Boolean)].join(' / ')
 }
 
 function parentDirectory(path: string, root: string): string | null {
@@ -449,6 +462,17 @@ export function FileManagerWorkspacePage({
     setSidePanelMode('ai')
   }
 
+  const revealDirectoryInSystem = (): void => {
+    if (!workspaceRoot || !window.dsGui?.openEditorPath) return
+    void window.dsGui.openEditorPath({
+      path: directory || workspaceRoot,
+      workspaceRoot,
+      editorId: 'system'
+    }).then((result) => {
+      if (!result.ok) setMessage(result.message ?? '无法打开文件夹。')
+    })
+  }
+
   const openSelectedInSystem = (): void => {
     if (!selectedEntry || !window.dsGui?.openEditorPath) return
     void window.dsGui.openEditorPath({
@@ -522,7 +546,13 @@ export function FileManagerWorkspacePage({
             <button type="button" onClick={() => parent && setDirectory(parent)} disabled={!parent} className="ds-sidebar-toggle-button disabled:opacity-35" title="返回上级目录" aria-label="返回上级目录">
               <ArrowUp className="h-4 w-4" strokeWidth={1.8} />
             </button>
-            <span className="min-w-0 flex-1 truncate text-caption text-ds-muted" title={directory}>{directory}</span>
+            <span className="min-w-0 flex-1 truncate text-caption text-ds-muted">
+              {workspaceDirectoryLabel(directory, workspaceRoot, defaultWorkspaceRoot)}
+            </span>
+            <button type="button" onClick={revealDirectoryInSystem} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover" title={directory || workspaceRoot}>
+              <FolderSearch className="h-4 w-4" strokeWidth={1.8} />
+              在资源管理器中显示
+            </button>
             <button type="button" onClick={() => setNewFolderOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover">
               <FolderPlus className="h-4 w-4" strokeWidth={1.8} />
               新建文件夹

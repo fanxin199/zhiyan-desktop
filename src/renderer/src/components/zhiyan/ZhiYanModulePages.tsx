@@ -1250,7 +1250,7 @@ export const GRANT_CONFIG: ModuleConfig = {
 export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   moduleId: 'bioinformatics',
   title: '科研数据分析',
-  subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
+  subtitle: '基于整理好的批量转录组表格和单细胞数据做可视化、解释和报告',
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
@@ -1267,32 +1267,32 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
         example: 'sample_id、group、treatment、response、batch 等列'
       },
       {
-        term: '差异结果 / marker 表',
-        description: '已经计算好的结果表，通常包含基因、变化方向、显著性和细胞亚群 marker，可直接用于可视化和生物学解释。',
+        term: '差异结果 / 标志基因表',
+        description: '已经计算好的结果表，通常包含基因、变化方向、显著性和细胞亚群的标志基因，可直接用于可视化和生物学解释。',
         example: 'gene、logFC、p_val_adj、cluster、avg_log2FC、pct.1、pct.2 等列'
       }
     ],
     checklist: [
       '文件名和列名尽量保留清楚含义，避免只写 Sheet1、A、B、C。',
       '请在输入框补充分组设计和想回答的生物医学问题，例如代谢通路、细胞状态或处理响应。',
-      'H5AD、RDS 等对象文件可以先上传，但需要让 AI 检查文件内容后再决定能做哪些分析。'
+      '单细胞数据文件可以先上传，但需要让 AI 检查文件内容后再决定能做哪些分析。'
     ]
   },
   taskEntry: {
     title: '开始科研数据分析任务',
-    description: '添加整理后的表达矩阵、分组表、差异结果或 marker 表，并说明想回答的生物医学问题。',
+    description: '添加整理后的表达矩阵、分组表、差异结果或标志基因表，并说明想回答的生物医学问题。',
     taskTypes: [
       {
         id: 'bulk',
-        label: 'bulk mRNA',
+        label: '批量转录组表格',
         description: '从表达矩阵、分组表或差异结果生成图表和解释。',
-        instruction: '请先检查 bulk mRNA 数据格式、列名、分组和阈值，再设计可视化和统计解释流程。'
+        instruction: '请先检查批量转录组（bulk RNA-seq）数据格式、列名、分组和阈值，再设计可视化和统计解释流程。'
       },
       {
         id: 'single-cell',
         label: '单细胞下游可视化',
-        description: '从 h5ad、注释表或 marker 表生成 UMAP、比例图和 marker 图。',
-        instruction: '请先检查单细胞数据对象、细胞注释、样本分组和 marker 定义，再做下游可视化。'
+        description: '从单细胞数据文件、注释表或标志基因表生成 UMAP、比例图和标志基因图。',
+        instruction: '请先检查单细胞数据对象、细胞注释、样本分组和标志基因（marker）定义，再做下游可视化。'
       },
       {
         id: 'enrichment',
@@ -1307,7 +1307,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
         instruction: '请围绕用户指定的生物医学问题组织结果解释、图表建议、可能陷阱和验证实验。'
       }
     ],
-    placeholder: '请说明数据类型、文件内容、分组设计和想回答的问题。例如：我有 bulk RNA-seq 差异结果表，想解释药物处理后的代谢通路变化，请先检查列名和阈值。',
+    placeholder: '请说明数据类型、文件内容、分组设计和想回答的问题。例如：我有批量转录组差异结果表，想解释药物处理后的代谢通路变化，请先检查列名和阈值。',
     fileFilters: [{ name: '下游分析数据', extensions: ['csv', 'tsv', 'xlsx', 'h5ad', 'rds', 'txt'] }],
     submitLabel: '发送分析任务',
     constraints: [
@@ -1318,9 +1318,9 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
     ]
   },
   quickPrompts: [
-    '我有整理好的 bulk mRNA 差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和生物医学解释报告。',
-    '我有整理好的单细胞 h5ad 或细胞注释表。请做下游可视化：UMAP、细胞比例、主要细胞群 marker dotplot、violin 图，并说明哪些结论只是转录特征推断。',
-    '请围绕药物处理后的代谢重编程，对我提供的基因列表或 marker 表做通路富集和可视化，报告背景基因集、FDR 和解释边界。'
+    '我有整理好的批量转录组差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和生物医学解释报告。',
+    '我有整理好的单细胞数据文件或细胞注释表。请做下游可视化：UMAP、细胞比例、主要细胞群标志基因点图、小提琴图，并说明哪些结论只是转录特征推断。',
+    '请围绕药物处理后的代谢重编程，对我提供的基因列表或标志基因表做通路富集和可视化，报告背景基因集、FDR 和解释边界。'
   ]
 }
 

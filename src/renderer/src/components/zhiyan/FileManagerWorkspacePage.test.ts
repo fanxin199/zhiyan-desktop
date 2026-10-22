@@ -3,7 +3,8 @@ import type { WorkspaceEntry } from '@shared/workspace-file'
 import {
   buildFileManagerAiPrompt,
   fileCategory,
-  fileManagerModuleHandoffAvailability
+  fileManagerModuleHandoffAvailability,
+  workspaceDirectoryLabel
 } from './FileManagerWorkspacePage'
 
 function entry(ext: string, type: WorkspaceEntry['type'] = 'file'): WorkspaceEntry {
@@ -74,5 +75,15 @@ describe('FileManagerWorkspacePage helpers', () => {
     expect(prompt).toContain('C:\\workspace\\teaching')
     expect(prompt).toContain('## 当前可见文件')
     expect(prompt).toContain('chapter1.pdf（PDF）：C:\\workspace\\teaching\\chapter1.pdf')
+  })
+})
+
+describe('workspaceDirectoryLabel', () => {
+  it('names the default folder “我的文件” and other folders by name, without the disk path', () => {
+    const home = 'C:\\Users\\teacher\\default_workspace'
+    expect(workspaceDirectoryLabel(home, home, home)).toBe('我的文件')
+    expect(workspaceDirectoryLabel(`${home}\\课件\\第八章`, home, home)).toBe('我的文件 / 课件 / 第八章')
+    expect(workspaceDirectoryLabel('D:\\教学\\免疫学', 'D:\\教学\\免疫学', home)).toBe('免疫学')
+    expect(workspaceDirectoryLabel('', 'D:/教学/免疫学', home)).toBe('免疫学')
   })
 })
