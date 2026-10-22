@@ -24,7 +24,7 @@ export function SettingsSidebar({
 }): ReactElement {
   const [showAdvanced, setShowAdvanced] = useState(category === 'agents')
   const catCls = (c: SettingsCategory): string =>
-    `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium transition ${
+    `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-body font-medium transition ${
       category === c
         ? 'bg-ds-subtle text-ds-ink shadow-sm ring-1 ring-ds-border-muted'
         : 'text-ds-muted hover:bg-ds-hover'
@@ -37,7 +37,7 @@ export function SettingsSidebar({
         <button
           type="button"
           onClick={goBack}
-          className="ds-no-drag flex items-center gap-2 rounded-xl px-2 py-2 text-[14px] text-ds-muted hover:bg-ds-hover hover:text-ds-ink"
+          className="ds-no-drag flex items-center gap-2 rounded-xl px-2 py-2 text-body text-ds-muted hover:bg-ds-hover hover:text-ds-ink"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
           {t('back')}
@@ -48,7 +48,7 @@ export function SettingsSidebar({
           <Globe className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
           {t('general')}
         </button>
-        <p className="px-3 pb-2 pl-10 text-[11.5px] leading-5 text-ds-faint">
+        <p className="px-3 pb-2 pl-10 text-caption leading-5 text-ds-faint">
           通用设置中可修改教师信息
         </p>
         <button type="button" className={catCls('write')} onClick={() => setCategory('write')}>
@@ -58,7 +58,7 @@ export function SettingsSidebar({
         <button
           type="button"
           onClick={() => setShowAdvanced((value) => !value)}
-          className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-ds-muted transition hover:bg-ds-hover"
+          className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-small font-medium text-ds-muted transition hover:bg-ds-hover"
         >
           {showAdvanced
             ? <ChevronDown className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
@@ -77,7 +77,7 @@ export function SettingsSidebar({
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-subtle text-ds-muted">
             <Settings className="h-4 w-4" strokeWidth={1.75} />
           </div>
-          <div className="min-w-0 text-[12px] text-ds-muted">
+          <div className="min-w-0 text-caption text-ds-muted">
             <div className="truncate font-medium text-ds-ink">智研助手</div>
             <div className="truncate">{t('settingsFooter')}</div>
           </div>

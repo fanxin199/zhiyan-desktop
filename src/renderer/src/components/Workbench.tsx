@@ -997,7 +997,7 @@ export function Workbench(): ReactElement {
                   type="button"
                   onClick={() => void createThread()}
                   disabled={runtimeConnection !== 'ready'}
-                  className="ds-no-drag inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-40"
+                  className="ds-no-drag inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-2 text-caption font-semibold text-white disabled:opacity-40"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   新对话

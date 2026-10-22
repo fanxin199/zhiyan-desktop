@@ -147,9 +147,9 @@ function AdvancedSettingsDisclosure({
     <details className="group overflow-hidden rounded-xl border border-ds-border-muted bg-ds-main/35">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-ds-hover/70 [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">
-          <span className="block text-[13px] font-semibold text-ds-ink">{title}</span>
+          <span className="block text-small font-semibold text-ds-ink">{title}</span>
           {description ? (
-            <span className="mt-1 block text-[12.5px] leading-5 text-ds-faint">{description}</span>
+            <span className="mt-1 block text-small leading-5 text-ds-faint">{description}</span>
           ) : null}
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 text-ds-faint transition group-open:rotate-180" strokeWidth={1.9} />
@@ -477,7 +477,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           <button
                             type="button"
                             onClick={addModelProvider}
-                            className="inline-flex h-9 items-center gap-2 rounded-full border border-ds-border bg-ds-card px-3 text-[12.5px] font-medium text-ds-muted shadow-sm transition hover:bg-ds-hover hover:text-ds-ink"
+                            className="inline-flex h-9 items-center gap-2 rounded-full border border-ds-border bg-ds-card px-3 text-small font-medium text-ds-muted shadow-sm transition hover:bg-ds-hover hover:text-ds-ink"
                           >
                             <Plus className="h-3.5 w-3.5" strokeWidth={1.9} />
                             {t('modelProviderAdd')}
@@ -486,24 +486,24 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                         {activeProvider ? (
                           <div className="grid gap-3 rounded-xl border border-ds-border-muted bg-ds-main/35 p-3">
                             <div className="grid gap-3 md:grid-cols-2">
-                              <label className="grid gap-1.5 text-[12px] font-semibold text-ds-muted">
+                              <label className="grid gap-1.5 text-caption font-semibold text-ds-muted">
                                 {t('modelProviderName')}
                                 <input
-                                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                                   value={activeProvider.name}
                                   onChange={(e) => updateModelProvider(activeProvider.id, { name: e.target.value })}
                                 />
                               </label>
-                              <label className="grid gap-1.5 text-[12px] font-semibold text-ds-muted">
+                              <label className="grid gap-1.5 text-caption font-semibold text-ds-muted">
                                 {t('modelProviderId')}
                                 <input
-                                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] font-normal text-ds-faint shadow-sm"
+                                  className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body font-normal text-ds-faint shadow-sm"
                                   value={activeProvider.id}
                                   readOnly
                                 />
                               </label>
                             </div>
-                            <label className="grid gap-1.5 text-[12px] font-semibold text-ds-muted">
+                            <label className="grid gap-1.5 text-caption font-semibold text-ds-muted">
                               {t('modelProviderApiKey')}
                               <SecretInput
                                 value={activeProvider.apiKey}
@@ -516,19 +516,19 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                                 hideLabel={t('hideSecret')}
                               />
                             </label>
-                            <label className="grid gap-1.5 text-[12px] font-semibold text-ds-muted">
+                            <label className="grid gap-1.5 text-caption font-semibold text-ds-muted">
                               {t('modelProviderBaseUrl')}
                               <input
-                                className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                                className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                                 value={activeProvider.baseUrl}
                                 placeholder={t('baseUrlPlaceholder')}
                                 onChange={(e) => updateModelProvider(activeProvider.id, { baseUrl: e.target.value })}
                               />
                             </label>
-                            <label className="grid gap-1.5 text-[12px] font-semibold text-ds-muted">
+                            <label className="grid gap-1.5 text-caption font-semibold text-ds-muted">
                               {t('modelProviderModels')}
                               <textarea
-                                className="min-h-24 w-full min-w-0 resize-y rounded-xl border border-ds-border bg-ds-card px-3 py-2 font-mono text-[12.5px] font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                                className="min-h-24 w-full min-w-0 resize-y rounded-xl border border-ds-border bg-ds-card px-3 py-2 font-mono text-small font-normal text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                                 value={activeProvider.models.join('\n')}
                                 placeholder="deepseek-v4-pro&#10;deepseek-v4-flash"
                                 onChange={(e) => updateModelProvider(activeProvider.id, {
@@ -540,7 +540,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                               <button
                                 type="button"
                                 onClick={() => removeModelProvider(activeProvider.id)}
-                                className="inline-flex h-9 w-fit items-center gap-2 rounded-full border border-red-200/70 bg-red-50 px-3 text-[12.5px] font-medium text-red-700 transition hover:bg-red-100 dark:border-red-900/70 dark:bg-red-950/25 dark:text-red-200 dark:hover:bg-red-950/40"
+                                className="inline-flex h-9 w-fit items-center gap-2 rounded-full border border-red-200/70 bg-red-50 px-3 text-small font-medium text-red-700 transition hover:bg-red-100 dark:border-red-900/70 dark:bg-red-950/25 dark:text-red-200 dark:hover:bg-red-950/40"
                               >
                                 <Trash2 className="h-3.5 w-3.5" strokeWidth={1.9} />
                                 {t('modelProviderRemove')}
@@ -566,7 +566,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           showLabel={t('showSecret')}
                           hideLabel={t('hideSecret')}
                         />
-                        <p className="mt-2 text-[12px] text-ds-muted">
+                        <p className="mt-2 text-caption text-ds-muted">
                           {kun.apiKey.trim()
                             ? t('kunApiKeyOverride')
                             : sharedApiKey.trim()
@@ -582,12 +582,12 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     control={
                       <div className="w-full min-w-0 md:max-w-md">
                         <input
-                          className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                          className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                           value={kun.baseUrl}
                           placeholder={t('kunBaseUrlPlaceholder')}
                           onChange={(e) => updateKun({ baseUrl: e.target.value })}
                         />
-                        <p className="mt-2 text-[12px] text-ds-muted">
+                        <p className="mt-2 text-caption text-ds-muted">
                           {kun.baseUrl.trim()
                             ? t('kunBaseUrlOverride', { value: kun.baseUrl.trim() })
                             : t('kunBaseUrlInherited', { value: sharedBaseUrl.trim() || t('kunBaseUrlOfficial') })}
@@ -604,7 +604,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           type="number"
                           min={1}
                           max={65535}
-                          className={`w-28 rounded-xl border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:outline-none focus:ring-1 ${
+                          className={`w-28 rounded-xl border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:outline-none focus:ring-1 ${
                             portError
                               ? 'border-red-400 focus:ring-red-300'
                               : 'border-ds-border focus:border-accent/40 focus:ring-accent/30'
@@ -613,7 +613,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           onChange={(e) => updateKun({ port: Number(e.target.value) })}
                         />
                         {portError ? (
-                          <p className="mt-1 text-[12px] text-red-700 dark:text-red-300">{portError}</p>
+                          <p className="mt-1 text-caption text-red-700 dark:text-red-300">{portError}</p>
                         ) : null}
                       </div>
                     }
@@ -623,7 +623,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('kunBinaryDesc')}
                     control={
                       <input
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
                         placeholder={t('kunBinaryPlaceholder')}
                         value={kun.binaryPath}
                         onChange={(e) => updateKun({ binaryPath: e.target.value })}
@@ -635,7 +635,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('kunDataDirDesc')}
                     control={
                       <input
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
                         placeholder={DEFAULT_KUN_DATA_DIR}
                         value={kun.dataDir}
                         onChange={(e) => updateKun({ dataDir: e.target.value })}
@@ -647,7 +647,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('kunModelDesc')}
                     control={
                       <input
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
                         value={kun.model}
                         onChange={(e) => updateKun({ model: e.target.value })}
                       />
@@ -666,7 +666,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           onChange={(enabled) => updateTokenEconomy({ enabled })}
                         />
                         {tokenEconomy.enabled ? (
-                          <div className="max-w-full rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1.5 text-[12px] font-medium leading-5 text-emerald-700 dark:text-emerald-200">
+                          <div className="max-w-full rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1.5 text-caption font-medium leading-5 text-emerald-700 dark:text-emerald-200">
                             {tokenEconomySavings ? (
                               <span>
                                 {t('kunTokenEconomySavings', {
@@ -700,7 +700,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-3">
-                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-muted">
                           <span>{t('kunCompressToolDescriptions')}</span>
                           <Toggle
                             checked={tokenEconomy.compressToolDescriptions}
@@ -709,7 +709,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                               updateTokenEconomy({ compressToolDescriptions })}
                           />
                         </label>
-                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-muted">
                           <span>{t('kunCompressToolResults')}</span>
                           <Toggle
                             checked={tokenEconomy.compressToolResults}
@@ -718,7 +718,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                               updateTokenEconomy({ compressToolResults })}
                           />
                         </label>
-                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-muted">
                           <span>{t('kunConciseResponses')}</span>
                           <Toggle
                             checked={tokenEconomy.conciseResponses}
@@ -736,74 +736,74 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-3">
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxResultLines')}
                           <input
                             type="number"
                             min={1}
                             max={100000}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxToolResultLines}
                             onChange={(e) => updateHistoryHygiene({ maxToolResultLines: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxResultBytes')}
                           <input
                             type="number"
                             min={512}
                             max={8388608}
                             step={1024}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxToolResultBytes}
                             onChange={(e) => updateHistoryHygiene({ maxToolResultBytes: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxResultTokens')}
                           <input
                             type="number"
                             min={128}
                             max={256000}
                             step={128}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxToolResultTokens}
                             onChange={(e) => updateHistoryHygiene({ maxToolResultTokens: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxArgumentBytes')}
                           <input
                             type="number"
                             min={512}
                             max={8388608}
                             step={1024}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxToolArgumentStringBytes}
                             onChange={(e) =>
                               updateHistoryHygiene({ maxToolArgumentStringBytes: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxArgumentTokens')}
                           <input
                             type="number"
                             min={128}
                             max={64000}
                             step={128}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxToolArgumentStringTokens}
                             onChange={(e) =>
                               updateHistoryHygiene({ maxToolArgumentStringTokens: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunHistoryMaxArrayItems')}
                           <input
                             type="number"
                             min={1}
                             max={10000}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={tokenEconomy.historyHygiene.maxArrayItems}
                             onChange={(e) => updateHistoryHygiene({ maxArrayItems: Number(e.target.value) })}
                           />
@@ -862,37 +862,37 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     control={
                       <div className="grid gap-3 sm:grid-cols-4">
                         <div className="min-w-0 rounded-xl border border-ds-border-muted bg-ds-card px-3 py-2">
-                          <div className="text-[11px] font-medium uppercase text-ds-faint">
+                          <div className="text-caption font-medium uppercase text-ds-faint">
                             {t('kunModelContextModel')}
                           </div>
-                          <div className="mt-1 truncate text-[13px] font-semibold text-ds-ink">
+                          <div className="mt-1 truncate text-small font-semibold text-ds-ink">
                             {modelContext.modelLabel}
                           </div>
-                          <div className="mt-1 text-[11px] leading-4 text-ds-muted">
+                          <div className="mt-1 text-caption leading-4 text-ds-muted">
                             {t(modelContext.sourceLabelKey)}
                           </div>
                         </div>
                         <div className="min-w-0 rounded-xl border border-ds-border-muted bg-ds-card px-3 py-2">
-                          <div className="text-[11px] font-medium uppercase text-ds-faint">
+                          <div className="text-caption font-medium uppercase text-ds-faint">
                             {t('kunModelContextWindow')}
                           </div>
-                          <div className="mt-1 truncate text-[13px] font-semibold text-ds-ink">
+                          <div className="mt-1 truncate text-small font-semibold text-ds-ink">
                             {modelContext.contextWindowLabel}
                           </div>
                         </div>
                         <div className="min-w-0 rounded-xl border border-ds-border-muted bg-ds-card px-3 py-2">
-                          <div className="text-[11px] font-medium uppercase text-ds-faint">
+                          <div className="text-caption font-medium uppercase text-ds-faint">
                             {t('kunModelContextSoft')}
                           </div>
-                          <div className="mt-1 truncate text-[13px] font-semibold text-ds-ink">
+                          <div className="mt-1 truncate text-small font-semibold text-ds-ink">
                             {modelContext.softThresholdLabel}
                           </div>
                         </div>
                         <div className="min-w-0 rounded-xl border border-ds-border-muted bg-ds-card px-3 py-2">
-                          <div className="text-[11px] font-medium uppercase text-ds-faint">
+                          <div className="text-caption font-medium uppercase text-ds-faint">
                             {t('kunModelContextHard')}
                           </div>
-                          <div className="mt-1 truncate text-[13px] font-semibold text-ds-ink">
+                          <div className="mt-1 truncate text-small font-semibold text-ds-ink">
                             {modelContext.hardThresholdLabel}
                           </div>
                         </div>
@@ -918,7 +918,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('kunStorageSqlitePathDesc')}
                     control={
                       <input
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
                         value={storage.sqlitePath}
                         disabled={storage.backend !== 'hybrid'}
                         placeholder={t('kunStorageSqlitePathPlaceholder')}
@@ -932,24 +932,24 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionSoftThreshold')}
                           <input
                             type="number"
                             min={1024}
                             step={1024}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={contextCompaction.defaultSoftThreshold}
                             onChange={(e) => updateContextCompaction({ defaultSoftThreshold: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionHardThreshold')}
                           <input
                             type="number"
                             min={1024}
                             step={1024}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={contextCompaction.defaultHardThreshold}
                             onChange={(e) => updateContextCompaction({ defaultHardThreshold: Number(e.target.value) })}
                           />
@@ -963,7 +963,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-4">
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionSummaryMode')}
                           <select
                             className={selectControlClass}
@@ -974,38 +974,38 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                             <option value="model">{t('kunCompactionSummaryModel')}</option>
                           </select>
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionSummaryTimeout')}
                           <input
                             type="number"
                             min={1000}
                             max={120000}
                             step={1000}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={contextCompaction.summaryTimeoutMs}
                             onChange={(e) => updateContextCompaction({ summaryTimeoutMs: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionSummaryMaxTokens')}
                           <input
                             type="number"
                             min={64}
                             max={16000}
                             step={64}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={contextCompaction.summaryMaxTokens}
                             onChange={(e) => updateContextCompaction({ summaryMaxTokens: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunCompactionSummaryInputBytes')}
                           <input
                             type="number"
                             min={1024}
                             max={8388608}
                             step={1024}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={contextCompaction.summaryInputMaxBytes}
                             onChange={(e) => updateContextCompaction({ summaryInputMaxBytes: Number(e.target.value) })}
                           />
@@ -1029,25 +1029,25 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunToolStormWindowSize')}
                           <input
                             type="number"
                             min={1}
                             max={128}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={runtimeTuning.toolStorm.windowSize}
                             disabled={!runtimeTuning.toolStorm.enabled}
                             onChange={(e) => updateToolStorm({ windowSize: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('kunToolStormThreshold')}
                           <input
                             type="number"
                             min={2}
                             max={128}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={runtimeTuning.toolStorm.threshold}
                             disabled={!runtimeTuning.toolStorm.enabled}
                             onChange={(e) => updateToolStorm({ threshold: Number(e.target.value) })}
@@ -1065,7 +1065,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                         min={1024}
                         max={16777216}
                         step={1024}
-                        className="w-40 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        className="w-40 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                         value={runtimeTuning.toolArgumentRepair.maxStringBytes}
                         onChange={(e) => updateToolArgumentRepair({ maxStringBytes: Number(e.target.value) })}
                       />
@@ -1102,14 +1102,14 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           ].map(([label, status]) => (
                             <span
                               key={label}
-                              className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[12px] font-semibold ${statusPill(status as string | undefined)}`}
+                              className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-caption font-semibold ${statusPill(status as string | undefined)}`}
                             >
                               {label}
-                              <span className="font-mono text-[11px] opacity-75">{status || 'unknown'}</span>
+                              <span className="font-mono text-caption opacity-75">{status || 'unknown'}</span>
                             </span>
                           ))}
                         </div>
-                        <div className="grid gap-2 text-[12.5px] text-ds-muted sm:grid-cols-2">
+                        <div className="grid gap-2 text-small text-ds-muted sm:grid-cols-2">
                           <div className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-2">
                             {t('kunRuntimeModel')}: <span className="font-mono text-ds-ink">{runtimeInfo?.capabilities?.model?.id ?? 'unknown'}</span>
                           </div>
@@ -1128,7 +1128,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                             type="button"
                             onClick={() => void refreshKunDiagnostics()}
                             disabled={runtimeDiagnosticsBusy}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:cursor-not-allowed disabled:opacity-55"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:cursor-not-allowed disabled:opacity-55"
                           >
                             <RefreshCw className={`h-3.5 w-3.5 ${runtimeDiagnosticsBusy ? 'animate-spin' : ''}`} strokeWidth={1.75} />
                             {t('kunDiagnosticsRefresh')}
@@ -1143,7 +1143,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('kunToolDiagnosticsDesc')}
                     wideControl
                     control={
-                      <div className="grid gap-2 text-[12.5px] text-ds-muted sm:grid-cols-2">
+                      <div className="grid gap-2 text-small text-ds-muted sm:grid-cols-2">
                         <div className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-2">
                           {t('kunDiagnosticsProviders')}: <span className="font-mono text-ds-ink">{toolDiagnostics?.providers?.length ?? 0}</span>
                         </div>
@@ -1166,7 +1166,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     control={
                       <div className="flex flex-col gap-2">
                         {memoryRecords.length === 0 ? (
-                          <div className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-3 text-[13px] text-ds-faint">
+                          <div className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-3 text-small text-ds-faint">
                             {t('kunMemoryEmpty')}
                           </div>
                         ) : (
@@ -1174,8 +1174,8 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                             <div key={memory.id} className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-2">
                               <div className="flex min-w-0 items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <div className="truncate text-[13px] font-semibold text-ds-ink">{memory.content}</div>
-                                  <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-ds-faint">
+                                  <div className="truncate text-small font-semibold text-ds-ink">{memory.content}</div>
+                                  <div className="mt-1 flex flex-wrap gap-1.5 text-caption text-ds-faint">
                                     <span className="font-mono">{memory.scope}</span>
                                     <span className="font-mono">{memory.id}</span>
                                     {memory.disabledAt ? <span>{t('kunMemoryDisabled')}</span> : null}
@@ -1239,8 +1239,8 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     title={t('skillsPath')}
                     description={t('skillsPathDesc')}
                     control={
-                      <div className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] text-ds-muted shadow-sm">
-                        <code className="block break-all rounded-lg bg-ds-main/70 px-2 py-1 font-mono text-[12px] text-ds-ink">
+                      <div className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small text-ds-muted shadow-sm">
+                        <code className="block break-all rounded-lg bg-ds-main/70 px-2 py-1 font-mono text-caption text-ds-ink">
                           {selectedSkillRoot?.path || t('skillsRootUnavailable')}
                         </code>
                       </div>
@@ -1256,7 +1256,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           <button
                             type="button"
                             onClick={() => void openSkillRoot()}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                           >
                             <FolderOpen className="h-4 w-4" />
                             {t('skillsOpenRoot')}
@@ -1264,7 +1264,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           <button
                             type="button"
                             onClick={() => openPlugins()}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-ds-userbubble px-3 py-2 text-[13px] font-medium text-ds-userbubbleFg shadow-sm transition hover:opacity-90"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-ds-userbubble px-3 py-2 text-small font-medium text-ds-userbubbleFg shadow-sm transition hover:opacity-90"
                           >
                             <Settings className="h-4 w-4" />
                             {t('skillsOpenPlugins')}
@@ -1317,47 +1317,47 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="grid gap-3 sm:grid-cols-4">
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('mcpSearchAutoThreshold')}
                           <input
                             type="number"
                             min={1}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={mcpSearch.autoThresholdToolCount}
                             disabled={!mcpSearch.enabled}
                             onChange={(e) => updateMcpSearch({ autoThresholdToolCount: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('mcpSearchTopKDefault')}
                           <input
                             type="number"
                             min={1}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={mcpSearch.topKDefault}
                             disabled={!mcpSearch.enabled}
                             onChange={(e) => updateMcpSearch({ topKDefault: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('mcpSearchTopKMax')}
                           <input
                             type="number"
                             min={1}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={mcpSearch.topKMax}
                             disabled={!mcpSearch.enabled}
                             onChange={(e) => updateMcpSearch({ topKMax: Number(e.target.value) })}
                           />
                         </label>
-                        <label className="flex min-w-0 flex-col gap-1.5 text-[12px] font-medium text-ds-muted">
+                        <label className="flex min-w-0 flex-col gap-1.5 text-caption font-medium text-ds-muted">
                           {t('mcpSearchMinScore')}
                           <input
                             type="number"
                             min={0}
                             max={1}
                             step={0.01}
-                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                             value={mcpSearch.minScore}
                             disabled={!mcpSearch.enabled}
                             onChange={(e) => updateMcpSearch({ minScore: Number(e.target.value) })}
@@ -1371,7 +1371,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     description={t('mcpSearchDiagnosticsDesc')}
                     wideControl
                     control={
-                      <div className="grid gap-2 text-[12.5px] text-ds-muted sm:grid-cols-3">
+                      <div className="grid gap-2 text-small text-ds-muted sm:grid-cols-3">
                         <div className="rounded-xl border border-ds-border-muted bg-ds-main/40 px-3 py-2">
                           {t('mcpSearchStatus')}: <span className="font-mono text-ds-ink">{toolDiagnostics?.mcpSearch?.active ? t('mcpSearchActive') : t('mcpSearchInactive')}</span>
                         </div>
@@ -1388,8 +1388,8 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     title={t('configFilePath')}
                     description={t('mcpPathDesc')}
                     control={
-                      <div className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] text-ds-muted shadow-sm">
-                        <code className="block break-all rounded-lg bg-ds-main/70 px-2 py-1 font-mono text-[12px] text-ds-ink">
+                      <div className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small text-ds-muted shadow-sm">
+                        <code className="block break-all rounded-lg bg-ds-main/70 px-2 py-1 font-mono text-caption text-ds-ink">
                           {mcpConfigPath}
                         </code>
                       </div>
@@ -1401,7 +1401,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                     wideControl
                     control={
                       <div className="flex w-full flex-col gap-3">
-                        <div className="rounded-xl border border-ds-border bg-ds-main/50 px-3 py-2 text-[12px] leading-5 text-ds-muted">
+                        <div className="rounded-xl border border-ds-border bg-ds-main/50 px-3 py-2 text-caption leading-5 text-ds-muted">
                           {mcpConfigExists ? t('mcpFileStatusReady') : t('mcpFileStatusMissing')}
                         </div>
                         <textarea
@@ -1409,7 +1409,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           onChange={(e) => setMcpConfigText(e.target.value)}
                           spellCheck={false}
                           placeholder={mcpLoading ? t('loading') : ''}
-                          className="min-h-[320px] w-full rounded-2xl border border-ds-border bg-ds-card px-4 py-3 font-mono text-[13px] leading-6 text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                          className="min-h-[320px] w-full rounded-2xl border border-ds-border bg-ds-card px-4 py-3 font-mono text-small leading-6 text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                         />
                       </div>
                     }
@@ -1425,7 +1425,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                             type="button"
                             onClick={() => void saveMcpConfig()}
                             disabled={mcpBusy || mcpLoading}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-ds-userbubble px-3 py-2 text-[13px] font-medium text-ds-userbubbleFg shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-ds-userbubble px-3 py-2 text-small font-medium text-ds-userbubbleFg shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
                           >
                             {mcpBusy ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
@@ -1436,7 +1436,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                             type="button"
                             onClick={() => void loadMcpConfig()}
                             disabled={mcpBusy || mcpLoading}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:cursor-not-allowed disabled:opacity-55"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:cursor-not-allowed disabled:opacity-55"
                           >
                             <RefreshCw className={`h-3.5 w-3.5 ${mcpLoading ? 'animate-spin' : ''}`} strokeWidth={1.75} />
                             {t('mcpReload')}
@@ -1444,7 +1444,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           <button
                             type="button"
                             onClick={() => void openMcpConfigDir()}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                           >
                             <FolderOpen className="h-4 w-4" />
                             {t('mcpOpenDir')}

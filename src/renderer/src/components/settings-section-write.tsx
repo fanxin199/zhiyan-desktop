@@ -102,7 +102,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                     <div className="w-full min-w-[200px] md:max-w-xl">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <input
-                          className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                          className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                           value={form.write.defaultWorkspaceRoot}
                           onChange={(e) =>
                             update({
@@ -118,20 +118,20 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                         <button
                           type="button"
                           onClick={resetWriteWorkspaceToDefault}
-                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                         >
                           {t('restoreWorkspaceDefault')}
                         </button>
                         <button
                           type="button"
                           onClick={() => void pickWriteWorkspace()}
-                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                         >
                           {t('browse')}
                         </button>
                       </div>
                       {writeWorkspacePickerError ? (
-                        <p className="mt-2 text-[13px] leading-5 text-amber-700 dark:text-amber-300">
+                        <p className="mt-2 text-small leading-5 text-amber-700 dark:text-amber-300">
                           {writeWorkspacePickerError}
                         </p>
                       ) : null}
@@ -153,7 +153,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                         showLabel={t('showSecret')}
                         hideLabel={t('hideSecret')}
                       />
-                      <p className="mt-2 text-[12px] text-ds-muted">
+                      <p className="mt-2 text-caption text-ds-muted">
                         {writeInlineApiKeyInherited
                           ? effectiveWriteInlineApiKey
                             ? t('writeInlineCompletionApiKeyInherited')
@@ -192,12 +192,12 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                   control={
                     <div className="w-full min-w-0 md:max-w-md">
                       <input
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                         value={form.write.inlineCompletion.baseUrl}
                         placeholder={DEFAULT_WRITE_INLINE_COMPLETION_BASE_URL}
                         onChange={(e) => update({ write: { inlineCompletion: { baseUrl: e.target.value } } })}
                       />
-                      <p className="mt-2 text-[12px] text-ds-muted">
+                      <p className="mt-2 text-caption text-ds-muted">
                         {writeInlineBaseUrlInherited
                           ? t('writeInlineCompletionBaseUrlInherited', { value: effectiveWriteInlineBaseUrl })
                           : t('writeInlineCompletionBaseUrlOverride', { value: effectiveWriteInlineBaseUrl })}
@@ -212,7 +212,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                     <div className="w-full min-w-0 md:max-w-md">
                       <input
                         list="write-inline-completion-model-options"
-                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                         value={writeInlineModelInherited ? '' : form.write.inlineCompletion.model}
                         placeholder={t('writeInlineCompletionModelPlaceholder')}
                         onChange={(e) => {
@@ -240,7 +240,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                           />
                         ))}
                       </datalist>
-                      <p className="mt-2 text-[12px] text-ds-muted">
+                      <p className="mt-2 text-caption text-ds-muted">
                         {writeInlineModelInherited
                           ? t('writeInlineCompletionModelInherited', { value: effectiveWriteInlineModel })
                           : t('writeInlineCompletionModelOverride', { value: effectiveWriteInlineModel })}
@@ -293,7 +293,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                       min={16}
                       max={512}
                       step={8}
-                      className="w-32 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                      className="w-32 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                       value={form.write.inlineCompletion.maxTokens}
                       placeholder={String(DEFAULT_WRITE_INLINE_COMPLETION_MAX_TOKENS)}
                       onChange={(e) => update({
@@ -323,7 +323,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                       min={64}
                       max={1024}
                       step={16}
-                      className="w-32 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                      className="w-32 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                       value={form.write.inlineCompletion.longMaxTokens}
                       placeholder={String(DEFAULT_WRITE_INLINE_LONG_COMPLETION_MAX_TOKENS)}
                       onChange={(e) => update({
@@ -332,7 +332,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                     />
                   }
                 />
-                <div className="px-3 py-3 text-[12.5px] leading-5 text-ds-muted">
+                <div className="px-3 py-3 text-small leading-5 text-ds-muted">
                   {t('writeInlineCompletionApiNote')}
                 </div>
               </SettingsCard>
@@ -348,7 +348,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                         setWriteDebugModalOpen(true)
                         void loadWriteDebugEntries()
                       }}
-                      className="inline-flex items-center gap-2 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                      className="inline-flex items-center gap-2 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                     >
                       <PencilLine className="h-4 w-4" strokeWidth={1.75} />
                       {t('writeDebugLogOpenButton')}

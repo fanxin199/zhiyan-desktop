@@ -137,7 +137,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
     })
   }
   const teacherProfileFieldClass =
-    'w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30'
+    'w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30'
 
   return (
             <>
@@ -180,7 +180,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   description={t('baseUrlSharedDesc')}
                   control={
                     <input
-                      className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
+                      className="w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30 md:max-w-md"
                       placeholder={t('baseUrlPlaceholder')}
                       value={sharedBaseUrl}
                       onChange={(e) => updateSharedCredential({ baseUrl: e.target.value })}
@@ -223,7 +223,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                     <button
                       type="button"
                       onClick={openOnboardingPreview}
-                      className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                      className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                     >
                       {t('onboardingPreviewOpen')}
                     </button>
@@ -275,7 +275,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                     <div className="w-full min-w-[200px] md:max-w-xl">
                       <div className="flex items-center gap-2">
                         <input
-                          className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+                          className="w-full rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
                           value={form.workspaceRoot}
                           onChange={(e) => update({ workspaceRoot: e.target.value })}
                           placeholder={t('workspaceRootPlaceholder')}
@@ -283,20 +283,20 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                         <button
                           type="button"
                           onClick={resetWorkspaceToDefault}
-                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                         >
                           {t('restoreWorkspaceDefault')}
                         </button>
                         <button
                           type="button"
                           onClick={() => void pickWorkspace()}
-                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                          className="shrink-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                         >
                           {t('browse')}
                         </button>
                       </div>
                       {workspacePickerError ? (
-                        <p className="mt-2 text-[13px] leading-5 text-amber-700 dark:text-amber-300">
+                        <p className="mt-2 text-small leading-5 text-amber-700 dark:text-amber-300">
                           {workspacePickerError}
                         </p>
                       ) : null}
@@ -307,12 +307,12 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
 
               <SettingsCard title={t('teacherProfileTitle')} className="mt-6">
                 <div className="px-3 py-4">
-                  <p className="max-w-3xl text-[13px] leading-relaxed text-ds-muted">
+                  <p className="max-w-3xl text-small leading-relaxed text-ds-muted">
                     {t('teacherProfileDesc')}
                   </p>
                   <div className="mt-4 grid gap-4 lg:grid-cols-3">
                     <label className="space-y-1.5">
-                      <span className="text-[13px] font-semibold text-ds-ink">
+                      <span className="text-small font-semibold text-ds-ink">
                         {t('teacherProfileName')}
                       </span>
                       <input
@@ -323,7 +323,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                       />
                     </label>
                     <label className="space-y-1.5">
-                      <span className="text-[13px] font-semibold text-ds-ink">
+                      <span className="text-small font-semibold text-ds-ink">
                         {t('teacherProfileSchool')}
                       </span>
                       <input
@@ -334,7 +334,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                       />
                     </label>
                     <label className="space-y-1.5">
-                      <span className="text-[13px] font-semibold text-ds-ink">
+                      <span className="text-small font-semibold text-ds-ink">
                         {t('teacherProfileDepartment')}
                       </span>
                       <input
@@ -347,7 +347,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   </div>
                   <div className="mt-4 grid gap-4 lg:grid-cols-2">
                     <label className="space-y-1.5">
-                      <span className="text-[13px] font-semibold text-ds-ink">
+                      <span className="text-small font-semibold text-ds-ink">
                         {t('teacherProfileCourses')}
                       </span>
                       <textarea
@@ -360,7 +360,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                       />
                     </label>
                     <label className="space-y-1.5">
-                      <span className="text-[13px] font-semibold text-ds-ink">
+                      <span className="text-small font-semibold text-ds-ink">
                         {t('teacherProfileResearchTopics')}
                       </span>
                       <textarea
@@ -377,7 +377,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                     <button
                       type="button"
                       onClick={saveTeacherProfile}
-                      className="rounded-xl border border-ds-border bg-ds-card px-4 py-2 text-[14px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
+                      className="rounded-xl border border-ds-border bg-ds-card px-4 py-2 text-body font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover"
                     >
                       {t('teacherProfileSave')}
                     </button>
@@ -472,15 +472,15 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   control={
                     <div className="flex w-full min-w-0 flex-col items-start gap-2">
                       {logPath ? (
-                        <code className="block w-full max-w-full break-all rounded-xl bg-ds-main/70 px-3 py-2 font-mono text-[12px] text-ds-muted shadow-sm">
+                        <code className="block w-full max-w-full break-all rounded-xl bg-ds-main/70 px-3 py-2 font-mono text-caption text-ds-muted shadow-sm">
                           {logPath}
                         </code>
                       ) : (
-                        <span className="text-[13px] text-ds-faint">…</span>
+                        <span className="text-small text-ds-faint">…</span>
                       )}
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-[13px] font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-ds-border bg-ds-card px-3 py-1.5 text-small font-medium text-ds-ink shadow-sm transition hover:bg-ds-hover disabled:opacity-50"
                         disabled={typeof window.dsGui?.openLogDir !== 'function'}
                         onClick={async () => {
                           if (typeof window.dsGui?.openLogDir !== 'function') return
@@ -497,7 +497,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                         {t('logDirOpen')}
                       </button>
                       {logDirOpenError ? (
-                        <p className="text-[12px] text-red-700 dark:text-red-300">
+                        <p className="text-caption text-red-700 dark:text-red-300">
                           {logDirOpenError}
                         </p>
                       ) : null}

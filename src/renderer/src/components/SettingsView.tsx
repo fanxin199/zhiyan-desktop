@@ -529,10 +529,10 @@ export function SettingsView(): ReactElement {
       loadError === 'PRELOAD_BRIDGE' ? t('preloadBridgeError') : t('loadFailed', { message: loadError })
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 bg-ds-main p-6 text-center">
-        <p className="max-w-md text-sm text-red-700 dark:text-red-300">{msg}</p>
+        <p className="max-w-md text-body leading-5 text-red-700 dark:text-red-300">{msg}</p>
         <button
           type="button"
-          className="rounded-xl bg-ds-userbubble px-4 py-2 text-sm font-medium text-ds-userbubbleFg"
+          className="rounded-xl bg-ds-userbubble px-4 py-2 text-body leading-5 font-medium text-ds-userbubbleFg"
           onClick={goBack}
         >
           {t('back')}
@@ -678,7 +678,7 @@ export function SettingsView(): ReactElement {
   }
 
   const selectControlClass =
-    'w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[14px] text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30'
+    'w-full min-w-0 rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30'
 
   const settingsSectionContext = {
     t,
@@ -768,8 +768,8 @@ export function SettingsView(): ReactElement {
         <div className="mx-auto max-w-3xl">
           {!activeApiKey.trim() ? (
             <div className="mb-6 rounded-2xl border border-amber-300/80 bg-amber-50/95 px-5 py-4 text-amber-950 shadow-sm dark:border-amber-700/60 dark:bg-amber-950/35 dark:text-amber-100">
-              <div className="text-[15px] font-semibold">{t('apiKeyRequiredTitle')}</div>
-              <p className="mt-1 text-[13px] leading-6 text-amber-900/90 dark:text-amber-100/90">
+              <div className="text-heading font-semibold">{t('apiKeyRequiredTitle')}</div>
+              <p className="mt-1 text-small leading-6 text-amber-900/90 dark:text-amber-100/90">
                 {t('apiKeyRequiredBody')}
               </p>
             </div>
@@ -777,12 +777,12 @@ export function SettingsView(): ReactElement {
 
           <div className="mb-8 flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-ds-ink">{t('title')}</h1>
-              <p className="mt-1 text-[14px] text-ds-muted">{t('subtitle')}</p>
+              <h1 className="text-display leading-8 font-semibold tracking-tight text-ds-ink">{t('title')}</h1>
+              <p className="mt-1 text-body text-ds-muted">{t('subtitle')}</p>
             </div>
             <span
               title={saveStatus === 'error' && saveError ? saveError : undefined}
-              className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-medium ${
+              className={`shrink-0 rounded-full px-3 py-1 text-caption font-medium ${
                 portError
                   ? 'bg-amber-500/15 text-amber-700 dark:text-amber-200'
                   : saveStatus === 'saved'

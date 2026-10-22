@@ -114,7 +114,7 @@ export function SidebarCommandRow({
       title={disabled ? disabledHint : undefined}
       onClick={onClick}
       className={cx(
-        'flex min-h-[34px] w-full items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-[13px] font-normal transition',
+        'flex min-h-[34px] w-full items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-small font-normal transition',
         disabled
           ? 'cursor-not-allowed text-[#a8a8a8] opacity-55'
           : active
@@ -136,7 +136,7 @@ export function SidebarCommandRow({
       </span>
       <span className="min-w-0 flex-1 truncate text-left">{label}</span>
       {shortcut ? (
-        <kbd className="ds-kbd hidden items-center gap-0.5 rounded-md px-1.5 py-0.5 font-mono text-[11.5px] font-medium text-ds-faint sm:inline-flex">
+        <kbd className="ds-kbd hidden items-center gap-0.5 rounded-md px-1.5 py-0.5 font-mono text-caption font-medium text-ds-faint sm:inline-flex">
           <Command className="h-2.5 w-2.5" strokeWidth={2} />
           {shortcut.replace('⌘', '')}
         </kbd>
@@ -158,7 +158,7 @@ export function SidebarSectionHeader({
 }: SidebarSectionHeaderProps): ReactElement {
   return (
     <div className="flex items-center justify-between px-2.5 pb-2 pt-5">
-      <span className="min-w-0 truncate text-[12px] font-normal text-[#9aa5b5] dark:text-white/35">
+      <span className="min-w-0 truncate text-caption font-normal text-[#9aa5b5] dark:text-white/35">
         {label}
       </span>
       {actions ? <div className="flex shrink-0 items-center gap-0.5">{actions}</div> : null}
@@ -244,7 +244,7 @@ export function SidebarSearchField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-8 w-full rounded-[8px] border border-transparent bg-[var(--ds-sidebar-field-bg)] pl-7 pr-7 text-[13px] text-[#1f1f1f] outline-none transition placeholder:text-[#9aa5b5] focus:bg-[var(--ds-sidebar-field-focus)] dark:text-white"
+        className="h-8 w-full rounded-[8px] border border-transparent bg-[var(--ds-sidebar-field-bg)] pl-7 pr-7 text-small text-[#1f1f1f] outline-none transition placeholder:text-[#9aa5b5] focus:bg-[var(--ds-sidebar-field-focus)] dark:text-white"
       />
       {value.trim() ? (
         <button
@@ -316,7 +316,7 @@ export function SidebarTreeRow({
   return (
     <div
       className={cx(
-        'group relative flex w-full items-center overflow-hidden rounded-[8px] text-[13px] font-normal transition',
+        'group relative flex w-full items-center overflow-hidden rounded-[8px] text-small font-normal transition',
         outlined
           ? 'bg-[var(--ds-sidebar-row-active)] text-[#1f1f1f] shadow-[inset_0_0_0_1px_var(--ds-sidebar-row-ring)] dark:text-white'
           : active

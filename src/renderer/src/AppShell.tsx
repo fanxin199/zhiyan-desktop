@@ -37,13 +37,13 @@ class RouteErrorBoundary extends Component<
     return (
       <div className="flex h-full min-h-0 items-center justify-center bg-ds-main px-6 text-ds-text">
         <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-5 text-left shadow-sm dark:border-red-500/30 dark:bg-red-500/10">
-          <div className="text-[15px] font-semibold text-red-700 dark:text-red-200">页面渲染失败</div>
-          <p className="mt-2 text-[13px] leading-relaxed text-red-700/80 dark:text-red-100/80">
+          <div className="text-heading font-semibold text-red-700 dark:text-red-200">页面渲染失败</div>
+          <p className="mt-2 text-small leading-relaxed text-red-700/80 dark:text-red-100/80">
             {this.state.error.message || '请返回工作台后重试。'}
           </p>
           <button
             type="button"
-            className="mt-4 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[13px] font-medium text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100 dark:hover:bg-red-500/20"
+            className="mt-4 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-small font-medium text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100 dark:hover:bg-red-500/20"
             onClick={() => this.setState({ error: null })}
           >
             重试

@@ -85,12 +85,7 @@ export default {
         // Slide thumbnails render a scaled-down slide, so their text sits below the UI scale.
         'thumb-title': '10px',
         'thumb-callout': '8px',
-        'thumb-body': '7px',
-        'ui-caption': '11.5px',
-        'ui-meta': '12px',
-        'ui-body-sm': '12.5px',
-        'ui-body': '13.5px',
-        'ui-title': '24px'
+        'thumb-body': '7px'
       },
       lineHeight: {
         prose: 'var(--ds-leading-prose)'
