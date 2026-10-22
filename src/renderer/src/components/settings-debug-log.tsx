@@ -51,7 +51,7 @@ export function WriteDebugLogModal({
     completionEntries.find((entry) => entry.id === completionSelectedId) ?? completionEntries[0] ?? null
 
   return (
-    <div className="ds-no-drag fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm">
+    <div className="ds-no-drag fixed inset-0 z-[100] flex items-center justify-center bg-ds-overlay p-4 backdrop-blur-sm">
       <div className="flex h-[min(86vh,820px)] w-[min(1180px,96vw)] min-w-0 flex-col overflow-hidden rounded-2xl border border-ds-border bg-ds-card shadow-[0_26px_80px_rgba(15,23,42,0.28)]">
         <div className="flex min-h-[64px] shrink-0 items-center justify-between gap-3 border-b border-ds-border-muted px-4 py-3">
           <div className="min-w-0">
@@ -74,7 +74,7 @@ export function WriteDebugLogModal({
         </div>
 
         {error ? (
-          <div className="shrink-0 border-b border-red-200 bg-red-50 px-4 py-2 text-small text-red-700 dark:border-red-900/60 dark:bg-red-950/25 dark:text-red-200">
+          <div className="shrink-0 border-b border-ds-danger/30 bg-ds-danger-soft px-4 py-2 text-small text-ds-danger">
             {error}
           </div>
         ) : null}
@@ -133,7 +133,7 @@ function WriteDebugLogListButton({
       className={`block w-full px-3 py-2.5 text-left transition ${active ? 'bg-ds-hover text-ds-ink' : 'hover:bg-ds-hover/70'}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-caption font-semibold ${ok ? 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' : 'bg-red-500/12 text-red-700 dark:text-red-300'}`}>
+        <span className={`rounded-full px-2 py-0.5 text-caption font-semibold ${ok ? 'bg-ds-success-soft text-ds-success' : 'bg-ds-danger-soft text-ds-danger'}`}>
           {ok ? t('writeInlineEditDebugOk') : t('writeInlineEditDebugFailed')}
         </span>
         <span className="text-caption text-ds-faint">{durationMs}ms</span>
@@ -199,7 +199,7 @@ function WriteDebugMeta({
         <span className="ml-2 break-all font-mono">{filePath || '—'}</span>
       </div>
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-red-700 dark:border-red-900/60 dark:bg-red-950/25 dark:text-red-200 sm:col-span-2">
+        <div className="rounded-xl border border-ds-danger/30 bg-ds-danger-soft px-3 py-2 text-ds-danger sm:col-span-2">
           {error}
         </div>
       ) : null}

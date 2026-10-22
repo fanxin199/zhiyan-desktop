@@ -100,7 +100,7 @@ export function MessageTimelineEmptyHero({
 export function ThreadForkBanner({ parentTitle }: { parentTitle: string }): ReactElement {
   const { t } = useTranslation('common')
   return (
-    <div className="rounded-[18px] border border-accent/15 bg-accent/5 px-4 py-3 text-ds-muted shadow-[0_14px_36px_rgba(0,136,255,0.05)]">
+    <div className="rounded-[18px] border border-accent/15 bg-accent/5 px-4 py-3 text-ds-muted shadow-lg shadow-accent/5">
       <div className="flex min-w-0 items-start gap-3">
         <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-accent/10 text-accent">
           <GitFork className="h-4 w-4" strokeWidth={1.85} />

@@ -131,7 +131,7 @@ export function WriteSettingsSection({ ctx }: { ctx: Record<string, any> }): Rea
                         </button>
                       </div>
                       {writeWorkspacePickerError ? (
-                        <p className="mt-2 text-small leading-5 text-amber-700 dark:text-amber-300">
+                        <p className="mt-2 text-small leading-5 text-ds-warning">
                           {writeWorkspacePickerError}
                         </p>
                       ) : null}

@@ -61,6 +61,7 @@
   --ds-domain-research: #3c3489;
   --ds-domain-research-soft: #eeedfe;
   --ds-overlay: rgba(15, 23, 42, 0.4);
+  --ds-highlight: rgba(247, 209, 84, 0.48);
   --ds-shadow-shell: 0 12px 30px rgba(15, 23, 42, 0.08);
   --ds-shadow-panel: 0 16px 44px rgba(15, 23, 42, 0.06);
   --ds-shadow-composer: 0 18px 46px rgba(15, 23, 42, 0.1),
@@ -171,6 +172,7 @@
   --ds-domain-research: #cecbf6;
   --ds-domain-research-soft: #3c3489;
   --ds-overlay: rgba(0, 0, 0, 0.6);
+  --ds-highlight: rgba(247, 209, 84, 0.3);
   --ds-shadow-shell: 0 38px 96px rgba(0, 0, 0, 0.55);
   --ds-shadow-panel: 0 22px 58px rgba(0, 0, 0, 0.35);
   --ds-shadow-composer: 0 28px 78px rgba(0, 0, 0, 0.45),
@@ -624,8 +626,8 @@ textarea {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top left, rgba(0, 136, 255, 0.07), transparent 28%),
-    radial-gradient(circle at right 14% bottom 18%, rgba(0, 136, 255, 0.04), transparent 24%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--ds-accent) 7%, transparent), transparent 28%),
+    radial-gradient(circle at right 14% bottom 18%, color-mix(in srgb, var(--ds-accent) 4%, transparent), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%);
   pointer-events: none;
 }
@@ -734,7 +736,7 @@ textarea {
 .sdd-draft-topbar:hover .sdd-draft-file-icon,
 .sdd-assistant-header:hover .sdd-assistant-title-pill {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 136, 255, 0.12);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--ds-accent) 12%, transparent);
 }
 
 .sdd-status-pill {
@@ -750,7 +752,7 @@ textarea {
 }
 
 .sdd-next-button {
-  box-shadow: 0 10px 22px rgba(0, 136, 255, 0.2);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ds-accent) 20%, transparent);
   transition:
     box-shadow 160ms ease,
     filter 160ms ease,
@@ -760,7 +762,7 @@ textarea {
 
 .sdd-next-button:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(0, 136, 255, 0.25);
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--ds-accent) 25%, transparent);
 }
 
 .sdd-next-button:not(:disabled):hover svg {
@@ -784,7 +786,7 @@ textarea {
   border-color: color-mix(in srgb, var(--ds-accent) 28%, var(--ds-border));
   box-shadow:
     0 24px 70px rgba(15, 23, 42, 0.08),
-    0 0 0 1px rgba(0, 136, 255, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--ds-accent) 8%, transparent);
 }
 
 .sdd-editor-progress {
@@ -1627,11 +1629,11 @@ textarea {
 @keyframes sdd-status-breathe {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 136, 255, 0.14);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-accent) 14%, transparent);
     transform: translateY(0);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(0, 136, 255, 0.05);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-accent) 5%, transparent);
     transform: translateY(-0.5px);
   }
 }
@@ -2155,7 +2157,7 @@ textarea {
 .ds-stage-surface {
   position: relative;
   background:
-    radial-gradient(circle at 50% -8%, rgba(0, 136, 255, 0.088), transparent 30%),
+    radial-gradient(circle at 50% -8%, color-mix(in srgb, var(--ds-accent) 8.8%, transparent), transparent 30%),
     radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.64), transparent 22%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.256), rgba(255, 255, 255, 0) 26%),
     var(--ds-stage-gradient);
@@ -2561,7 +2563,7 @@ textarea {
 .ds-runtime-wake-shell {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 253, 0.9)),
-    linear-gradient(120deg, rgba(0, 136, 255, 0.08), transparent 42%, rgba(18, 138, 74, 0.08));
+    linear-gradient(120deg, color-mix(in srgb, var(--ds-accent) 8%, transparent), transparent 42%, rgba(18, 138, 74, 0.08));
   border: 1px solid color-mix(in srgb, var(--ds-border) 78%, transparent);
   border-radius: 28px;
   box-shadow:
@@ -2579,7 +2581,7 @@ textarea {
     112deg,
     transparent 0%,
     transparent 34%,
-    rgba(0, 136, 255, 0.16) 45%,
+    color-mix(in srgb, var(--ds-accent) 16%, transparent) 45%,
     rgba(18, 138, 74, 0.14) 53%,
     transparent 66%,
     transparent 100%
@@ -2593,7 +2595,7 @@ textarea {
 
 .ds-runtime-wake-shell::after {
   background-image:
-    linear-gradient(rgba(0, 136, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--ds-accent) 8%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, rgba(18, 138, 74, 0.08) 1px, transparent 1px);
   background-size: 34px 34px;
   content: '';
@@ -2711,7 +2713,7 @@ textarea {
 }
 
 .ds-runtime-wake-flow {
-  background: linear-gradient(90deg, transparent, rgba(0, 136, 255, 0.24), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-accent) 24%, transparent), transparent);
   height: 1px;
   left: 134px;
   overflow: hidden;
@@ -2772,11 +2774,11 @@ textarea {
   animation: ds-runtime-wake-core 3s ease-in-out infinite;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--ds-bg-canvas) 98%, transparent), color-mix(in srgb, var(--ds-bg-canvas) 84%, var(--ds-accent))),
-    linear-gradient(135deg, rgba(0, 136, 255, 0.18), rgba(18, 138, 74, 0.16));
+    linear-gradient(135deg, color-mix(in srgb, var(--ds-accent) 18%, transparent), rgba(18, 138, 74, 0.16));
   border: 1px solid color-mix(in srgb, var(--ds-accent) 28%, var(--ds-border));
   border-radius: 24px;
   box-shadow:
-    0 18px 46px rgba(0, 136, 255, 0.14),
+    0 18px 46px color-mix(in srgb, var(--ds-accent) 14%, transparent),
     0 8px 22px rgba(18, 138, 74, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
   color: var(--ds-accent);
@@ -2812,7 +2814,7 @@ textarea {
   background: conic-gradient(
     from 0deg,
     transparent 0 25%,
-    rgba(0, 136, 255, 0.58) 36%,
+    color-mix(in srgb, var(--ds-accent) 58%, transparent) 36%,
     rgba(18, 138, 74, 0.55) 52%,
     transparent 68% 100%
   );

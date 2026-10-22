@@ -36,11 +36,16 @@ const USAGE_RANGE_DAYS: Record<UsageRangeKey, number> = {
   '7d': 7
 }
 const USAGE_RANGE_KEYS: UsageRangeKey[] = ['all', '90d', '30d', '7d']
-const MODEL_USAGE_COLORS = ['#4f83df', '#6b99e5', '#8db3ed', '#b8cff6']
+const MODEL_USAGE_COLORS = [
+  'var(--ds-accent)',
+  'color-mix(in srgb, var(--ds-accent) 75%, transparent)',
+  'color-mix(in srgb, var(--ds-accent) 55%, transparent)',
+  'color-mix(in srgb, var(--ds-accent) 35%, transparent)'
+]
 const MODEL_USAGE_BREAKDOWN_COLORS = {
-  cachedInput: '#9bd8ff',
-  uncachedInput: '#62aaf8',
-  output: '#245fd7'
+  cachedInput: 'color-mix(in srgb, var(--ds-accent) 35%, transparent)',
+  uncachedInput: 'color-mix(in srgb, var(--ds-accent) 65%, transparent)',
+  output: 'var(--ds-accent)'
 } as const
 const EMPTY_DAILY_USAGE_BUCKETS: DailyUsageBucket[] = []
 

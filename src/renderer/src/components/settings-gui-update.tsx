@@ -90,11 +90,11 @@ export function GuiUpdateControl({
 
   const panelClass =
     tone === 'error'
-      ? 'border-red-300 bg-red-50 text-red-950 dark:border-red-800/70 dark:bg-red-950/25 dark:text-red-100'
+      ? 'border-ds-danger/30 bg-ds-danger-soft text-ds-danger'
       : tone === 'warn'
-        ? 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/30 dark:text-amber-100'
+        ? 'border-ds-warning/30 bg-ds-warning-soft text-ds-warning'
         : tone === 'good'
-          ? 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-700/70 dark:bg-emerald-950/30 dark:text-emerald-100'
+          ? 'border-ds-success/30 bg-ds-success-soft text-ds-success'
           : 'border-ds-border bg-ds-card text-ds-ink'
 
   return (

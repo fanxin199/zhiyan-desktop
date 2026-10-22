@@ -33,7 +33,7 @@ export function SecretInput({
     <div
       className={`flex w-full min-w-0 items-stretch overflow-hidden rounded-xl bg-ds-card shadow-sm ${className} ${
         invalid
-          ? 'border border-amber-300 focus-within:border-amber-400 focus-within:ring-1 focus-within:ring-amber-200'
+          ? 'border border-ds-warning/30 focus-within:border-ds-warning focus-within:ring-1 focus-within:ring-ds-warning/40'
           : 'border border-ds-border focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/30'
       }`}
     >
@@ -83,9 +83,9 @@ export function InlineNoticeView({
 }): ReactElement {
   const className =
     notice.tone === 'error'
-      ? 'border-red-300/80 bg-red-50 text-red-800 dark:border-red-800/70 dark:bg-red-950/25 dark:text-red-200'
+      ? 'border-ds-danger/30 bg-ds-danger-soft text-ds-danger'
       : notice.tone === 'success'
-        ? 'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/25 dark:text-emerald-200'
+        ? 'border-ds-success/30 bg-ds-success-soft text-ds-success'
         : 'border-ds-border bg-ds-main/50 text-ds-muted'
 
   return (
@@ -106,7 +106,7 @@ export function SettingsCard({
 }): ReactElement {
   return (
     <section
-      className={`rounded-2xl border border-ds-border bg-ds-card/95 shadow-sm shadow-black/5 dark:shadow-black/25 ${className}`}
+      className={`rounded-2xl border border-ds-border bg-ds-card/95 shadow-sm ${className}`}
     >
       <div className="border-b border-ds-border-muted px-5 py-3">
         <h2 className="text-heading font-semibold text-ds-ink">{title}</h2>
@@ -168,7 +168,7 @@ export function Toggle({
         if (!disabled) onChange(!checked)
       }}
       className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-        checked ? 'bg-emerald-500' : 'bg-ds-faint'
+        checked ? 'bg-ds-success' : 'bg-ds-faint'
       } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
     >
       <span

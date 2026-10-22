@@ -529,7 +529,7 @@ export function SettingsView(): ReactElement {
       loadError === 'PRELOAD_BRIDGE' ? t('preloadBridgeError') : t('loadFailed', { message: loadError })
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 bg-ds-main p-6 text-center">
-        <p className="max-w-md text-body leading-5 text-red-700 dark:text-red-300">{msg}</p>
+        <p className="max-w-md text-body leading-5 text-ds-danger">{msg}</p>
         <button
           type="button"
           className="rounded-xl bg-ds-userbubble px-4 py-2 text-body leading-5 font-medium text-ds-userbubbleFg"
@@ -767,9 +767,9 @@ export function SettingsView(): ReactElement {
       <div className="ds-no-drag min-h-0 min-w-0 flex-1 overflow-y-auto px-10 py-10">
         <div className="mx-auto max-w-3xl">
           {!activeApiKey.trim() ? (
-            <div className="mb-6 rounded-2xl border border-amber-300/80 bg-amber-50/95 px-5 py-4 text-amber-950 shadow-sm dark:border-amber-700/60 dark:bg-amber-950/35 dark:text-amber-100">
+            <div className="mb-6 rounded-2xl border border-ds-warning/30 bg-ds-warning-soft px-5 py-4 text-ds-warning shadow-sm">
               <div className="text-heading font-semibold">{t('apiKeyRequiredTitle')}</div>
-              <p className="mt-1 text-small leading-6 text-amber-900/90 dark:text-amber-100/90">
+              <p className="mt-1 text-small leading-6 text-ds-warning/90">
                 {t('apiKeyRequiredBody')}
               </p>
             </div>
@@ -784,11 +784,11 @@ export function SettingsView(): ReactElement {
               title={saveStatus === 'error' && saveError ? saveError : undefined}
               className={`shrink-0 rounded-full px-3 py-1 text-caption font-medium ${
                 portError
-                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-200'
+                  ? 'bg-ds-warning-soft text-ds-warning'
                   : saveStatus === 'saved'
-                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200'
+                    ? 'bg-ds-success-soft text-ds-success'
                     : saveStatus === 'error'
-                      ? 'bg-red-500/15 text-red-700 dark:text-red-200'
+                      ? 'bg-ds-danger-soft text-ds-danger'
                       : 'bg-ds-subtle text-ds-muted'
               }`}
             >

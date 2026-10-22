@@ -107,7 +107,7 @@ const writeMarkdownLiveTheme = EditorView.theme({
   },
   '&.cm-write-live-preview .cm-write-md-mark': {
     borderRadius: '4px',
-    backgroundColor: 'color-mix(in srgb, #f7d154 48%, transparent)',
+    backgroundColor: 'var(--ds-highlight)',
     padding: '0 2px'
   }
 })

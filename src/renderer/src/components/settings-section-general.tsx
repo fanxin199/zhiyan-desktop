@@ -296,7 +296,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                         </button>
                       </div>
                       {workspacePickerError ? (
-                        <p className="mt-2 text-small leading-5 text-amber-700 dark:text-amber-300">
+                        <p className="mt-2 text-small leading-5 text-ds-warning">
                           {workspacePickerError}
                         </p>
                       ) : null}
@@ -497,7 +497,7 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                         {t('logDirOpen')}
                       </button>
                       {logDirOpenError ? (
-                        <p className="text-caption text-red-700 dark:text-red-300">
+                        <p className="text-caption text-ds-danger">
                           {logDirOpenError}
                         </p>
                       ) : null}

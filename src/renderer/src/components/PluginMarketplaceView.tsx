@@ -885,7 +885,7 @@ export function PluginMarketplaceView(): ReactElement {
               {t('pluginSkillRefresh')}
             </button>
             {skillListError ? (
-              <span className="text-caption text-red-700 dark:text-red-300">
+              <span className="text-caption text-ds-danger">
                 {skillListError}
               </span>
             ) : (
@@ -1023,7 +1023,7 @@ function McpRuntimeOverlayPanel({
               </div>
             ) : null}
             {error || overlay.lastError ? (
-              <div className="mt-2 truncate text-caption text-red-700 dark:text-red-300">
+              <div className="mt-2 truncate text-caption text-ds-danger">
                 {error || t('pluginMcpRuntimeLastError', { message: overlay.lastError })}
               </div>
             ) : null}
@@ -1066,13 +1066,13 @@ function mcpRuntimeStatusLabel(
 function mcpRuntimeStatusTone(status: McpMarketplaceOverlayStatus): string {
   switch (status) {
     case 'connected':
-      return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200'
+      return 'bg-ds-success-soft text-ds-success'
     case 'configured':
-      return 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-200'
+      return 'bg-accent-soft text-accent-strong'
     case 'drift':
-      return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-200'
+      return 'bg-ds-warning-soft text-ds-warning'
     case 'error':
-      return 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-200'
+      return 'bg-ds-danger-soft text-ds-danger'
     case 'disabled':
     case 'offline':
       return 'bg-ds-subtle text-ds-muted'
@@ -1082,11 +1082,11 @@ function mcpRuntimeStatusTone(status: McpMarketplaceOverlayStatus): string {
 function marketplaceSourceTone(tone: MarketplaceItem['statusTone']): string {
   switch (tone) {
     case 'success':
-      return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200'
+      return 'bg-ds-success-soft text-ds-success'
     case 'warning':
-      return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-200'
+      return 'bg-ds-warning-soft text-ds-warning'
     case 'error':
-      return 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'
+      return 'bg-ds-danger-soft text-ds-danger'
     case 'default':
     default:
       return 'bg-ds-subtle text-ds-muted'
@@ -1157,8 +1157,8 @@ function PluginSection({
                           title={dependency.installHint}
                           className={`rounded-md px-2 py-0.5 text-caption font-medium ${
                             dependency.available
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200'
-                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-200'
+                              ? 'bg-ds-success-soft text-ds-success'
+                              : 'bg-ds-warning-soft text-ds-warning'
                           }`}
                         >
                           {dependency.label} · {

@@ -148,7 +148,7 @@ export function WriteWorkspaceToolbar({
             {modeMenuOpen ? (
               <div
                 role="menu"
-                className="absolute left-0 top-full z-30 mt-2 min-w-[188px] overflow-hidden rounded-2xl border border-ds-border-muted bg-ds-elevated p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] dark:bg-[#131722]"
+                className="absolute left-0 top-full z-30 mt-2 min-w-[188px] overflow-hidden rounded-2xl border border-ds-border-muted bg-ds-elevated p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.12)]"
               >
                 {modeMenuItems.map((item) => (
                   <button

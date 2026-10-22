@@ -27,9 +27,9 @@ import { formatCompactNumber, formatCost } from '../hooks/use-thread-usage'
 import { parseUsageResponse } from '../hooks/usage-response'
 
 function statusPill(status: string | undefined): string {
-  if (status === 'available') return 'border-emerald-400/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
+  if (status === 'available') return 'border-ds-success/30 bg-ds-success-soft text-ds-success'
   if (status === 'disabled') return 'border-ds-border-muted bg-ds-card text-ds-faint'
-  return 'border-red-300/50 bg-red-500/10 text-red-700 dark:text-red-200'
+  return 'border-ds-danger/30 bg-ds-danger-soft text-ds-danger'
 }
 
 function compactList(values: unknown, empty: string): string {
@@ -540,7 +540,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                               <button
                                 type="button"
                                 onClick={() => removeModelProvider(activeProvider.id)}
-                                className="inline-flex h-9 w-fit items-center gap-2 rounded-full border border-red-200/70 bg-red-50 px-3 text-small font-medium text-red-700 transition hover:bg-red-100 dark:border-red-900/70 dark:bg-red-950/25 dark:text-red-200 dark:hover:bg-red-950/40"
+                                className="inline-flex h-9 w-fit items-center gap-2 rounded-full border border-ds-danger/30 bg-ds-danger-soft px-3 text-small font-medium text-ds-danger transition hover:bg-ds-danger-soft"
                               >
                                 <Trash2 className="h-3.5 w-3.5" strokeWidth={1.9} />
                                 {t('modelProviderRemove')}
@@ -606,14 +606,14 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           max={65535}
                           className={`w-28 rounded-xl border bg-ds-card px-3 py-2 text-body text-ds-ink shadow-sm focus:outline-none focus:ring-1 ${
                             portError
-                              ? 'border-red-400 focus:ring-red-300'
+                              ? 'border-ds-danger focus:ring-ds-danger/40'
                               : 'border-ds-border focus:border-accent/40 focus:ring-accent/30'
                           }`}
                           value={kun.port}
                           onChange={(e) => updateKun({ port: Number(e.target.value) })}
                         />
                         {portError ? (
-                          <p className="mt-1 text-caption text-red-700 dark:text-red-300">{portError}</p>
+                          <p className="mt-1 text-caption text-ds-danger">{portError}</p>
                         ) : null}
                       </div>
                     }
@@ -666,7 +666,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                           onChange={(enabled) => updateTokenEconomy({ enabled })}
                         />
                         {tokenEconomy.enabled ? (
-                          <div className="max-w-full rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1.5 text-caption font-medium leading-5 text-emerald-700 dark:text-emerald-200">
+                          <div className="max-w-full rounded-lg border border-ds-success/30 bg-ds-success-soft px-2.5 py-1.5 text-caption font-medium leading-5 text-ds-success">
                             {tokenEconomySavings ? (
                               <span>
                                 {t('kunTokenEconomySavings', {
@@ -1196,7 +1196,7 @@ export function AgentsSettingsSection({ ctx }: { ctx: Record<string, any> }): Re
                                   <button
                                     type="button"
                                     onClick={() => void deleteMemoryRecord(memory.id)}
-                                    className="rounded-lg p-1.5 text-ds-muted transition hover:bg-red-500/10 hover:text-red-600"
+                                    className="rounded-lg p-1.5 text-ds-muted transition hover:bg-ds-danger-soft hover:text-ds-danger"
                                     aria-label={t('kunMemoryDelete')}
                                     title={t('kunMemoryDelete')}
                                   >

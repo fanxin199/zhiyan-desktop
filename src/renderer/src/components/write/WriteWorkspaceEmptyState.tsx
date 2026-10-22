@@ -30,7 +30,7 @@ export function WriteWorkspaceEmptyState({
         <button
           type="button"
           onClick={onPickWorkspace}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-small font-semibold text-white shadow-[0_10px_24px_rgba(0,136,255,0.22)] transition hover:brightness-110"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-small font-semibold text-white shadow-lg shadow-accent/20 transition hover:brightness-110"
         >
           <FolderOpen className="h-4 w-4" strokeWidth={1.9} />
           {t('selectWorkspace')}

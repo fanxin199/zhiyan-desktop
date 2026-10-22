@@ -39,7 +39,7 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onCreateDraft}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 text-body font-semibold text-white shadow-[0_14px_30px_rgba(0,136,255,0.22)] transition hover:brightness-110"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 text-body font-semibold text-white shadow-lg shadow-accent/20 transition hover:brightness-110"
             >
               <FilePlus2 className="h-4 w-4" strokeWidth={1.9} />
               {t('writeStartNewDraft')}
