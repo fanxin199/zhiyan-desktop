@@ -2,12 +2,13 @@
 
 ## 产品定位
 
-智研助手是面向高校教师的本地 AI 教学与科研工作台，当前优先服务医学免疫学教学。目标用户不具备编码基础，产品主流程不得要求用户理解 Python、命令行、Git、worktree、hooks、MCP 或 Agent 运行时。
+智研助手是面向高校教师的本地 AI 教学与科研工作台，服务生物医学及相关专业的教学与科研（生理、病理、药理、微生物、分子生物学、免疫学等）。目标用户不具备编码基础，产品主流程不得要求用户理解 Python、命令行、Git、worktree、hooks、MCP 或 Agent 运行时。
 
 ## 独立性
 
 - 当前仓库：`J:\software_build\zhiyan-desktop`
-- GitHub：`https://github.com/fanxin199/zhiyan-desktop`（private）
+- GitHub：`https://github.com/fanxin199/zhiyan-desktop`（public，Windows 安装包通过 Releases 公开分发）
+- 公开仓库不得提交 API Key、真实患者数据、考试保密材料或开发者本机路径。
 - 本项目使用全新 Git 历史，不配置 DeepSeek-GUI 上游。
 - 部分基础代码来源于 MIT 授权项目，见 `THIRD_PARTY_NOTICES.md`。
 - 产品名称、图标、应用标识、数据目录和未来更新服务均独立维护。

@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-This private product contains code adapted from DeepSeek-GUI.
+This product contains code adapted from DeepSeek-GUI.
 Those portions remain available under the MIT License and retain the
 copyright and permission notice in:
 
