@@ -438,7 +438,7 @@ type TeacherPreference = {
 #### Task 1.3 · 说一句就改
 
 - [x] **1.3.1** 在 `src/shared/` 定义 §6.2 的类型；主进程新增 `artifact-revision-service.ts`，走结构化生成通道，复用 `provider-retry.ts`。类型在 `src/shared/artifact-revision.ts`；`section` 范围可附标题、`selection` 范围可附选中原文，用于在老师随后又改过时重新定位；结果比 §6.2 多 `undoVersion`（撤销即恢复到它）、`rebased` 和 `discardedOutsideScope`。新增结构化生成通道 `src/main/services/structured-generation.ts`（zod 校验、一次自动修复、`provider-retry`），`artifact-revision-service.ts` 走该通道；课件、教材两个服务里原有的同类代码暂未迁移。目前支持文本类成果（全文、按 Markdown 标题划分的小节、选区），课件页与图表返回“请在对应页面修改”。IPC：`artifact:revise`（要求成果所在工作区已授权）。
-- [ ] **1.3.2** 新增按字 / 按词的文字比较高亮组件；AI 栏显示修改摘要和“保留 / 撤销”。
+- [x] **1.3.2** 新增按字 / 按词的文字比较高亮组件；AI 栏显示修改摘要和“保留 / 撤销”。比较算法在 `src/shared/text-diff.ts`（Myers 最短编辑；中日韩文字按字、其他按词，标点和空白单独成词；几乎整段重写的长文本退化为“整段删除 + 整段新增”，避免占用过多内存）。`TextChangeHighlight` 以浅绿底标新增、红色删除线标删除；`RevisionResultCard` 显示“已修改××，N 处变化”、修改摘要、可展开的改动对比，以及“保留 / 撤销”，并说明“按最新内容修改”和“范围外改动已丢弃”两种情况；没有改动时不显示按钮。新增 `revision.test.ts`。接入画布的逐字高亮在 Task 1.4.4 完成。
 - [x] **1.3.3** 实现 §6.2 的三条守卫并补测试。守卫一：只把改写结果拼回所选范围；小节改写若带出同级或更高级的下一个标题，从该处起丢弃并标记 `discardedOutsideScope`，AI 漏掉的小节标题会补回。守卫二：范围外文字原样保留，修改前先把当前内容（含老师的手改）存为版本，撤销回到它而不是 AI 初稿。守卫三：老师在提问后又改过时，按最新内容执行——小节按标题、选区按原文重新定位，找不到或不唯一则不调用模型、提示重新选择。`artifact-revision-service.test.ts` 覆盖三条守卫、撤销、缺少 API Key 和不支持的范围；`text-diff.test.ts` 覆盖差异计算。
 
 #### Task 1.4 · 文稿（合并写作入口）
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 1.3.1、1.3.3 已完成。下一项为 Task 1.3.2（文字比较高亮与保留 / 撤销）。Task 0.6.1 仍差自由写作台的 README 截图。**
+当前执行任务：**Task 1.3 全部完成。下一项为 Task 1.4.1（文稿：合并写作入口）。Task 0.6.1 仍差自由写作台的 README 截图。**
