@@ -432,8 +432,8 @@ type TeacherPreference = {
 
 #### Task 1.2 · AI 工作页组件
 
-- [ ] **1.2.1** 新建 `src/renderer/src/components/ai-work/`：`AiWorkPage`（开始态 / 工作态）、`IntentComposer`（一句话输入框）、`AiSidePanel`（对话、修改结果、自查、下一步）、`ArtifactTopBar`（成果名、要点标签区、版本菜单、导出）。
-- [ ] **1.2.2** `AiSidePanel` 使用精简的输入组件：不显示模型选择、推理强度、斜杠命令和 Skills；“快速 / 深度”读取设置。
+- [x] **1.2.1** 新建 `src/renderer/src/components/ai-work/`：`AiWorkPage`（开始态 / 工作态）、`IntentComposer`（一句话输入框）、`AiSidePanel`（对话、修改结果、自查、下一步）、`ArtifactTopBar`（成果名、要点标签区、版本菜单、导出）。`AiWorkPage` 负责开始态（页头＋开始内容）与工作态（顶栏＋左侧成果画布＋右侧 AI 栏）布局，附 `AiWorkExamples`（最多 3 条）和 `AiWorkRecentArtifacts`（读取成果登记表中本工具的最近成果，文件被移走的显示为不可用）；`IntentComposer` 随文字增高、可拖入或粘贴材料并显示为标签、Enter 发送、Shift+Enter 换行，输入法组字时不误发送，处理中显示停止；`AiSidePanel` 依次为修改结果、AI 自查、对话、下一步和输入框，默认 360px，可在 320–480px 间拖动，可收起为窄条；`ArtifactTopBar` 显示成果名、项目（暂为“未归档”）与阶段、要点标签区、版本菜单和导出区，成果登记后才出现版本菜单；`ArtifactVersionMenu` 列出版本（第 N 版、摘要、来源、时间），可恢复任一旧版。组件尚未接入页面，界面截图核对在 Task 1.4 接入文稿时进行。新增 `ai-work.test.ts`。
+- [x] **1.2.2** `AiSidePanel` 使用精简的输入组件：不显示模型选择、推理强度、斜杠命令和 Skills；“快速 / 深度”读取设置。`AiSidePanel` 的输入框即 `IntentComposer`，没有模型、推理强度、斜杠命令和 Skills；“快速 / 深度”由 Task 0.5.1 的 `aiMode` 在发送时统一套用，测试断言输入框不出现这些控件。
 
 #### Task 1.3 · 说一句就改
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 1.1 全部完成。下一项为 Task 1.2.1（AI 工作页组件）。Task 0.6.1 仍差自由写作台的 README 截图。**
+当前执行任务：**Task 1.2 全部完成。下一项为 Task 1.3.1（说一句就改：类型与修改服务）。Task 0.6.1 仍差自由写作台的 README 截图。**
