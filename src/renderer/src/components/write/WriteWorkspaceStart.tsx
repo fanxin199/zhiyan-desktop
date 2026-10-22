@@ -24,14 +24,14 @@ export function WriteWorkspaceStart({
     <div className="write-start-shell relative h-full min-h-[420px] overflow-auto rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(247,250,255,0.62))] px-5 py-5 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] sm:px-8 sm:py-8">
       <div className="write-start-grid mx-auto grid min-h-full w-full max-w-6xl gap-6">
         <section className="write-start-hero min-w-0 py-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/10 px-3 py-1.5 text-[12px] font-semibold text-accent">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/10 px-3 py-1.5 text-caption font-semibold text-accent">
             <Sparkles className="h-3.5 w-3.5" strokeWidth={1.9} />
             <span>{t('writeStudio')}</span>
           </div>
-          <h2 className="write-start-heading mt-5 max-w-[12ch] text-[clamp(2.25rem,5vw,3.25rem)] font-semibold leading-[1.08] tracking-[0] text-ds-ink">
+          <h2 className="write-start-heading mt-5 max-w-[12ch] text-display font-semibold leading-[1.08] tracking-[0] text-ds-ink">
             {t('writeStartTitle')}
           </h2>
-          <p className="write-start-copy mt-4 max-w-[56ch] text-[15px] leading-7 text-ds-muted">
+          <p className="write-start-copy mt-4 max-w-[56ch] text-heading leading-7 text-ds-muted">
             {t('writeStartSub')}
           </p>
 
@@ -39,7 +39,7 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onCreateDraft}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[14px] font-semibold text-white shadow-[0_14px_30px_rgba(0,136,255,0.22)] transition hover:brightness-110"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 text-body font-semibold text-white shadow-[0_14px_30px_rgba(0,136,255,0.22)] transition hover:brightness-110"
             >
               <FilePlus2 className="h-4 w-4" strokeWidth={1.9} />
               {t('writeStartNewDraft')}
@@ -47,7 +47,7 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onOrganizeMaterial}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-[14px] font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
             >
               <ClipboardPaste className="h-4 w-4 text-sky-600 dark:text-sky-300" strokeWidth={1.9} />
               {t('writeStartOrganizeMaterial')}
@@ -55,7 +55,7 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onPickWorkspace}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-[14px] font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
             >
               <FolderOpen className="h-4 w-4 text-violet-600 dark:text-violet-300" strokeWidth={1.9} />
               {t('writeStartChangeWorkspace')}
@@ -72,10 +72,10 @@ export function WriteWorkspaceStart({
                 <RefreshCw className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
-                <span className="block text-[14px] font-semibold text-ds-ink">
+                <span className="block text-body font-semibold text-ds-ink">
                   {t('writeStartRefresh')}
                 </span>
-                <span className="mt-1 block text-[12.5px] leading-5 text-ds-faint">
+                <span className="mt-1 block text-small leading-5 text-ds-faint">
                   {t('writeStartRefreshSub')}
                 </span>
               </span>
@@ -89,10 +89,10 @@ export function WriteWorkspaceStart({
                 <ListTodo className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
-                <span className="block text-[14px] font-semibold text-ds-ink">
+                <span className="block text-body font-semibold text-ds-ink">
                   {t('writeStartAskAi')}
                 </span>
-                <span className="mt-1 block text-[12.5px] leading-5 text-ds-faint">
+                <span className="mt-1 block text-small leading-5 text-ds-faint">
                   {t('writeStartAskAiSub')}
                 </span>
               </span>
@@ -103,14 +103,14 @@ export function WriteWorkspaceStart({
         <aside className="write-start-card min-w-0 rounded-[24px] border border-ds-border-muted bg-white/58 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.07)] dark:bg-white/[0.04]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[12px] font-semibold text-ds-faint">
+              <div className="text-caption font-semibold text-ds-faint">
                 {t('writeStartWorkspaceLabel')}
               </div>
-              <div className="mt-1 truncate text-[18px] font-semibold text-ds-ink">
+              <div className="mt-1 truncate text-title font-semibold text-ds-ink">
                 {workspaceName}
               </div>
             </div>
-            <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-700 dark:text-emerald-300">
+            <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-caption font-semibold text-emerald-700 dark:text-emerald-300">
               {t('writeStartReadyLabel')}
             </span>
           </div>
@@ -121,10 +121,10 @@ export function WriteWorkspaceStart({
                 <FilePenLine className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <div className="min-w-0">
-                <div className="truncate text-[15px] font-semibold text-ds-ink">
+                <div className="truncate text-heading font-semibold text-ds-ink">
                   {t('writeStartPreviewTitle')}
                 </div>
-                <div className="mt-1 text-[12.5px] leading-5 text-ds-faint">
+                <div className="mt-1 text-small leading-5 text-ds-faint">
                   {t('writeStartPreviewSub')}
                 </div>
               </div>
@@ -141,10 +141,10 @@ export function WriteWorkspaceStart({
           </div>
 
           <div className="mt-4 rounded-2xl border border-ds-border-muted bg-ds-subtle/45 px-4 py-3">
-            <div className="text-[12px] font-semibold text-ds-faint">
+            <div className="text-caption font-semibold text-ds-faint">
               {t('writeStartWorkspacePath')}
             </div>
-            <div className="mt-2 break-all font-mono text-[12px] leading-5 text-ds-muted" title={workspacePathLabel}>
+            <div className="mt-2 break-all font-mono text-caption leading-5 text-ds-muted" title={workspacePathLabel}>
               {workspacePathLabel}
             </div>
           </div>

@@ -82,7 +82,7 @@ export function inlineAgentPosition(selection: {
 }
 
 export function modeButtonClass(active: boolean): string {
-  return `inline-flex h-8 items-center justify-center rounded-lg px-2.5 text-[13px] transition ${
+  return `inline-flex h-8 items-center justify-center rounded-lg px-2.5 text-small transition ${
     active
       ? 'bg-white text-ds-ink shadow-sm ring-1 ring-ds-border-muted dark:bg-white/10 dark:ring-white/10'
       : 'text-ds-faint hover:bg-white/70 hover:text-ds-ink dark:hover:bg-white/8'
@@ -98,7 +98,7 @@ export function toolbarIconButtonClass(active = false): string {
 }
 
 export function toolbarMenuButtonClass(active = false): string {
-  return `inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-[12.5px] font-medium text-ds-faint transition ${
+  return `inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-small font-medium text-ds-faint transition ${
     active
       ? 'bg-accent/10 text-accent'
       : 'hover:bg-white/70 hover:text-ds-ink dark:hover:bg-white/8'

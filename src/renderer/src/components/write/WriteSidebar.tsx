@@ -266,7 +266,7 @@ export function WriteSidebar({
         />
 
         {settingsError ? (
-          <div className="mx-2 mt-1 rounded-lg border border-red-200/70 bg-red-50/80 px-2.5 py-2 text-[12px] leading-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+          <div className="mx-2 mt-1 rounded-lg border border-red-200/70 bg-red-50/80 px-2.5 py-2 text-caption leading-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
             {settingsError}
           </div>
         ) : null}
@@ -279,7 +279,7 @@ export function WriteSidebar({
               className="mx-1 mt-1 flex w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 py-1.5 text-left text-ds-muted transition hover:bg-ds-hover hover:text-ds-ink"
             >
               <FolderOpen className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.75} />
-              <span className="min-w-0 flex-1 truncate text-[14px] font-medium">
+              <span className="min-w-0 flex-1 truncate text-body font-medium">
                 {t('writeAddWorkspace')}
               </span>
             </button>
@@ -362,7 +362,7 @@ export function WriteSidebar({
 
                 {active && !collapsed ? (
                   <div className="mt-1 pl-3">
-                    <div className="px-2.5 pb-1 text-[11.5px] text-ds-faint">
+                    <div className="px-2.5 pb-1 text-caption text-ds-faint">
                       <span className="block truncate" title={workspacePath}>
                         {workspacePath === defaultWorkspaceRoot ? t('writeDefaultSpace') : workspacePath}
                       </span>
@@ -459,10 +459,10 @@ function WriteEntryDialog({
         onMouseDown={(event) => event.stopPropagation()}
         className="w-full max-w-sm rounded-[24px] border border-ds-border bg-ds-card p-5 shadow-[0_24px_72px_rgba(15,23,42,0.22)]"
       >
-        <h2 className="text-[18px] font-semibold tracking-[-0.035em] text-ds-ink">
+        <h2 className="text-title font-semibold tracking-[-0.035em] text-ds-ink">
           {entryDialogTitle(dialog, t)}
         </h2>
-        <p className="mt-2 text-[13px] leading-6 text-ds-muted">
+        <p className="mt-2 text-small leading-6 text-ds-muted">
           {entryDialogDescription(dialog, t)}
         </p>
         {!deleting ? (
@@ -470,20 +470,20 @@ function WriteEntryDialog({
             autoFocus
             value={dialog.value}
             onChange={(event) => onValueChange(event.target.value)}
-            className="mt-4 w-full rounded-xl border border-ds-border bg-ds-main/65 px-3 py-2 text-[14px] text-ds-ink outline-none transition focus:border-accent/40 focus:ring-1 focus:ring-accent/25"
+            className="mt-4 w-full rounded-xl border border-ds-border bg-ds-main/65 px-3 py-2 text-body text-ds-ink outline-none transition focus:border-accent/40 focus:ring-1 focus:ring-accent/25"
           />
         ) : null}
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-[13px] font-medium text-ds-muted transition hover:bg-ds-hover hover:text-ds-ink"
+            className="rounded-xl border border-ds-border bg-ds-card px-3 py-2 text-small font-medium text-ds-muted transition hover:bg-ds-hover hover:text-ds-ink"
           >
             {t('writeEntryDialogCancel')}
           </button>
           <button
             type="submit"
-            className={`rounded-xl px-3 py-2 text-[13px] font-semibold text-white transition hover:brightness-110 ${
+            className={`rounded-xl px-3 py-2 text-small font-semibold text-white transition hover:brightness-110 ${
               deleting ? 'bg-red-500' : 'bg-accent'
             }`}
           >

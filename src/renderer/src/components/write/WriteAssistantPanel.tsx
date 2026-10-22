@@ -118,7 +118,7 @@ export function WriteAssistantPanel({
           </button>
           <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] bg-ds-subtle px-3 py-1.5 dark:bg-white/8">
             <Sparkles className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} />
-            <span className="min-w-0 truncate text-[13px] font-medium text-ds-ink">
+            <span className="min-w-0 truncate text-small font-medium text-ds-ink">
               {t('writeAssistant')}
             </span>
           </div>
@@ -157,10 +157,10 @@ export function WriteAssistantPanel({
                 <Sparkles className="h-4 w-4" strokeWidth={1.9} />
               </div>
               <div className="min-w-0">
-                <h3 className="text-[14px] font-semibold text-ds-ink">
+                <h3 className="text-body font-semibold text-ds-ink">
                   {t('writeAssistantEmptyTitle')}
                 </h3>
-                <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-5 text-ds-faint">
+                <p className="mt-0.5 line-clamp-2 text-caption leading-5 text-ds-faint">
                   {t('writeAssistantEmptySub')}
                 </p>
               </div>
@@ -175,7 +175,7 @@ export function WriteAssistantPanel({
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-300">
                   <FileText className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantSummarize')}</span>
+                <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantSummarize')}</span>
               </button>
               <button
                 type="button"
@@ -185,7 +185,7 @@ export function WriteAssistantPanel({
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                   <ListTodo className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantOutline')}</span>
+                <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantOutline')}</span>
               </button>
               <button
                 type="button"
@@ -201,7 +201,7 @@ export function WriteAssistantPanel({
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300">
                   <MessageSquareQuote className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
-                <span className="line-clamp-2 text-[11.5px] font-medium leading-4 text-ds-ink">{t('writeAssistantPolishSelection')}</span>
+                <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantPolishSelection')}</span>
               </button>
             </div>
           </div>
@@ -214,7 +214,7 @@ export function WriteAssistantPanel({
             {quotedSelections.map((quote) => (
               <div
                 key={quote.id}
-                className="flex min-w-0 items-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-[12px] text-ds-muted"
+                className="flex min-w-0 items-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-caption text-ds-muted"
               >
                 <MessageSquareQuote className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.9} />
                 <span className="min-w-0 flex-1 truncate">

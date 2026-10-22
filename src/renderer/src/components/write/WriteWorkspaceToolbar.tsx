@@ -85,7 +85,7 @@ export function WriteWorkspaceToolbar({
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
             </span>
-            <div className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.01em] text-ds-ink">
+            <div className="min-w-0 truncate text-body font-semibold tracking-[-0.01em] text-ds-ink">
               {activeFileName}
             </div>
             <span
@@ -128,7 +128,7 @@ export function WriteWorkspaceToolbar({
               aria-label={t('writeModeLive')}
             >
               <FileCode2 className="h-4 w-4" strokeWidth={1.85} />
-              <span className="hidden text-[12.5px] font-semibold sm:inline">{t('writeModeLiveShort')}</span>
+              <span className="hidden text-small font-semibold sm:inline">{t('writeModeLiveShort')}</span>
             </button>
             <button
               type="button"
@@ -160,7 +160,7 @@ export function WriteWorkspaceToolbar({
                       setPreviewMode(item.mode)
                       setModeMenuOpen(false)
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[13px] transition ${
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-small transition ${
                       item.active
                         ? 'bg-accent/10 text-accent'
                         : 'text-ds-ink hover:bg-slate-100'
@@ -171,7 +171,7 @@ export function WriteWorkspaceToolbar({
                       <span>{item.shortLabel}</span>
                     </span>
                     {item.active ? (
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      <span className="text-caption font-semibold uppercase tracking-[0.08em]">
                         ON
                       </span>
                     ) : null}
@@ -219,7 +219,7 @@ export function WriteWorkspaceToolbar({
                     type="button"
                     role="menuitem"
                     onClick={onCopyRichText}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] text-ds-ink transition hover:bg-ds-hover/80"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-small text-ds-ink transition hover:bg-ds-hover/80"
                   >
                     <span>{t('writeCopyRichText')}</span>
                     <Copy className="h-3.5 w-3.5 text-ds-faint" strokeWidth={1.9} />
@@ -231,10 +231,10 @@ export function WriteWorkspaceToolbar({
                       type="button"
                       role="menuitem"
                       onClick={() => onExportFile(format)}
-                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] text-ds-ink transition hover:bg-ds-hover/80"
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-small text-ds-ink transition hover:bg-ds-hover/80"
                     >
                       <span>{exportFormatLabel(format, t)}</span>
-                      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ds-faint">
+                      <span className="font-mono text-caption uppercase tracking-[0.08em] text-ds-faint">
                         {format}
                       </span>
                     </button>

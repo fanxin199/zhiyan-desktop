@@ -65,8 +65,8 @@ export function WriteImagePreview({
             <ImageIcon className="h-[18px] w-[18px]" strokeWidth={1.9} />
           </span>
           <div className="min-w-0">
-            <div className="truncate text-[14px] font-semibold text-ds-ink">{fileName}</div>
-            <div className="mt-1 truncate text-[12px] text-ds-faint" title={relativePath}>
+            <div className="truncate text-body font-semibold text-ds-ink">{fileName}</div>
+            <div className="mt-1 truncate text-caption text-ds-faint" title={relativePath}>
               {relativePath}
             </div>
           </div>
@@ -148,7 +148,7 @@ export function WriteImagePreview({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ds-border-muted bg-white/44 px-4 py-2 text-[11.5px] text-ds-faint dark:bg-white/[0.035] sm:px-5">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ds-border-muted bg-white/44 px-4 py-2 text-caption text-ds-faint dark:bg-white/[0.035] sm:px-5">
         <span className="rounded-lg bg-ds-hover/70 px-2 py-1 font-mono">{mimeType}</span>
         <span className="rounded-lg bg-ds-hover/70 px-2 py-1 font-mono">{formatBytes(size)}</span>
         {dimensions ? (

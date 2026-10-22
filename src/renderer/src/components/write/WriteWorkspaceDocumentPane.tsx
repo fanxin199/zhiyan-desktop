@@ -108,7 +108,7 @@ export function WriteWorkspaceDocumentPane({
 
   if (fileLoading) {
     return (
-      <div className="flex h-full min-h-[320px] items-center justify-center text-[14px] text-ds-muted">
+      <div className="flex h-full min-h-[320px] items-center justify-center text-body text-ds-muted">
         {t('filePreviewLoading')}
       </div>
     )
@@ -128,7 +128,7 @@ export function WriteWorkspaceDocumentPane({
 
   if (!activeFileIsText) {
     return (
-      <div className="flex h-full min-h-[320px] items-center justify-center text-[14px] text-ds-muted">
+      <div className="flex h-full min-h-[320px] items-center justify-center text-body text-ds-muted">
         {t('writeUnsupportedFileType')}
       </div>
     )
@@ -137,7 +137,7 @@ export function WriteWorkspaceDocumentPane({
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col">
       {renderSafety.notice !== 'none' ? (
-        <div className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-5 py-3 text-[12.5px] leading-5 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/35 dark:text-amber-100 sm:px-6">
+        <div className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-5 py-3 text-small leading-5 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/35 dark:text-amber-100 sm:px-6">
           <div className="font-semibold">{fileGuardMessage}</div>
           {fileGuardDetail ? (
             <div className="mt-1 text-amber-800/90 dark:text-amber-100/90">{fileGuardDetail}</div>
@@ -150,7 +150,7 @@ export function WriteWorkspaceDocumentPane({
             {showEditorEmptyHint ? (
               <div
                 data-testid="write-editor-empty-hint"
-                className={`pointer-events-none absolute top-[27px] z-10 max-w-[min(520px,calc(100%-4rem))] text-[15px] leading-7 text-ds-faint/80 ${
+                className={`pointer-events-none absolute top-[27px] z-10 max-w-[min(520px,calc(100%-4rem))] text-heading leading-7 text-ds-faint/80 ${
                   hasOnlyHeadingMarker ? 'left-[42px]' : 'left-6'
                 }`}
               >
