@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WriteInlineCompletionRequest } from '../../shared/write-inline-completion'
 import {
   clearWriteRetrievalCache,
@@ -53,7 +53,13 @@ function createRequest(workspaceRoot: string): WriteInlineCompletionRequest {
   }
 }
 
+// The index build stops after 250ms of wall-clock time, so freeze Date to keep slow CI runners from cutting it short.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+})
+
 afterEach(() => {
+  vi.useRealTimers()
   clearWriteRetrievalCache()
 })
 

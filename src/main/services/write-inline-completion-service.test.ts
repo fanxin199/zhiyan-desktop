@@ -112,6 +112,7 @@ function createRequest(): WriteInlineCompletionRequest {
 }
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   clearWriteRetrievalCache()
   clearWriteInlineCompletionDebugEntries()
@@ -422,6 +423,8 @@ describe('requestWriteInlineCompletion', () => {
   })
 
   it('adds BM25 retrieval snippets to the FIM prompt when workspace context is available', async () => {
+    // Retrieval stops indexing after 250ms of wall-clock time, so freeze Date to keep slow CI runners from skipping the notes.
+    vi.useFakeTimers({ toFake: ['Date'] })
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'ds-gui-write-rag-'))
     await mkdir(join(workspaceRoot, 'notes'), { recursive: true })
     await writeFile(
