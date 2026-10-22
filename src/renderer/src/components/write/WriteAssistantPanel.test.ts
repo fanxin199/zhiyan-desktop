@@ -30,9 +30,7 @@ describe('WriteAssistantPanel', () => {
         liveAssistant: '',
         composerModel: 'auto',
         composerPickList: [],
-        composerReasoningEffort: 'high',
         setComposerModel: vi.fn(),
-        setComposerReasoningEffort: vi.fn(),
         queuedMessages: [],
         removeQueuedMessage: vi.fn(),
         onSend: vi.fn(),
@@ -50,5 +48,6 @@ describe('WriteAssistantPanel', () => {
     expect(html).toContain('Draft an outline')
     expect(html).toContain('Polish selection')
     expect(html).not.toContain('welcome.md')
+    expect(html).not.toContain('>auto<')
   })
 })

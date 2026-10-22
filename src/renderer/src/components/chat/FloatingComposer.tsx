@@ -565,7 +565,7 @@ export function FloatingComposer({
     ? t('composerOfflineHint')
     : !hasActiveThread && !effectiveWorkspaceRoot
       ? t('composerWorkspaceHint')
-      : t('composerSlashHint')
+      : null
   const slashCommands = useMemo<SlashCommand[]>(() => {
     const threadActionDisabled = !runtimeReady || busy || !activeThreadId
     const goalActionDisabled = !canOpenGoalPanel

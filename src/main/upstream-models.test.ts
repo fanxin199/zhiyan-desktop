@@ -20,6 +20,7 @@ function settings(dataDir: string, model = 'settings-model'): AppSettingsV1 {
     locale: 'en',
     theme: 'system',
     uiFontScale: 'small',
+    aiMode: 'deep',
     provider: {
       ...provider,
       providers: [

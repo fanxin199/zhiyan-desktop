@@ -27,6 +27,7 @@ function createSettings(patch: Partial<AppSettingsV1['write']['inlineCompletion'
     locale: 'en',
     theme: 'system',
     uiFontScale: 'small',
+    aiMode: 'deep',
     provider: defaultModelProviderSettings(),
     agents: {
       kun: {

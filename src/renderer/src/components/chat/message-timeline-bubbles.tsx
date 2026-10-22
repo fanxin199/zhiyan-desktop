@@ -12,7 +12,7 @@ import { parseWritePromptForDisplay } from '../../write/quoted-selection'
 import { parseClawUserPromptForDisplay, type ClawUserPromptDisplay } from '@shared/app-settings'
 import { DiffView } from '../DiffView'
 import { AssistantMarkdown } from './AssistantMarkdown'
-import { ModelMetaTag, WritePromptMetaDisclosure } from './message-timeline-cards'
+import { WritePromptMetaDisclosure } from './message-timeline-cards'
 import { readNumber, formatDuration, formatToolTitle } from './message-timeline-tools'
 
 const COPY_FEEDBACK_RESET_MS = 1600
@@ -135,9 +135,6 @@ function UserMessageBubble({
             </div>
           </div>
         </div>
-        <div className="mt-2 flex min-w-0 items-center justify-end">
-          <ModelMetaTag label={block.modelLabel} />
-        </div>
       </div>
     )
   }
@@ -163,7 +160,7 @@ function UserMessageBubble({
         </div>
       )}
       <div className="mt-2 flex min-w-0 items-center justify-between gap-3 text-ds-faint opacity-90 transition group-hover:opacity-100">
-        <ModelMetaTag label={block.modelLabel} className="flex-1 justify-start text-left" />
+        <span className="flex-1" />
         <div className="flex items-center justify-end gap-3">
           <CopyFeedbackButton text={displayText} iconOnly />
           {canEdit ? (
@@ -393,7 +390,6 @@ function RuntimeMetaChips({
 }): ReactElement | null {
   const { t } = useTranslation('common')
   const attachmentIds = metaStringArray(meta, 'attachmentIds')
-  const activeSkillIds = metaStringArray(meta, 'activeSkillIds')
   const injectedMemoryIds = metaStringArray(meta, 'injectedMemoryIds')
   const sources = metaSources(meta)
   const child = meta?.child && typeof meta.child === 'object' ? meta.child as Record<string, unknown> : null
@@ -405,7 +401,6 @@ function RuntimeMetaChips({
         : ''
   if (
     (hideAttachments || attachmentIds.length === 0) &&
-    activeSkillIds.length === 0 &&
     injectedMemoryIds.length === 0 &&
     sources.length === 0 &&
     !childLabel
@@ -418,11 +413,6 @@ function RuntimeMetaChips({
       {!hideAttachments && attachmentIds.length > 0 ? (
         <span className={chipClass} title={attachmentIds.join(', ')}>
           {t('toolAttachments')} {attachmentIds.length}
-        </span>
-      ) : null}
-      {activeSkillIds.length > 0 ? (
-        <span className={chipClass} title={activeSkillIds.join(', ')}>
-          {t('toolActiveSkills')} {activeSkillIds.length}
         </span>
       ) : null}
       {injectedMemoryIds.length > 0 ? (

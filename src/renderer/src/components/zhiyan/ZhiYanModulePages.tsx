@@ -828,7 +828,7 @@ function ResearchTaskEntry({
                     <p className="mt-1 text-caption text-ds-muted">已提取可读文本</p>
                   ) : null}
                   {file.requiresWorkspaceRead ? (
-                    <p className="mt-1 text-caption text-ds-muted">将由智能体在工作区中检查文件结构</p>
+                    <p className="mt-1 text-caption text-ds-muted">将由 AI 在工作区中检查文件结构</p>
                   ) : null}
                 </div>
                 <button
@@ -1254,7 +1254,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
-    summary: '不需要上传原始测序文件。这里更适合放整理后的表格或分析结果，让智能体先检查格式，再生成图表方案和生物医学解释。',
+    summary: '不需要上传原始测序文件。这里更适合放整理后的表格或分析结果，让 AI 先检查格式，再生成图表方案和生物医学解释。',
     items: [
       {
         term: '表达矩阵',
@@ -1275,7 +1275,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
     checklist: [
       '文件名和列名尽量保留清楚含义，避免只写 Sheet1、A、B、C。',
       '请在输入框补充分组设计和想回答的生物医学问题，例如代谢通路、细胞状态或处理响应。',
-      'H5AD、RDS 等对象文件可以先上传，但需要让智能体检查对象结构后再决定能做哪些分析。'
+      'H5AD、RDS 等对象文件可以先上传，但需要让 AI 检查文件内容后再决定能做哪些分析。'
     ]
   },
   taskEntry: {

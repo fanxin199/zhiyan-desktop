@@ -8,6 +8,8 @@ export {
   type SandboxMode
 } from '../../kun/src/contracts/policy.js'
 export type UiFontScale = 'small' | 'medium' | 'large'
+/** How much the AI thinks before answering: fast answers or deeper reasoning. */
+export type AiMode = 'fast' | 'deep'
 export type ScheduleRunMode = 'agent' | 'plan'
 export type ScheduleKind = 'manual' | 'interval' | 'daily' | 'at'
 export type ScheduleTaskStatus = 'idle' | 'running' | 'success' | 'error'
@@ -504,6 +506,7 @@ export type AppSettingsV1 = {
   locale: 'en' | 'zh'
   theme: 'system' | 'light' | 'dark'
   uiFontScale: UiFontScale
+  aiMode: AiMode
   provider: ModelProviderSettingsV1
   agents: KunSettingsEnvelopeV1
   workspaceRoot: string

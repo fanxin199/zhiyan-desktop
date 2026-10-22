@@ -693,7 +693,6 @@ function RuntimeMetaBadges({
   if (!meta) return null
   const sources = readMetaSources(meta)
   const attachmentIds = readMetaStringArray(meta, 'attachmentIds')
-  const activeSkillIds = readMetaStringArray(meta, 'activeSkillIds')
   const injectedMemoryIds = readMetaStringArray(meta, 'injectedMemoryIds')
   const child = meta.child && typeof meta.child === 'object' ? meta.child as Record<string, unknown> : null
   const childLabel =
@@ -705,7 +704,6 @@ function RuntimeMetaBadges({
   if (
     sources.length === 0 &&
     attachmentIds.length === 0 &&
-    activeSkillIds.length === 0 &&
     injectedMemoryIds.length === 0 &&
     !childLabel
   ) {
@@ -718,11 +716,6 @@ function RuntimeMetaBadges({
         <span className={chipClass} title={childLabel}>
           <span>{t('toolChildAgent')}</span>
           <span className="max-w-28 truncate font-mono text-ds-muted">{childLabel}</span>
-        </span>
-      ) : null}
-      {activeSkillIds.length > 0 ? (
-        <span className={chipClass} title={activeSkillIds.join(', ')}>
-          {t('toolActiveSkills')} {activeSkillIds.length}
         </span>
       ) : null}
       {injectedMemoryIds.length > 0 ? (

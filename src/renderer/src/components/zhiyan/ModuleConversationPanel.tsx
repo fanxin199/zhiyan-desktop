@@ -5,7 +5,6 @@ import type { QueuedUserMessage } from '../../store/chat-store-types'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
 import { MessageTimeline } from '../chat/MessageTimeline'
 import { FloatingComposer } from '../chat/FloatingComposer'
-import type { ComposerReasoningEffort } from '../chat/FloatingComposerModelPicker'
 
 type Props = {
   title: string
@@ -24,9 +23,7 @@ type Props = {
   composerModel: string
   composerPickList: string[]
   composerModelGroups?: ModelProviderModelGroup[]
-  composerReasoningEffort: ComposerReasoningEffort
   setComposerModel: (modelId: string) => void
-  setComposerReasoningEffort: (effort: ComposerReasoningEffort) => void
   queuedMessages: QueuedUserMessage[]
   removeQueuedMessage: (id: string) => void
   writeDraftActionLabel?: string
@@ -55,9 +52,7 @@ export function ModuleConversationPanel({
   composerModel,
   composerPickList,
   composerModelGroups = [],
-  composerReasoningEffort,
   setComposerModel,
-  setComposerReasoningEffort,
   queuedMessages,
   removeQueuedMessage,
   writeDraftActionLabel = '整理到自由写作台',
@@ -117,9 +112,7 @@ export function ModuleConversationPanel({
           composerModel={composerModel}
           composerPickList={composerPickList}
           composerModelGroups={composerModelGroups}
-          composerReasoningEffort={composerReasoningEffort}
           onComposerModelChange={setComposerModel}
-          onComposerReasoningEffortChange={setComposerReasoningEffort}
           hideModelPicker
           queuedMessages={queuedMessages}
           onRemoveQueuedMessage={removeQueuedMessage}

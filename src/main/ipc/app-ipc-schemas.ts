@@ -180,6 +180,7 @@ export const runtimeRequestPayloadSchema = z
 const localeSchema = z.enum(['en', 'zh'])
 const themeSchema = z.enum(['system', 'light', 'dark'])
 const uiFontScaleSchema = z.enum(['small', 'medium', 'large'])
+const aiModeSchema = z.enum(['fast', 'deep'])
 const approvalPolicySchema = z.enum(['on-request', 'untrusted', 'never', 'auto', 'suggest'])
 const sandboxModeSchema = z.enum(['read-only', 'workspace-write', 'danger-full-access', 'external-sandbox'])
 const mcpSearchModeSchema = z.enum(['direct', 'search', 'auto'])
@@ -554,6 +555,7 @@ const settingsPatchObjectSchema = z.object({
   locale: localeSchema.optional(),
   theme: themeSchema.optional(),
   uiFontScale: uiFontScaleSchema.optional(),
+  aiMode: aiModeSchema.optional(),
   provider: modelProviderPatchSchema.optional(),
   agents: z.object({
     kun: kunRuntimePatchSchema.optional()

@@ -35,6 +35,7 @@ function settings(): AppSettingsV1 {
     locale: 'en',
     theme: 'system',
     uiFontScale: 'small',
+    aiMode: 'deep',
     provider: defaultModelProviderSettings(),
     agents: {
       kun: defaultKunRuntimeSettings()
@@ -519,6 +520,7 @@ describe('legacy Kun defaults migration', () => {
       locale: 'zh',
       theme: 'dark',
       uiFontScale: 'small',
+      aiMode: 'deep',
       agentProvider: 'deepseek-runtime',
       deepseek: {
         binaryPath: '/usr/local/bin/deepseek',

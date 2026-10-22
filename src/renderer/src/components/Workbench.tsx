@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
-import { DEFAULT_COMPOSER_MODEL_IDS } from '@shared/default-composer-models'
 import type { SkillListItem } from '@shared/ds-gui-api'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
@@ -39,10 +38,6 @@ import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
 import { FloatingComposer, type ComposerFileReference } from './chat/FloatingComposer'
-import {
-  composerReasoningEffortRequestValue,
-  type ComposerReasoningEffort
-} from './chat/FloatingComposerModelPicker'
 import { SessionHeader } from './SessionHeader'
 import { RuntimeBanner } from './RuntimeBanner'
 import { SidebarTitlebarToggleButton } from './sidebar/SidebarPrimitives'
@@ -361,8 +356,6 @@ export function Workbench(): ReactElement {
   })))
   const [input, setInput] = useState('')
   const [mode, setMode] = useState<'plan' | 'agent'>('agent')
-  const [composerReasoningEffort, setComposerReasoningEffort] =
-    useState<ComposerReasoningEffort>('max')
   const [runtimeInfo, setRuntimeInfo] = useState<CoreRuntimeInfoJson | null>(null)
   const [runtimeSkills, setRuntimeSkills] = useState<CoreRuntimeSkillJson[]>([])
   const [composerAttachments, setComposerAttachments] = useState<AttachmentReference[]>([])
@@ -377,21 +370,11 @@ export function Workbench(): ReactElement {
   const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
   const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
-  const writeAssistantModel = useWriteWorkspaceStore((state) => state.assistantModel)
-  const setWriteAssistantModel = useWriteWorkspaceStore((state) => state.setAssistantModel)
 
   const activeSkillWorkspace = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId)?.workspace || workspaceRoot || '',
     [activeThreadId, threads, workspaceRoot]
   )
-  const writeAssistantPickList = useMemo(() => {
-    const ordered = new Set<string>(DEFAULT_COMPOSER_MODEL_IDS)
-    for (const id of composerPickList) {
-      if (id.trim()) ordered.add(id.trim())
-    }
-    if (writeAssistantModel.trim()) ordered.add(writeAssistantModel.trim())
-    return [...ordered]
-  }, [composerPickList, writeAssistantModel])
 
   useEffect(() => {
     let cancelled = false
@@ -534,11 +517,7 @@ export function Workbench(): ReactElement {
         setInput(userPrompt)
         return
       }
-      const reasoningEffort = composerReasoningEffortRequestValue(composerReasoningEffort)
-      const sent = await sendMessage(prompt, 'agent', {
-        ...(writeState.assistantModel.trim() ? { model: writeState.assistantModel.trim() } : {}),
-        ...(reasoningEffort ? { reasoningEffort } : {})
-      })
+      const sent = await sendMessage(prompt, 'agent')
       if (sent) useWriteWorkspaceStore.getState().clearQuotedSelections()
     })()
   }
@@ -579,10 +558,8 @@ export function Workbench(): ReactElement {
       setInput('')
       setComposerAttachments([])
       setComposerFileReferences([])
-      const reasoningEffort = composerReasoningEffortRequestValue(composerReasoningEffort)
       void sendMessage(prompt, 'agent', {
         ...(displayText ? { displayText } : {}),
-        ...(reasoningEffort ? { reasoningEffort } : {}),
         ...(attachmentIds.length
           ? { attachmentIds, attachments: composerAttachments }
           : {})
@@ -713,9 +690,7 @@ export function Workbench(): ReactElement {
       composerModel={composerModel}
       composerPickList={composerPickList}
       composerModelGroups={composerModelGroups}
-      composerReasoningEffort={composerReasoningEffort}
       setComposerModel={setComposerModel}
-      setComposerReasoningEffort={setComposerReasoningEffort}
       queuedMessages={queuedMessages}
       removeQueuedMessage={removeQueuedMessage}
       writeDraftActionLabel={writeDraft?.actionLabel ?? '整理到自由写作台'}
@@ -947,12 +922,10 @@ export function Workbench(): ReactElement {
                     blocks={blocks}
                     liveReasoning={liveReasoning}
                     liveAssistant={liveAssistant}
-                    composerModel={writeAssistantModel}
-                    composerPickList={writeAssistantPickList}
+                    composerModel={composerModel}
+                    composerPickList={composerPickList}
                     composerModelGroups={composerModelGroups}
-                    composerReasoningEffort={composerReasoningEffort}
-                    setComposerModel={setWriteAssistantModel}
-                    setComposerReasoningEffort={setComposerReasoningEffort}
+                    setComposerModel={setComposerModel}
                     queuedMessages={queuedMessages}
                     removeQueuedMessage={removeQueuedMessage}
                     onSend={handleSend}
@@ -1017,9 +990,8 @@ export function Workbench(): ReactElement {
                   composerModel={composerModel}
                   composerPickList={composerPickList}
                   composerModelGroups={composerModelGroups}
-                  composerReasoningEffort={composerReasoningEffort}
                   onComposerModelChange={setComposerModel}
-                  onComposerReasoningEffortChange={setComposerReasoningEffort}
+                  hideModelPicker
                   onSend={handleSend}
                   attachments={composerAttachments}
                   attachmentUploadEnabled={attachmentUploadEnabled}

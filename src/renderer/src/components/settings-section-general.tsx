@@ -249,6 +249,20 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   }
                 />
                 <SettingRow
+                  title={t('aiMode')}
+                  description={t('aiModeDesc')}
+                  control={
+                    <select
+                      className={selectControlClass}
+                      value={form.aiMode}
+                      onChange={(e) => update({ aiMode: e.target.value as AppSettingsV1['aiMode'] })}
+                    >
+                      <option value="deep">{t('aiModeDeep')}</option>
+                      <option value="fast">{t('aiModeFast')}</option>
+                    </select>
+                  }
+                />
+                <SettingRow
                   title={t('turnCompleteNotification')}
                   description={t('turnCompleteNotificationDesc')}
                   control={

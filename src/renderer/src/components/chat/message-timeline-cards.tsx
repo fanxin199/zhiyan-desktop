@@ -357,27 +357,6 @@ export function WorkMetaRow({
  * design — no pill, no ring, just faint monospaced text right-aligned at the
  * top of the bubble. Hidden when there's no model selection to surface.
  */
-export function ModelMetaTag({
-  label,
-  className = ''
-}: {
-  label?: string
-  className?: string
-}): ReactElement | null {
-  const { t } = useTranslation('common')
-  if (!label) return null
-  return (
-    <div
-      className={`flex min-w-0 text-right ${className}`.trim()}
-      title={t('turnModelBadgeTitle', { model: label })}
-    >
-      <span className="truncate font-mono text-caption tracking-tight text-ds-faint/85">
-        {label}
-      </span>
-    </div>
-  )
-}
-
 function writePromptMetaSummary(
   display: WritePromptDisplay,
   t: (key: string, opts?: Record<string, unknown>) => string

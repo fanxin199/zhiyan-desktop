@@ -58,6 +58,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
       maybeSettings.uiFontScale === 'large'
         ? maybeSettings.uiFontScale
         : 'small',
+    aiMode: maybeSettings.aiMode === 'fast' ? 'fast' : 'deep',
     provider: normalizeModelProviderSettings(maybeSettings.provider),
     agents: kunSettingsEnvelope(mergeKunRuntimeSettings(defaultKunRuntimeSettings(), {
       ...runtime,

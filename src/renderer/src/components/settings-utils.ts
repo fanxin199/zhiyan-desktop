@@ -105,6 +105,7 @@ export function coerceRendererSettings(settings: AppSettingsV1): AppSettingsV1 {
     locale: raw.locale === 'zh' ? 'zh' : 'en',
     theme,
     uiFontScale,
+    aiMode: raw.aiMode === 'fast' ? 'fast' : 'deep',
     provider: normalizeModelProviderSettings(raw.provider),
     agents: kunSettingsEnvelope(mergeKunRuntimeSettings(defaultKunRuntimeSettings(), getKunRuntimeSettings(settings))),
     workspaceRoot: typeof raw.workspaceRoot === 'string' ? raw.workspaceRoot : DEFAULT_WORKSPACE_ROOT,

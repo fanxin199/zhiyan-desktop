@@ -15,6 +15,7 @@ function settings(apiKey: string): AppSettingsV1 {
     locale: 'en',
     theme: 'system',
     uiFontScale: 'small',
+    aiMode: 'deep',
     provider: defaultModelProviderSettings(),
     agents: {
       kun: {

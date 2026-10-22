@@ -5,6 +5,7 @@ import i18n from '../i18n'
 import { applyTheme, applyUiFontScale } from '../lib/apply-theme'
 import { formatWorkspacePickerError } from '../lib/format-workspace-picker-error'
 import { formatRuntimeError, getRuntimeErrorCode } from '../lib/format-runtime-error'
+import { aiModeReasoningEffort } from '../lib/ai-mode'
 import {
   deriveThreadTitleFromPrompt,
   getDefaultThreadTitle,
@@ -571,10 +572,14 @@ export function createThreadActions(
     clearBusyWatchdog()
     try {
       const seqAtSend = get().lastSeq
+      // Without an explicit choice, follow the AI mode chosen in settings.
+      const effectiveReasoningEffort = reasoningEffort || await rendererRuntimeClient.getSettings()
+        .then((settings) => aiModeReasoningEffort(settings.aiMode))
+        .catch(() => undefined)
       const { turnId, userMessageItemId } = await p.sendUserMessage(activeThreadId, trimmedText, {
         mode,
         ...(composerModel ? { model: composerModel } : {}),
-        ...(reasoningEffort ? { reasoningEffort } : {}),
+        ...(effectiveReasoningEffort ? { reasoningEffort: effectiveReasoningEffort } : {}),
         ...(userDisplayText ? { displayText: userDisplayText } : {}),
         ...((queued?.guiPlan ?? overrides?.guiPlan) ? { guiPlan: queued?.guiPlan ?? overrides?.guiPlan } : {}),
         ...(attachmentIds.length ? { attachmentIds } : {})

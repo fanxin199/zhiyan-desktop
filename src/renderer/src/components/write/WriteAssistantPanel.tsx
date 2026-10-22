@@ -18,7 +18,6 @@ import {
 } from '../../write/write-workspace-store'
 import { MessageTimeline } from '../chat/MessageTimeline'
 import { FloatingComposer } from '../chat/FloatingComposer'
-import type { ComposerReasoningEffort } from '../chat/FloatingComposerModelPicker'
 
 type Props = {
   input: string
@@ -34,9 +33,7 @@ type Props = {
   composerModel: string
   composerPickList: string[]
   composerModelGroups?: ModelProviderModelGroup[]
-  composerReasoningEffort: ComposerReasoningEffort
   setComposerModel: (modelId: string) => void
-  setComposerReasoningEffort: (effort: ComposerReasoningEffort) => void
   queuedMessages: QueuedUserMessage[]
   removeQueuedMessage: (id: string) => void
   onSend: () => void
@@ -62,9 +59,7 @@ export function WriteAssistantPanel({
   composerModel,
   composerPickList,
   composerModelGroups = [],
-  composerReasoningEffort,
   setComposerModel,
-  setComposerReasoningEffort,
   queuedMessages,
   removeQueuedMessage,
   onSend,
@@ -247,10 +242,8 @@ export function WriteAssistantPanel({
           composerModel={composerModel}
           composerPickList={composerPickList}
           composerModelGroups={composerModelGroups}
-          composerReasoningEffort={composerReasoningEffort}
           onComposerModelChange={setComposerModel}
-          onComposerReasoningEffortChange={setComposerReasoningEffort}
-          modelPickerMode="combobox"
+          hideModelPicker
           queuedMessages={queuedMessages}
           onRemoveQueuedMessage={removeQueuedMessage}
           onSend={onSend}

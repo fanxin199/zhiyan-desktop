@@ -24,6 +24,7 @@ function settings(): AppSettingsV1 {
     locale: 'zh',
     theme: 'system',
     uiFontScale: 'small',
+    aiMode: 'deep',
     provider,
     agents: {
       kun: {
