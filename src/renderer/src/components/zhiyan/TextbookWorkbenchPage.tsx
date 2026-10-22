@@ -33,6 +33,11 @@ import {
   type TextbookReference,
   type TextbookSection
 } from '@shared/textbook'
+import {
+  focusFirstMissingRequirement,
+  MissingRequirementsHint,
+  type MissingRequirement
+} from './missing-requirements'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
@@ -257,6 +262,13 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
   const completedCount = project?.sections.filter((section) => section.content.trim()).length ?? 0
 
   const canGenerateOutline = metadata.title.trim().length > 0
+  const formatMissing: MissingRequirement[] = publisherGuidelines.trim()
+    ? []
+    : [{ label: '粘贴或读取出版社要求', targetId: 'textbook-publisher-guidelines' }]
+  const outlineMissing: MissingRequirement[] = canGenerateOutline
+    ? []
+    : [{ label: '填写教材题名', targetId: 'textbook-title' }]
+  const [shownMissing, setShownMissing] = useState<'format' | 'outline' | null>(null)
   const stepIndex = step === 'setup' ? 0 : step === 'outline' ? 1 : step === 'writing' ? 2 : 3
   const progressLabel = ['项目设置', '大纲设计', '逐节写作', '检查导出'][stepIndex]
 
@@ -712,6 +724,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     <label>
                       <span className={labelClass}>教材题名</span>
                       <input
+                        id="textbook-title"
                         value={metadata.title}
                         onChange={(event) => setMetadata({ ...metadata, title: event.target.value })}
                         className={fieldClass}
@@ -795,6 +808,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     </button>
                   </div>
                   <ResizableTextArea
+                    id="textbook-publisher-guidelines"
                     value={publisherGuidelines}
                     onChange={(event) => handlePublisherGuidelinesChange(event.target.value)}
                     rows={8}
@@ -811,13 +825,21 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     <button
                       type="button"
                       data-testid="textbook-ai-parse-format-rules"
-                      disabled={!publisherGuidelines.trim() || busy !== null}
-                      onClick={() => void parseFormatRulesWithAi()}
+                      disabled={busy !== null}
+                      onClick={() => {
+                        if (formatMissing.length > 0) {
+                          setShownMissing('format')
+                          focusFirstMissingRequirement(formatMissing)
+                          return
+                        }
+                        void parseFormatRulesWithAi()
+                      }}
                       className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
                     >
                       {busy === 'format' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                       AI 解析出版社要求
                     </button>
+                    {shownMissing === 'format' ? <MissingRequirementsHint missing={formatMissing} className="mt-2" /> : null}
                     <p className="mt-2 text-caption leading-5 text-ds-muted">
                       粘贴或读取要求后会先自动抽取常见格式；复杂规则可由 AI 补全，老师只需校正。
                     </p>
@@ -970,13 +992,21 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   />
                   <button
                     type="button"
-                    disabled={!canGenerateOutline || busy !== null}
-                    onClick={() => void generateOutline()}
+                    disabled={busy !== null}
+                    onClick={() => {
+                      if (outlineMissing.length > 0) {
+                        setShownMissing('outline')
+                        focusFirstMissingRequirement(outlineMissing)
+                        return
+                      }
+                      void generateOutline()
+                    }}
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-body font-semibold text-white disabled:opacity-50"
                   >
                     {busy === 'outline' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     生成全书大纲
                   </button>
+                  {shownMissing === 'outline' ? <MissingRequirementsHint missing={outlineMissing} className="mt-2" /> : null}
                 </div>
               </aside>
             </div>

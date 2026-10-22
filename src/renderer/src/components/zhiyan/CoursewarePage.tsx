@@ -44,6 +44,11 @@ import {
   type NormalizedCrop
 } from '../../lib/pdf-page-image'
 import { loadCoursewareContextDefaults } from '../../lib/module-context'
+import {
+  focusFirstMissingRequirement,
+  MissingRequirementsHint,
+  type MissingRequirement
+} from './missing-requirements'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
@@ -242,6 +247,11 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
   const canGenerateBlueprint = Boolean(
     request.sourcePath && request.topic.trim() && request.pageEnd >= request.pageStart
   )
+  const blueprintMissing: MissingRequirement[] = [
+    ...(!request.sourcePath ? [{ label: '选择教材', targetId: 'courseware-source' }] : []),
+    ...(!request.topic.trim() ? [{ label: '填写授课主题', targetId: 'courseware-topic' }] : [])
+  ]
+  const [showBlueprintMissing, setShowBlueprintMissing] = useState(false)
 
   const audienceLabel = useMemo(
     () => AUDIENCE_PRESETS.find((preset) => preset.id === request.audience)?.label ?? '',
@@ -775,6 +785,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                 <div>
                   <span className={labelClass}>教材 PDF / PPTX</span>
                   <button
+                    id="courseware-source"
                     type="button"
                     disabled={busy !== null}
                     onClick={() => void chooseSource()}
@@ -799,6 +810,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   <label>
                     <span className={labelClass}>授课主题</span>
                     <input
+                      id="courseware-topic"
                       value={request.topic}
                       onChange={(event) => setRequest((current) => ({
                         ...current,
@@ -958,13 +970,23 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
             <button
               type="button"
-              disabled={!canGenerateBlueprint || busy !== null}
-              onClick={() => void createBlueprint()}
+              disabled={busy !== null}
+              onClick={() => {
+                if (blueprintMissing.length > 0) {
+                  setShowBlueprintMissing(true)
+                  focusFirstMissingRequirement(blueprintMissing)
+                  return
+                }
+                void createBlueprint()
+              }}
               className="flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-body font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:col-span-2"
             >
               {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              生成课件蓝图
+              {busy === 'blueprint' ? '正在生成课件蓝图…' : '生成课件蓝图'}
             </button>
+            {showBlueprintMissing ? (
+              <MissingRequirementsHint missing={blueprintMissing} className="text-center lg:col-span-2" />
+            ) : null}
           </div>
         )}
 

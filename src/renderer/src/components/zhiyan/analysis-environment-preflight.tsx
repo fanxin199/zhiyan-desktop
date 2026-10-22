@@ -264,7 +264,7 @@ export function AnalysisEnvironmentPreflight({
 }): ReactElement {
   if (deferred && !model.ready) {
     return (
-      <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between" data-testid="analysis-environment-preflight">
+      <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between" id="analysis-environment-preflight" data-testid="analysis-environment-preflight">
         <p className="text-small text-ds-muted">分析环境尚未准备好，已填写的任务内容会保留。</p>
         <button type="button" onClick={onResume} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text transition hover:bg-ds-hover">
           <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -285,7 +285,7 @@ export function AnalysisEnvironmentPreflight({
             ? 'border-ds-danger/30 bg-ds-danger-soft'
             : 'border-ds-warning/30 bg-ds-warning-soft'
       }`}
-      data-testid="analysis-environment-preflight"
+      id="analysis-environment-preflight" data-testid="analysis-environment-preflight"
     >
       <div className="flex items-start gap-3">
         {model.tone === 'checking' || busy

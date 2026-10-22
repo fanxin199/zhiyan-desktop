@@ -22,6 +22,11 @@ import {
 import { CoursewarePage } from './CoursewarePage'
 import { PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
+import {
+  focusFirstMissingRequirement,
+  MissingRequirementsHint,
+  type MissingRequirement
+} from './missing-requirements'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import {
   AnalysisEnvironmentPreflight,
@@ -437,12 +442,18 @@ function ResearchTaskEntry({
   )
   const needsGroupingMetadata = requiresAnalysisEnvironment
     && (selectedTask?.id === 'bulk' || selectedTask?.id === 'single-cell')
-  const canSubmit = Boolean(
-    selectedTask
-    && (userInput.trim() || files.length > 0)
-    && (!requiresAnalysisEnvironment || analysisEnvironment.model.ready)
-    && analysisMetadataValidation.ok
-  )
+  const missingRequirements: MissingRequirement[] = [
+    ...(requiresAnalysisEnvironment && !analysisEnvironment.model.ready
+      ? [{ label: '准备分析环境', targetId: 'analysis-environment-preflight' }]
+      : []),
+    ...(!analysisMetadataValidation.ok
+      ? [{ label: '填写样本分组与比较关系', targetId: 'analysis-grouping-metadata' }]
+      : []),
+    ...(!userInput.trim() && files.length === 0
+      ? [{ label: '写下任务要求或添加材料', targetId: 'research-task-input' }]
+      : [])
+  ]
+  const [showMissingRequirements, setShowMissingRequirements] = useState(false)
 
   useEffect(() => {
     setRecentTask(researchModuleId ? recentResearchTask(researchModuleId) : null)
@@ -784,6 +795,7 @@ function ResearchTaskEntry({
         ) : null}
 
         <ResizableTextArea
+          id="research-task-input"
           value={userInput}
           onChange={(event) => setUserInput(event.target.value)}
           rows={6}
@@ -887,14 +899,23 @@ function ResearchTaskEntry({
           </button>
           <button
             type="button"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit || isExtracting}
+            onClick={() => {
+              if (missingRequirements.length > 0) {
+                setShowMissingRequirements(true)
+                focusFirstMissingRequirement(missingRequirements)
+                return
+              }
+              void handleSubmit()
+            }}
+            disabled={isExtracting}
+            title={isExtracting ? '正在解析文件，完成后即可发送' : undefined}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-small font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Check className="h-4 w-4" strokeWidth={2} />
             {activeTaskEntry.submitLabel}
           </button>
         </div>
+        {showMissingRequirements ? <MissingRequirementsHint missing={missingRequirements} /> : null}
 
         {config.quickPrompts.length > 0 ? (
           <div className="border-t border-ds-border-muted pt-3">
