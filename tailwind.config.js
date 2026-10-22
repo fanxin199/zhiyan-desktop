@@ -15,7 +15,8 @@ export default {
         accent: {
           DEFAULT: themeColor('--ds-accent'),
           foreground: '#ffffff',
-          soft: themeColor('--ds-accent-soft')
+          soft: themeColor('--ds-accent-soft'),
+          strong: themeColor('--ds-accent-strong')
         },
         background: themeColor('--ds-bg-canvas'),
         foreground: themeColor('--ds-text'),
@@ -61,13 +62,28 @@ export default {
           skill: themeColor('--ds-skill'),
           'skill-soft': themeColor('--ds-skill-soft'),
           userbubble: themeColor('--ds-bubble-user'),
-          userbubbleFg: themeColor('--ds-bubble-user-fg')
+          userbubbleFg: themeColor('--ds-bubble-user-fg'),
+          overlay: themeColor('--ds-overlay')
+        },
+        // Slide thumbnails show slide content, so they use the exported deck's fixed colors in both themes.
+        slide: {
+          paper: '#ffffff',
+          ink: '#172b35',
+          muted: '#5d7078',
+          line: '#b9cdd3',
+          accent: '#d97706',
+          'accent-tint': '#fff4df',
+          tint: '#e7f4f3'
         }
       },
-      // Solid accent fills carry white text, so they use a fill shade that stays dark enough in dark mode.
+      // Solid fills carry white text, so they use fill shades that stay dark enough in dark mode.
       backgroundColor: {
         accent: {
           DEFAULT: themeColor('--ds-accent-fill')
+        },
+        ds: {
+          danger: themeColor('--ds-danger-fill'),
+          success: themeColor('--ds-success-fill')
         }
       },
       boxShadow: {

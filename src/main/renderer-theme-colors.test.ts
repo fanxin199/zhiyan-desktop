@@ -6,7 +6,7 @@ import tailwindcss, { type Config } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
 const COLOR_UTILITY = String.raw`(?:bg|text|border(?:-[trblxy])?|ring(?:-offset)?|divide|outline|fill|stroke|from|via|to|shadow|decoration|caret)`
-const THEME_COLOR = String.raw`(?:ds-[A-Za-z]+(?:-[A-Za-z]+)*|(?:accent|primary|muted)(?:-(?:foreground|soft))?|foreground|background|border|sidebar)`
+const THEME_COLOR = String.raw`(?:ds-[A-Za-z]+(?:-[A-Za-z]+)*|slide-[a-z]+(?:-[a-z]+)*|(?:accent|primary|muted)(?:-(?:foreground|soft|strong))?|foreground|background|border|sidebar)`
 const THEME_COLOR_CLASS = new RegExp(
   String.raw`(?<![\w/-])(?:[\w-]+:)*!?(${COLOR_UTILITY}-${THEME_COLOR}(?:\/\d+)?)(?![\w/-])`,
   'g'

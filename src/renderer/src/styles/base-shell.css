@@ -40,14 +40,17 @@
   --ds-bubble-user-fg: #222222;
   --ds-accent: #1769e0;
   --ds-accent-fill: #1769e0;
+  --ds-accent-strong: #1556b8;
   --ds-accent-soft: rgba(23, 105, 224, 0.14);
-  --ds-success: #0e7a42;
-  --ds-danger: #c92a2a;
+  --ds-success: #0b6b3a;
+  --ds-success-fill: #15803d;
+  --ds-danger: #b42318;
+  --ds-danger-fill: #c92a2a;
   --ds-diff-added: #128a4a;
   --ds-diff-added-soft: rgba(18, 138, 74, 0.1);
   --ds-diff-removed: #c92a2a;
   --ds-diff-removed-soft: rgba(201, 42, 42, 0.1);
-  --ds-skill: #7c3aed;
+  --ds-skill: #6d28d9;
   --ds-skill-soft: rgba(124, 58, 237, 0.12);
   --ds-success-soft: rgba(17, 185, 129, 0.14);
   --ds-warning: #8a5a00;
@@ -57,6 +60,7 @@
   --ds-domain-teaching-soft: #e1f5ee;
   --ds-domain-research: #3c3489;
   --ds-domain-research-soft: #eeedfe;
+  --ds-overlay: rgba(15, 23, 42, 0.4);
   --ds-shadow-shell: 0 12px 30px rgba(15, 23, 42, 0.08);
   --ds-shadow-panel: 0 16px 44px rgba(15, 23, 42, 0.06);
   --ds-shadow-composer: 0 18px 46px rgba(15, 23, 42, 0.1),
@@ -146,9 +150,12 @@
   --ds-bubble-user-fg: #ffffff;
   --ds-accent: #339cff;
   --ds-accent-fill: #1769e0;
+  --ds-accent-strong: #339cff;
   --ds-accent-soft: rgba(51, 156, 255, 0.18);
   --ds-success: #40c977;
-  --ds-danger: #fa423e;
+  --ds-success-fill: #15803d;
+  --ds-danger: #ff6b66;
+  --ds-danger-fill: #c92a2a;
   --ds-diff-added: #40c977;
   --ds-diff-added-soft: rgba(64, 201, 119, 0.16);
   --ds-diff-removed: #fa423e;
@@ -163,6 +170,7 @@
   --ds-domain-teaching-soft: #085041;
   --ds-domain-research: #cecbf6;
   --ds-domain-research-soft: #3c3489;
+  --ds-overlay: rgba(0, 0, 0, 0.6);
   --ds-shadow-shell: 0 38px 96px rgba(0, 0, 0, 0.55);
   --ds-shadow-panel: 0 22px 58px rgba(0, 0, 0, 0.35);
   --ds-shadow-composer: 0 28px 78px rgba(0, 0, 0, 0.45),

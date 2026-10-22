@@ -11,12 +11,27 @@ const THEMES = {
 } as const
 
 const SURFACES = ['--ds-bg-main', '--ds-bg-canvas', '--ds-surface-card', '--ds-surface-subtle']
-const TEXT_ON_SURFACES = ['--ds-text', '--ds-text-muted', '--ds-accent', '--ds-success', '--ds-danger', '--ds-warning']
+const TEXT_ON_SURFACES = [
+  '--ds-text',
+  '--ds-text-muted',
+  '--ds-accent',
+  '--ds-accent-strong',
+  '--ds-success',
+  '--ds-danger',
+  '--ds-warning',
+  '--ds-skill'
+]
 const PAIRS: Array<[foreground: string, background: string]> = [
   ['#ffffff', '--ds-accent-fill'],
+  ['#ffffff', '--ds-danger-fill'],
+  ['#ffffff', '--ds-success-fill'],
+  ['--ds-accent-strong', '--ds-accent-soft'],
+  ['--ds-danger', '--ds-danger-soft'],
+  ['--ds-success', '--ds-success-soft'],
+  ['--ds-warning', '--ds-warning-soft'],
+  ['--ds-skill', '--ds-skill-soft'],
   ['--ds-domain-teaching', '--ds-domain-teaching-soft'],
-  ['--ds-domain-research', '--ds-domain-research-soft'],
-  ['--ds-warning', '--ds-warning-soft']
+  ['--ds-domain-research', '--ds-domain-research-soft']
 ]
 
 const stylesheet = postcss.parse(readFileSync(resolve('src/renderer/src/styles/base-shell.css'), 'utf8'))
