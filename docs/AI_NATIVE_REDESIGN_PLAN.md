@@ -40,6 +40,7 @@
 3. **字号**：601 处 `text-[Npx]` 硬编码，其中 443 处 ≤ 13px（默认 1.1 倍界面缩放后约 ≤ 14px）；只有 5 个字号令牌。
 4. **颜色**：655 处直接使用 Tailwind 原色类、65 处十六进制颜色；主色 `#0088ff` 上的白字对比度约 3.5:1，低于 WCAG AA 正文要求的 4.5:1；`--ds-text-faint`（`#8a93a4`，对白底约 3.1:1）在 169 处用于文字。
 5. 主按钮不可用时只显示浅蓝色，不说明缺什么。
+6. **顶部内容被装饰光晕盖住**：`.ds-stage-surface::before` 是绝对定位的装饰层，按 CSS 绘制顺序画在页面内容之上，左上角的白色光晕把各页顶部的标题和图标洗成灰色。这才是标题发灰的直接原因。（已在 Task 0.1.1a 修复）
 
 ### 2.3 技术术语外露与缺陷
 
@@ -377,6 +378,7 @@ type TeacherPreference = {
 #### Task 0.1 · 设计令牌
 
 - [x] **0.1.1** 修复未定义的颜色类：在 `tailwind.config.js` 中增加 `ds.text`（指向 `--ds-text`）和 `ds.card-muted`；`*-ds-surface-subtle` 改用已有的 `ds-subtle`，`ring-offset-ds-bg` 改为 `ring-offset-ds-card`。实施中发现 `/N` 透明度类从未生成，已改用 `color-mix(... <alpha-value> ...)` 定义全部主题色，并把 23 处不在 5 的倍数档位上的透明度归整到最近档位。新增 `src/main/renderer-theme-colors.test.ts`，用真实 Tailwind 编译渲染层用到的每个主题色类，并断言都有 CSS 输出。
+- [x] **0.1.1a** 页面顶部的装饰光晕由覆盖层改为 `.ds-stage-surface` 的背景层，不再盖住标题和图标；新增 `src/main/renderer-stage-surface.test.ts` 防止回退。（实施 0.1.1 时发现）
 - [ ] **0.1.2** 按 §5.1–§5.3 建立字号、颜色、领域色和圆角令牌（含深色值），主色改为 `#1769E0`，新增 `--ds-warning`；增加令牌对比度单元测试（正文与说明文字 ≥ 4.5:1）。
 - [ ] **0.1.3** 按 §5.1 映射表迁移 601 处 `text-[Npx]`，按目录分批提交：`components/zhiyan/` → `components/write/` → `components/chat/` → 其余；完成后用源码扫描测试禁止新增。
 - [ ] **0.1.4** 将 655 处 Tailwind 原色类和 65 处十六进制颜色替换为令牌，同样分批进行，完成后禁止新增。其中 36 处原色透明度不在 5 的倍数档位上（如 `bg-white/8`），Tailwind 不会生成，替换时一并处理。
@@ -583,4 +585,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.1.1 已完成。下一项为 Task 0.1.2（建立字号、颜色、领域色和圆角令牌）。**
+当前执行任务：**Task 0.1.1 与 0.1.1a 已完成。下一项为 Task 0.1.2（建立字号、颜色、领域色和圆角令牌）。**

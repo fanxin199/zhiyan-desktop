@@ -2124,9 +2124,22 @@ textarea {
   backdrop-filter: blur(18px);
 }
 
+/* The glow is a background layer so it never paints over page content. */
 .ds-stage-surface {
   position: relative;
-  background: var(--ds-stage-gradient);
+  background:
+    radial-gradient(circle at 50% -8%, rgba(0, 136, 255, 0.088), transparent 30%),
+    radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.64), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.256), rgba(255, 255, 255, 0) 26%),
+    var(--ds-stage-gradient);
+}
+
+[data-theme='dark'] .ds-stage-surface {
+  background:
+    radial-gradient(circle at 50% -8%, rgba(51, 156, 255, 0.14), transparent 30%),
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 24%),
+    var(--ds-stage-gradient);
 }
 
 .ds-workbench-divider {
