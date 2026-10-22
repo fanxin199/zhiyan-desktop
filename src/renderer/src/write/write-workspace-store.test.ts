@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useWriteWorkspaceStore } from './write-workspace-store'
 import {
   readStoredAssistantOpen,
-  WRITE_ASSISTANT_OPEN_KEY
+  WRITE_ASSISTANT_OPEN_KEY,
+  writeDocumentExtension,
+  writeDocumentFileName,
+  writeDocumentTitle
 } from './write-workspace-store-helpers'
 
 function installDsGui(overrides: Partial<Window['dsGui']>): void {
@@ -25,6 +28,19 @@ function activateTextFile(path = '/tmp/write/draft.md'): void {
 afterEach(() => {
   useWriteWorkspaceStore.getState().resetWorkspace()
   vi.unstubAllGlobals()
+})
+
+describe('write document titles', () => {
+  it('hides document extensions from titles and adds them back when naming files', () => {
+    expect(writeDocumentTitle('welcome.md')).toBe('welcome')
+    expect(writeDocumentTitle('第八章 教案.markdown')).toBe('第八章 教案')
+    expect(writeDocumentTitle('figure.png')).toBe('figure.png')
+    expect(writeDocumentFileName('未命名文稿')).toBe('未命名文稿.md')
+    expect(writeDocumentFileName('笔记.txt')).toBe('笔记.txt')
+    expect(writeDocumentFileName('第8.1节', '.txt')).toBe('第8.1节.txt')
+    expect(writeDocumentExtension('welcome.MD')).toBe('.MD')
+    expect(writeDocumentExtension('figure.png')).toBe('')
+  })
 })
 
 describe('write workspace store', () => {

@@ -36,6 +36,7 @@ import { useTranslation } from 'react-i18next'
 import type { ModelProviderModelGroup } from '@shared/ds-gui-api'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import type { AttachmentReference, ReviewTarget } from '../../agent/types'
+import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { useChatStore } from '../../store/chat-store'
 import { normalizeWorkspaceRoot } from '../../lib/workspace-path'
 import {
@@ -508,7 +509,22 @@ export function FloatingComposer({
     ? threads.find((thread) => thread.id === activeThreadId) ?? null
     : null
   const activeThreadArchived = activeThread?.archived === true
-  const showThreadUsageFooter = !compact && route === 'chat' && Boolean(activeThreadId) && runtimeReady
+  const [technicalMetricsEnabled, setTechnicalMetricsEnabled] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    void rendererRuntimeClient
+      .getSettings()
+      .then((settings) => {
+        if (!cancelled) setTechnicalMetricsEnabled(settings.showTechnicalMetrics)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  // Token and cost figures are technical details, shown only after opting in under settings.
+  const showThreadUsageFooter =
+    technicalMetricsEnabled && !compact && route === 'chat' && Boolean(activeThreadId) && runtimeReady
   const threadUsageState = useThreadUsageState(
     activeThreadId,
     showThreadUsageFooter,

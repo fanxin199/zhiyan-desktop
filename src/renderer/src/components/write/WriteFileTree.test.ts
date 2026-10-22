@@ -36,5 +36,7 @@ describe('WriteFileTree', () => {
     expect(html).toContain('group-hover:pointer-events-auto')
     expect(html).toContain('title="Rename"')
     expect(html).toContain('title="Delete file"')
+    expect(html).toContain('>draft<')
+    expect(html).not.toContain('draft.md<')
   })
 })

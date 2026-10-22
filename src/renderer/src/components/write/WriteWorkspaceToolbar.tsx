@@ -185,11 +185,7 @@ export function WriteWorkspaceToolbar({
                       {item.icon}
                       <span>{item.shortLabel}</span>
                     </span>
-                    {item.active ? (
-                      <span className="text-caption font-semibold uppercase tracking-[0.08em]">
-                        ON
-                      </span>
-                    ) : null}
+                    {item.active ? <Check className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden /> : null}
                   </button>
                 ))}
               </div>

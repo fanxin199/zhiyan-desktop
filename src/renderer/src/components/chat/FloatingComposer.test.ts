@@ -668,3 +668,36 @@ describe('FloatingComposer capability controls', () => {
     expect(html).not.toContain('aria-label="Send" disabled=""')
   })
 })
+
+describe('FloatingComposer usage footer', () => {
+  it('keeps token and cost figures out of the chat composer unless technical metrics are turned on', () => {
+    // Server rendering reads the store's initial state object, so the test changes it and restores it.
+    const initialState = useChatStore.getInitialState()
+    const original = { route: initialState.route, activeThreadId: initialState.activeThreadId }
+    Object.assign(initialState, { route: 'chat', activeThreadId: 'thr_1' })
+    try {
+      const html = renderToStaticMarkup(
+        createElement(FloatingComposer, {
+          input: '',
+          setInput: () => undefined,
+          mode: 'agent',
+          setMode: () => undefined,
+          busy: false,
+          runtimeReady: true,
+          hasActiveThread: true,
+          composerModel: '',
+          composerPickList: [],
+          onComposerModelChange: () => undefined,
+          queuedMessages: [],
+          onRemoveQueuedMessage: () => undefined,
+          onSend: () => undefined,
+          onInterrupt: () => undefined
+        })
+      )
+
+      expect(html).not.toContain('ds-composer-usage')
+    } finally {
+      Object.assign(initialState, original)
+    }
+  })
+})

@@ -19,6 +19,9 @@ import {
   useWriteWorkspaceStore,
   writeBasenameFromPath,
   writeDirnameFromPath,
+  writeDocumentExtension,
+  writeDocumentFileName,
+  writeDocumentTitle,
   writeJoinPath,
   writeRelativeToWorkspace
 } from '../../write/write-workspace-store'
@@ -97,7 +100,7 @@ export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
     const explicitParent = parentDirectory?.trim()
     const parent = explicitParent || defaultParentDirectory()
     const relativeParent = writeRelativeToWorkspace(root, parent)
-    const baseName = kind === 'file' ? 'untitled.md' : 'new-folder'
+    const baseName = kind === 'file' ? '未命名文稿' : '新建文件夹'
     const suggested = explicitParent
       ? baseName
       : relativeParent === writeBasenameFromPath(root)
@@ -125,7 +128,8 @@ export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
   }
 
   const openRenameEntryDialog = (entry: WorkspaceEntry): void => {
-    setEntryDialog({ kind: 'rename', entry, value: entry.name })
+    const value = entry.type === 'file' && writeDocumentExtension(entry.name) ? writeDocumentTitle(entry.name) : entry.name
+    setEntryDialog({ kind: 'rename', entry, value })
   }
 
   const openDeleteEntryDialog = (entry: WorkspaceEntry): void => {
@@ -146,11 +150,13 @@ export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
     if (!value) return
 
     if (entryDialog.kind === 'rename') {
-      if (value === entryDialog.entry.name) {
+      const extension = entryDialog.entry.type === 'file' ? writeDocumentExtension(entryDialog.entry.name) : ''
+      const nextName = extension ? writeDocumentFileName(value, extension) : value
+      if (nextName === entryDialog.entry.name) {
         setEntryDialog(null)
         return
       }
-      const renamed = await renameEntry(workspaceRoot, entryDialog.entry.path, value)
+      const renamed = await renameEntry(workspaceRoot, entryDialog.entry.path, nextName)
       if (renamed) setEntryDialog(null)
       return
     }
@@ -160,7 +166,7 @@ export function WriteFilesPanel({ onCollapse }: Props): ReactElement {
       entryDialog.parentDirectory
     )
     const created = entryDialog.kind === 'create-file'
-      ? await createFile(workspaceRoot, writeJoinPath(parent, value))
+      ? await createFile(workspaceRoot, writeJoinPath(parent, writeDocumentFileName(value)))
       : await createDirectory(workspaceRoot, writeJoinPath(parent, value))
     if (created) setEntryDialog(null)
   }

@@ -160,6 +160,24 @@ export function withResolvedInlineCompletionSettings(
   }
 }
 
+const WRITE_DOCUMENT_EXTENSION = /\.(md|markdown|txt)$/i
+
+/** A document's title as teachers see it: the file name without its .md, .markdown or .txt extension. */
+export function writeDocumentTitle(fileName: string): string {
+  return fileName.replace(WRITE_DOCUMENT_EXTENSION, '') || fileName
+}
+
+/** The file name for a document title, adding the extension unless the title already ends in one. */
+export function writeDocumentFileName(title: string, extension = '.md'): string {
+  const trimmed = title.trim()
+  return WRITE_DOCUMENT_EXTENSION.test(trimmed) ? trimmed : `${trimmed}${extension}`
+}
+
+/** The document extension of a file name, such as ".md", or an empty string for other files. */
+export function writeDocumentExtension(fileName: string): string {
+  return WRITE_DOCUMENT_EXTENSION.exec(fileName)?.[0] ?? ''
+}
+
 export function writeBasenameFromPath(value: string): string {
   const normalized = normalizePath(value)
   const parts = normalized.split('/').filter(Boolean)

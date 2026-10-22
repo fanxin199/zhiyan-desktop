@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, FileText, FilePlus2, Folder, FolderPlus, Ima
 import { useTranslation } from 'react-i18next'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import { isWriteImageFileExtension, isWriteWorkspaceEntry } from '@shared/write-text-file'
+import { writeDocumentTitle } from '../../write/write-workspace-store'
 import {
   SidebarIconButton,
   SidebarSectionHeader,
@@ -177,7 +178,7 @@ export function WriteFileTree({
             ) : (
               <FileText className={`h-3.5 w-3.5 shrink-0 ${selected ? 'text-accent' : 'text-ds-faint/90'}`} strokeWidth={1.8} />
             )}
-            <span className="min-w-0 flex-1 truncate">{entry.name}</span>
+            <span className="min-w-0 flex-1 truncate">{isDirectory ? entry.name : writeDocumentTitle(entry.name)}</span>
             {loading ? (
               <span className="shrink-0 text-caption text-ds-faint">{t('writeLoadingShort')}</span>
             ) : null}

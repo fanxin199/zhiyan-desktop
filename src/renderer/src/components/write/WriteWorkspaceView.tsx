@@ -13,6 +13,7 @@ import {
   type WritePreviewMode,
   type WriteSaveStatus,
   writeBasenameFromPath,
+  writeDocumentTitle,
   writeJoinPath
 } from '../../write/write-workspace-store'
 import { getWriteRenderSafety } from '../../write/write-render-safety'
@@ -127,7 +128,7 @@ export function WriteWorkspaceView({
   const selectionActionActive = Boolean(selectionAction)
   const selectionActionLeft = selectionAction?.left
   const selectionActionTop = selectionAction?.top
-  const activeFileName = activeFilePath ? writeBasenameFromPath(activeFilePath) : t('writeStudio')
+  const activeFileName = activeFilePath ? writeDocumentTitle(writeBasenameFromPath(activeFilePath)) : t('writeStudio')
   const workspacePathLabel = rootDirectory || workspaceRoot
   const workspaceName = workspacePathLabel ? writeBasenameFromPath(workspacePathLabel) : t('writeWorkspace')
   const exportInFlight = exportingFormat !== null

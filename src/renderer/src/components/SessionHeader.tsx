@@ -7,6 +7,7 @@ import { useChatStore } from '../store/chat-store'
 import { formatRelativeTime } from '../lib/format-relative-time'
 import { formatCompactNumber, formatCost, formatPercent, useThreadUsage } from '../hooks/use-thread-usage'
 import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
+import { recentThreadTitle } from './zhiyan/ZhiYanDashboard'
 
 type Props = {
   compact?: boolean
@@ -33,6 +34,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
   const [teacherProjects, setTeacherProjects] = useState<TeacherProjectSettingsV1[]>([])
 
   const active = threads.find((th) => th.id === activeThreadId)
+  const activeTitle = active ? recentThreadTitle(active) ?? active.title : ''
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const showFullTechnicalMetrics = shouldShowTechnicalMetrics(compact, showTechnicalMetrics)
@@ -101,9 +103,9 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
           <div className="min-w-0 flex-1">
             <div
               className="truncate text-small font-semibold leading-[18px] tracking-[-0.01em] text-ds-ink opacity-95"
-              title={active.title}
+              title={activeTitle}
             >
-              {active.title}
+              {activeTitle}
             </div>
             <div className="session-header-compact-meta flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption leading-[15px] text-ds-faint">
               {activeProjectLabel ? (

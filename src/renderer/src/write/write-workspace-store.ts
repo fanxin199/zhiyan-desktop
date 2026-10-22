@@ -34,7 +34,15 @@ import {
   writeRelativeToWorkspace
 } from './write-workspace-store-helpers'
 export type { WriteActiveFileKind, WritePreviewMode, WriteSaveStatus, WriteWorkspaceState } from './write-workspace-store-types'
-export { writeBasenameFromPath, writeDirnameFromPath, writeJoinPath, writeRelativeToWorkspace } from './write-workspace-store-helpers'
+export {
+  writeBasenameFromPath,
+  writeDirnameFromPath,
+  writeDocumentExtension,
+  writeDocumentFileName,
+  writeDocumentTitle,
+  writeJoinPath,
+  writeRelativeToWorkspace
+} from './write-workspace-store-helpers'
 
 const MAX_ANIMATED_EXTERNAL_SYNC_CHARS = 120_000
 
