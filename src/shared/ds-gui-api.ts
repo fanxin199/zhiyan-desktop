@@ -60,6 +60,7 @@ import type {
   ArtifactUpdateInput,
   ArtifactVersion
 } from './artifact'
+import type { RevisionOutcome, RevisionRequest } from './artifact-revision'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -217,6 +218,8 @@ export type DsGuiApi = {
   listArtifactVersions: (id: string) => Promise<ArtifactVersion[]>
   /** Writes an earlier version back and saves it as a new version. */
   restoreArtifactVersion: (id: string, version: number) => Promise<ArtifactVersion>
+  /** “说一句就改”: rewrites the chosen part with the AI and saves it as a new version. */
+  reviseArtifact: (request: RevisionRequest) => Promise<RevisionOutcome>
   extractPdfRange: (
     path: string,
     pageStart: number,

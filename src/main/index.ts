@@ -39,6 +39,7 @@ import { resolveKunMcpJsonPath } from './kun-config-path'
 import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
 import { ArtifactRegistry } from './services/artifact-service'
 import { ArtifactVersionStore } from './services/artifact-version-service'
+import { ArtifactRevisionService } from './services/artifact-revision-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -763,10 +764,16 @@ app.whenReady().then(async () => {
   }
 
   const artifactRegistry = new ArtifactRegistry({ dataDirectory: app.getPath('userData') })
+  const artifactVersions = new ArtifactVersionStore({ registry: artifactRegistry })
   registerAppIpcHandlers({
     store,
     artifactRegistry,
-    artifactVersions: new ArtifactVersionStore({ registry: artifactRegistry }),
+    artifactVersions,
+    artifactRevisions: new ArtifactRevisionService({
+      registry: artifactRegistry,
+      versions: artifactVersions,
+      loadSettings: () => store.load()
+    }),
     getMainWindow: () => mainWindow,
     applySettingsPatch,
     runtimeRequest: async (path, method, body) => {

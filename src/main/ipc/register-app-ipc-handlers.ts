@@ -52,6 +52,7 @@ import {
   artifactCreateVersionPayloadSchema,
   artifactIdPayloadSchema,
   artifactRestoreVersionPayloadSchema,
+  artifactRevisionPayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -112,6 +113,7 @@ import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
 import type { ArtifactRegistry } from '../services/artifact-service'
 import type { ArtifactVersionStore } from '../services/artifact-version-service'
+import type { ArtifactRevisionService } from '../services/artifact-revision-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -148,6 +150,7 @@ type RegisterAppIpcHandlersOptions = {
   store: JsonSettingsStore
   artifactRegistry: Pick<ArtifactRegistry, 'register' | 'update' | 'get' | 'list'>
   artifactVersions: Pick<ArtifactVersionStore, 'createVersion' | 'listVersions' | 'restoreVersion'>
+  artifactRevisions: Pick<ArtifactRevisionService, 'revise'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -254,6 +257,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     store,
     artifactRegistry,
     artifactVersions,
+    artifactRevisions,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -740,6 +744,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('artifact:restore-version', artifactRestoreVersionPayloadSchema, payload)
     await requireArtifactWorkspace(request.id)
     return artifactVersions.restoreVersion(request)
+  })
+  ipcMain.handle('artifact:revise', async (_, payload: unknown) => {
+    const request = parseIpcPayload('artifact:revise', artifactRevisionPayloadSchema, payload)
+    await requireArtifactWorkspace(request.artifactId)
+    return artifactRevisions.revise(request)
   })
 
   ipcMain.handle(

@@ -84,6 +84,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
       listVersions: vi.fn(async () => []),
       restoreVersion: vi.fn()
     } as never,
+    artifactRevisions: { revise: vi.fn() } as never,
     getMainWindow: () => null,
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,
@@ -375,7 +376,7 @@ describe('registerAppIpcHandlers', () => {
     }
   })
 
-  it('saves and restores versions only while the artifact workspace is authorized', async () => {
+  it('saves, restores and revises artifacts only while their workspace is authorized', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'zhiyan-artifact-version-ipc-'))
     try {
       const workspace = join(dir, 'workspace')
@@ -388,9 +389,11 @@ describe('registerAppIpcHandlers', () => {
       })
       const artifactVersions = new ArtifactVersionStore({ registry: artifactRegistry })
       let configuredRoot = workspace
+      const revise = vi.fn(async () => ({ ok: true }))
       registerAppIpcHandlers(registerOptions({
         artifactRegistry,
         artifactVersions,
+        artifactRevisions: { revise } as never,
         store: { load: vi.fn(async () => ({ ...settings(), workspaceRoot: configuredRoot })) } as never
       }))
 
@@ -402,9 +405,20 @@ describe('registerAppIpcHandlers', () => {
       })).rejects.toThrow()
       await expect(handlers.get('artifact:list-versions')?.({}, { id: artifact.id })).resolves.toHaveLength(1)
 
+      await expect(handlers.get('artifact:revise')?.({}, {
+        artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: '润色'
+      })).resolves.toEqual({ ok: true })
+      await expect(handlers.get('artifact:revise')?.({}, {
+        artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: ''
+      })).rejects.toThrow()
+
       configuredRoot = join(dir, 'elsewhere')
       await expect(handlers.get('artifact:restore-version')?.({}, { id: artifact.id, version: 1 }))
         .rejects.toThrow(/workspace must be selected or configured/iu)
+      await expect(handlers.get('artifact:revise')?.({}, {
+        artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: '润色'
+      })).rejects.toThrow(/workspace must be selected or configured/iu)
+      expect(revise).toHaveBeenCalledOnce()
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

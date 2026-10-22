@@ -437,9 +437,9 @@ type TeacherPreference = {
 
 #### Task 1.3 · 说一句就改
 
-- [ ] **1.3.1** 在 `src/shared/` 定义 §6.2 的类型；主进程新增 `artifact-revision-service.ts`，走结构化生成通道，复用 `provider-retry.ts`。
+- [x] **1.3.1** 在 `src/shared/` 定义 §6.2 的类型；主进程新增 `artifact-revision-service.ts`，走结构化生成通道，复用 `provider-retry.ts`。类型在 `src/shared/artifact-revision.ts`；`section` 范围可附标题、`selection` 范围可附选中原文，用于在老师随后又改过时重新定位；结果比 §6.2 多 `undoVersion`（撤销即恢复到它）、`rebased` 和 `discardedOutsideScope`。新增结构化生成通道 `src/main/services/structured-generation.ts`（zod 校验、一次自动修复、`provider-retry`），`artifact-revision-service.ts` 走该通道；课件、教材两个服务里原有的同类代码暂未迁移。目前支持文本类成果（全文、按 Markdown 标题划分的小节、选区），课件页与图表返回“请在对应页面修改”。IPC：`artifact:revise`（要求成果所在工作区已授权）。
 - [ ] **1.3.2** 新增按字 / 按词的文字比较高亮组件；AI 栏显示修改摘要和“保留 / 撤销”。
-- [ ] **1.3.3** 实现 §6.2 的三条守卫并补测试。
+- [x] **1.3.3** 实现 §6.2 的三条守卫并补测试。守卫一：只把改写结果拼回所选范围；小节改写若带出同级或更高级的下一个标题，从该处起丢弃并标记 `discardedOutsideScope`，AI 漏掉的小节标题会补回。守卫二：范围外文字原样保留，修改前先把当前内容（含老师的手改）存为版本，撤销回到它而不是 AI 初稿。守卫三：老师在提问后又改过时，按最新内容执行——小节按标题、选区按原文重新定位，找不到或不唯一则不调用模型、提示重新选择。`artifact-revision-service.test.ts` 覆盖三条守卫、撤销、缺少 API Key 和不支持的范围；`text-diff.test.ts` 覆盖差异计算。
 
 #### Task 1.4 · 文稿（合并写作入口）
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 1.2 全部完成。下一项为 Task 1.3.1（说一句就改：类型与修改服务）。Task 0.6.1 仍差自由写作台的 README 截图。**
+当前执行任务：**Task 1.3.1、1.3.3 已完成。下一项为 Task 1.3.2（文字比较高亮与保留 / 撤销）。Task 0.6.1 仍差自由写作台的 README 截图。**

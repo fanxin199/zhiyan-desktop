@@ -50,6 +50,7 @@ import {
   artifactRegisterInputSchema,
   artifactUpdateInputSchema
 } from '../../shared/artifact'
+import { revisionRequestSchema } from '../../shared/artifact-revision'
 import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
@@ -888,6 +889,7 @@ export const artifactListPayloadSchema = artifactListInputSchema
 export const artifactIdPayloadSchema = artifactIdInputSchema
 export const artifactCreateVersionPayloadSchema = artifactCreateVersionInputSchema
 export const artifactRestoreVersionPayloadSchema = artifactRestoreVersionInputSchema
+export const artifactRevisionPayloadSchema = revisionRequestSchema
 
 export const logErrorPayloadSchema = z
   .object({

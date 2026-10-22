@@ -62,6 +62,8 @@ const api = {
     ipcRenderer.invoke('artifact:list-versions', { id }),
   restoreArtifactVersion: (id, version) =>
     ipcRenderer.invoke('artifact:restore-version', { id, version }),
+  reviseArtifact: (request) =>
+    ipcRenderer.invoke('artifact:revise', request),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>
