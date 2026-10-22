@@ -39,7 +39,8 @@ describe('ZhiYanModulePages research task entries', () => {
       expect(html).toContain('选择任务类型')
       expect(html).toContain('添加本地文件')
       expect(html).toContain('可点选示例填入上方输入框')
-      expect(html).toContain('核心功能特点')
+      expect(html).not.toContain('核心功能特点')
+      expect(html).not.toContain('快捷任务入口')
     }
 
     expect(pages[0]).toContain('发送写作任务')
@@ -47,6 +48,22 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(pages[2]).toContain('发送综述任务')
     expect(pages[3]).toContain('发送基金任务')
     expect(pages[4]).toContain('发送分析任务')
+  })
+
+  it('offers at most three examples on each research module page', () => {
+    const configs = [PAPER_CONFIG, LITERATURE_CONFIG, REVIEW_CONFIG, GRANT_CONFIG, BIOINFORMATICS_CONFIG]
+    const pages = [PaperPolishPage, LiteraturePage, ReviewWritingPage, GrantWritingPage, BioinformaticsPage]
+
+    for (const config of configs) {
+      expect(config.quickPrompts.length).toBeLessThanOrEqual(3)
+    }
+    for (const page of pages) {
+      const html = renderToStaticMarkup(createElement(page, { onStartChat: noop }))
+      const examples = html.slice(html.indexOf('可点选示例填入上方输入框')).split('</section>')[0]
+      const count = (examples.match(/<button/g) ?? []).length
+      expect(count).toBeGreaterThan(0)
+      expect(count).toBeLessThanOrEqual(3)
+    }
   })
 
   it('does not render a duplicate write desk entry in research task cards', () => {

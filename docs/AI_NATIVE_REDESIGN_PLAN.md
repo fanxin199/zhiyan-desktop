@@ -399,7 +399,7 @@ type TeacherPreference = {
 
 - [x] **0.2.1** 新增 `PageHeader` 组件（图标、标题、一句说明、右侧操作区）和 `PageColumn` 内容列，替换 `ModulePageShell`、`SyllabusPage`、`CoursewarePage`、`TextbookWorkbenchPage`、`FileManagerWorkspacePage` 各自的页头，统一内容宽度：左右留白 32px，开始态内容 720px，课件、教材、文件管理等工作页 1152px；教材页的步骤条随内容列对齐，文件管理页去掉通栏白底页头。图标色块按注册表分区取教学、科研或中性色，与首页卡片共用 `ICON_TONE_CLASSES`（`tone` 直接使用分区 id，供 Task 0.2.2 接入注册表）。课件页标题由宣传语改为“课件 PPT 生成”，文件管理页说明改为一句话（路径仍显示在下方路径栏），文本写作和综述页的模块提示移到任务卡上方；删除未使用的 `PPT_CONFIG`、`TEXTBOOK_CONFIG`。新增 `PageHeader.test.ts`，渲染这五个页面，断言每页只有一个标题且位于统一页头，内容宽度只取 720px 或 1152px。
 - [x] **0.2.2** 页面图标统一取自 `zhiyan-module-registry.ts`，删除各 `*_CONFIG.icon`：`PageHeader` 改为接收注册表 id（`module`），由注册表提供图标和分区色，模块配置以 `moduleId` 代替 `icon` 与 `tone`。综述页图标由 `Search` 改为 `ScrollText`、基金页由 `PenTool` 改为 `Award`，与侧栏和首页一致。`PageHeader.test.ts` 扩展到九个工具页，断言页头图标与注册表一致。
-- [ ] **0.2.3** 删除模块页的“核心功能特点”区块（`config.features`）；示例最多保留 3 条。
+- [x] **0.2.3** 删除模块页的“核心功能特点”区块（`config.features`）；示例最多保留 3 条。同时删除不可达的“快捷任务入口”兜底区块，`taskEntry` 改为必填，保证每个模块页都有一句话输入框；五个科研模块的示例原本就是 3 条。`ZhiYanModulePages.test.ts` 断言模块页不再出现这两个区块，且每页示例不超过 3 条。
 
 #### Task 0.3 · 主导航不再被替换
 
@@ -597,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.2.2 已完成。下一项为 Task 0.2.3（删除模块页“核心功能特点”区块，示例最多 3 条）。**
+当前执行任务：**Task 0.2.3 已完成，Task 0.2 全部完成。下一项为 Task 0.3.1（设置改为覆盖层）。**

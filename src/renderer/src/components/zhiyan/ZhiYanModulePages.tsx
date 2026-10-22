@@ -268,13 +268,9 @@ type ModuleConfig = {
   title: string
   subtitle: string
   moduleNotice?: string
-  features: Array<{
-    title: string
-    description: string
-  }>
   quickPrompts: string[]
   dataGuide?: ModuleDataGuide
-  taskEntry?: ResearchTaskEntryConfig
+  taskEntry: ResearchTaskEntryConfig
   inlineConversationModule?: InlineModuleId
   comingSoon?: boolean
 }
@@ -1032,52 +1028,6 @@ function ModulePageShell({
             {showInlineConversation && inlineConversation ? (
               <div ref={conversationRef}>{inlineConversation}</div>
             ) : null}
-
-            {/* Features Grid */}
-            {config.features && config.features.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-body leading-5 font-semibold text-accent flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
-                  核心功能特点
-                </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {config.features.map((feature, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded-xl border border-ds-border-muted bg-ds-card p-4 space-y-1 hover:border-accent/30 hover:shadow-sm transition-all"
-                    >
-                      <h4 className="text-body font-semibold text-ds-text">{feature.title}</h4>
-                      <p className="text-small text-ds-muted">{feature.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Quick Prompts */}
-            {!config.taskEntry && config.quickPrompts && config.quickPrompts.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-body leading-5 font-semibold text-accent flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
-                  快捷任务入口
-                </h3>
-                <div className="space-y-2.5">
-                  {config.quickPrompts.map((prompt, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => onStartChat(prompt)}
-                      className="w-full text-left rounded-xl border border-ds-border-muted bg-ds-card px-4 py-3 text-body text-ds-text hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm flex items-center justify-between group"
-                    >
-                      <span className="truncate pr-4">{prompt}</span>
-                      <span className="text-ds-faint group-hover:text-accent font-medium text-caption shrink-0 transition-colors flex items-center gap-1">
-                        立即执行 &rarr;
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </PageColumn>
@@ -1130,12 +1080,6 @@ export const PAPER_CONFIG: ModuleConfig = {
       '明确区分用户数据、文献事实、机制推断和待验证假设。'
     ]
   },
-  features: [
-    { title: '写作蓝图', description: '先固定科学问题、核心假说、研究目的和术语表，再开始写作' },
-    { title: '逐段写作', description: '每次只处理一个部分，自动承接上一节并限制下一节内容' },
-    { title: '断点续写', description: '用进度摘要记录进度、已完成小节和下一步，避免跨对话写偏' },
-    { title: '证据边界', description: '区分用户数据、文献事实、机制推断和待验证假设' }
-  ],
   quickPrompts: [
     '请先帮我建立一个基金/论文写作蓝图：包括项目主线、科学问题、核心假说、研究目的、术语表和各章节写作边界。确认后再逐段写作。',
     '帮我按上下文逐段优化这篇英文论文。每处理一个 Results 或 Discussion 小节前都要读取全文主线、上一节摘要和本节目的，完成后生成本节摘要卡片。',
@@ -1187,12 +1131,6 @@ export const LITERATURE_CONFIG: ModuleConfig = {
       '如果只能基于摘要或元数据总结，必须明确说明证据来源限制。'
     ]
   },
-  features: [
-    { title: '文献精读', description: '围绕科学问题、模型、方法、结果、图表和局限性拆解单篇论文' },
-    { title: '图表解读', description: '先读全文和图注，再逐图解释证据链，而不是只概括摘要' },
-    { title: '汇报 PPT', description: '将论文转化为研究生组会或课题组汇报的页面结构' },
-    { title: '按需核实', description: '仅在检索最新文献或明确要求时联网核实外部信息' }
-  ],
   quickPrompts: [
     '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论和局限性整理。',
     '请把这篇文献做成研究生组会汇报 PPT 大纲，包含背景、科学问题、每个主图的讲解、创新点、局限性和讨论问题。',
@@ -1245,12 +1183,6 @@ export const REVIEW_CONFIG: ModuleConfig = {
       '不得编造参考文献或把文献相关性写成因果机制。'
     ]
   },
-  features: [
-    { title: '主题框架', description: '从研究问题生成综述章节结构与论证主线' },
-    { title: '证据组织', description: '按机制、模型、疾病场景和技术路线整理文献' },
-    { title: '初稿生成', description: '生成符合生物医学期刊风格的综述段落' },
-    { title: '争议梳理', description: '明确证据等级、替代解释和未解决问题' }
-  ],
   quickPrompts: [
     '帮我设计一篇关于细胞衰老与组织纤维化的综述蓝图，先明确中心论点、章节逻辑和每节边界。',
     '围绕神经炎症、突触可塑性与认知障碍整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
@@ -1308,12 +1240,6 @@ export const GRANT_CONFIG: ModuleConfig = {
       '关键文献论点尽量补 PMID/DOI；无法核实时明确标注。'
     ]
   },
-  features: [
-    { title: '立项依据', description: '建立科学问题、研究现状、创新点之间的证据链' },
-    { title: '研究内容', description: '拆解目标、假说、关键实验和预期结果' },
-    { title: '技术路线', description: '把实验设计转化为清晰可执行的路线图' },
-    { title: '风险替代', description: '补充技术风险、替代方案和可行性论证' }
-  ],
   quickPrompts: [
     '请先为我的国自然项目建立项目蓝图：题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。',
     '在已确认项目蓝图的基础上，只撰写立项依据部分。要求围绕研究主线展开，关键论点补充 PMID，写完后暂停等待我确认。',
@@ -1391,12 +1317,6 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
       '默认从整理后的数据开始，不从原始 FASTQ 开始。'
     ]
   },
-  features: [
-    { title: 'bulk mRNA 下游可视化', description: '从表达矩阵、分组表或差异结果生成 PCA、火山图、热图和富集图' },
-    { title: '单细胞下游可视化', description: '从 h5ad/注释表/marker 表生成 UMAP、比例图、dotplot 和 violin 图' },
-    { title: '生物医学解释框架', description: '支持细胞类型、通路变化、疾病机制和干预响应等多类研究问题' },
-    { title: '可复现交付', description: '输出图表、参数、代码、结果解释和可能陷阱，不从原始 FASTQ 开始' }
-  ],
   quickPrompts: [
     '我有整理好的 bulk mRNA 差异分析结果表。请先检查列名和阈值，再生成火山图、差异基因热图、GO/KEGG 富集图和生物医学解释报告。',
     '我有整理好的单细胞 h5ad 或细胞注释表。请做下游可视化：UMAP、细胞比例、主要细胞群 marker dotplot、violin 图，并说明哪些结论只是转录特征推断。',
