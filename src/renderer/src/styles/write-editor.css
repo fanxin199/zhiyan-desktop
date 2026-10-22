@@ -76,6 +76,12 @@ summary,
   -webkit-app-region: no-drag;
 }
 
+/* Text the AI just added (§6.2). */
+.cm-ai-change {
+  background-color: var(--ds-success-soft);
+  border-radius: 2px;
+}
+
 .cm-inline-completion {
   color: color-mix(in srgb, var(--ds-text-faint) 82%, transparent);
   pointer-events: none;

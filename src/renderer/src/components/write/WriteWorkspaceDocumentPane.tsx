@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { WriteInlineCompletionSettingsV1 } from '@shared/app-settings'
 import type { WriteRenderSafety } from '../../write/write-render-safety'
 import type { WriteRecentEdit } from '../../write/recent-edits'
+import type { TextRange } from '../../write/ai-change-highlight'
 import type { WriteEditorSelectionState } from './WriteMarkdownEditor'
 import { WriteMarkdownEditor } from './WriteMarkdownEditor'
 import { WriteMarkdownPreview } from './WriteMarkdownPreview'
@@ -34,6 +35,7 @@ type Props = {
   inlineCompletion: WriteInlineCompletionSettingsV1
   inlineCompletionApiReady: boolean
   recentEdits: WriteRecentEdit[]
+  aiChangeHighlights?: TextRange[]
   editorPaneRef: RefObject<HTMLDivElement | null>
   previewPaneRef: RefObject<HTMLDivElement | null>
   onAskAssistant: () => void
@@ -74,6 +76,7 @@ export function WriteWorkspaceDocumentPane({
   inlineCompletion,
   inlineCompletionApiReady,
   recentEdits,
+  aiChangeHighlights,
   editorPaneRef,
   previewPaneRef,
   onAskAssistant,
@@ -172,6 +175,7 @@ export function WriteWorkspaceDocumentPane({
               completionLongDebounceMs={inlineCompletion.longDebounceMs}
               completionLongMinAcceptScore={inlineCompletion.longMinAcceptScore}
               recentEdits={recentEdits}
+              aiChangeHighlights={aiChangeHighlights}
               onChange={onContentChange}
               onDocumentEdit={onDocumentEdit}
               onSelectionChange={onSelectionChange}

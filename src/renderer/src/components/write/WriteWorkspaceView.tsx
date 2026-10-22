@@ -28,6 +28,8 @@ import { useWriteSplitScrollSync } from './use-write-split-scroll-sync'
 import { WriteWorkspaceEmptyState } from './WriteWorkspaceEmptyState'
 import { WriteWorkspaceToolbar } from './WriteWorkspaceToolbar'
 import { WriteFilesPanel } from './WriteFilesPanel'
+import { ArtifactVersionMenu } from '../ai-work/ArtifactVersionMenu'
+import { recordArtifact } from '../../lib/artifact-records'
 import { WriteInlineAgent } from './WriteInlineAgent'
 import { WriteWorkspaceDocumentPane } from './WriteWorkspaceDocumentPane'
 import {
@@ -47,15 +49,13 @@ import {
 type Props = {
   leftSidebarCollapsed: boolean; onToggleLeftSidebar: () => void
   input: string; setInput: (value: string) => void
-  onSubmitPrompt?: (value: string) => void
 }
 
 export function WriteWorkspaceView({
   leftSidebarCollapsed,
   onToggleLeftSidebar,
   input,
-  setInput,
-  onSubmitPrompt
+  setInput
 }: Props): ReactElement {
   const { t } = useTranslation('common')
   const ensureWriteThreadForWorkspace = useChatStore((s) => s.ensureWriteThreadForWorkspace)
@@ -80,6 +80,8 @@ export function WriteWorkspaceView({
     filesPanelOpen,
     selection,
     recentEdits,
+    aiChangeHighlights,
+    activeArtifact,
     loadWriteSettings,
     addWriteWorkspace,
     setFileContent,
@@ -166,19 +168,34 @@ export function WriteWorkspaceView({
     setInput(input.trim() ? `${input.trim()}\n\n${prompt}` : prompt)
   }
 
+  // Enter in the selection toolbar asks the AI panel to change the selection (说一句就改).
   const submitInlineAgent = (prompt: string): void => {
     const trimmed = prompt.trim()
     if (!trimmed || !workspaceReady || !activeFilePath) return
-    quoteCurrentSelection(workspaceRoot)
-    setAssistantOpen(true)
     setInlineAgentValue('')
     setInlineAgentOpen(false)
-    if (onSubmitPrompt) {
-      onSubmitPrompt(trimmed)
-      return
-    }
-    setInput(input.trim() ? `${input.trim()}\n\n${trimmed}` : trimmed)
+    useWriteWorkspaceStore.getState().requestRevision(trimmed)
   }
+
+  // Register the open document so its versions and “说一句就改” are available.
+  useEffect(() => {
+    const store = useWriteWorkspaceStore.getState()
+    store.setActiveArtifact(null)
+    store.setAiChangeHighlights([])
+    if (!workspaceReady || !activeFilePath || !activeFileIsText) return
+    let active = true
+    void recordArtifact({
+      kind: 'document',
+      title: writeDocumentTitle(writeBasenameFromPath(activeFilePath)),
+      toolId: 'write',
+      workspaceRoot,
+      storage: { type: 'file', path: activeFilePath },
+      ifMissing: true
+    }).then((artifact) => {
+      if (active && artifact) store.setActiveArtifact({ id: artifact.id, currentVersion: artifact.currentVersion })
+    })
+    return () => { active = false }
+  }, [activeFileIsText, activeFilePath, workspaceReady, workspaceRoot])
 
   const submitInlineEdit = async (prompt: string): Promise<void> => {
     const trimmed = prompt.trim()
@@ -568,6 +585,17 @@ export function WriteWorkspaceView({
         onExportFile={(format) => void exportCurrentFile(format)}
         onShowFilesPanel={() => setFilesPanelOpen(true)}
         onToggleLeftSidebar={onToggleLeftSidebar}
+        versionMenu={activeArtifact ? (
+          <ArtifactVersionMenu
+            artifactId={activeArtifact.id}
+            onRestored={(version) => {
+              const store = useWriteWorkspaceStore.getState()
+              store.setAiChangeHighlights([])
+              store.setActiveArtifact({ id: activeArtifact.id, currentVersion: version.version })
+              void store.syncActiveFileFromDisk(workspaceRoot, { force: true, animate: false })
+            }}
+          />
+        ) : null}
       />
       <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden pb-3 pt-3">
         {filesPanelOpen ? (
@@ -601,6 +629,7 @@ export function WriteWorkspaceView({
             inlineCompletion={inlineCompletion}
             inlineCompletionApiReady={inlineCompletionApiReady}
             recentEdits={recentEdits}
+            aiChangeHighlights={aiChangeHighlights}
             editorPaneRef={editorPaneRef}
             previewPaneRef={previewPaneRef}
             onAskAssistant={() => setAssistantPrompt(t('writeStartAskAiPrompt'))}

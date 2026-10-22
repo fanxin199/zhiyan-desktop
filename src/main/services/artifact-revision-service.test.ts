@@ -13,7 +13,13 @@ import {
 import { splitMarkdownSections } from '../../shared/artifact-revision'
 import { ArtifactRegistry } from './artifact-service'
 import { ArtifactVersionStore } from './artifact-version-service'
-import { ArtifactRevisionService, confineSectionRevision, resolveRevisionScope } from './artifact-revision-service'
+import {
+  ArtifactRevisionService,
+  WHOLE_DOCUMENT_BATCH_CHARS,
+  batchedWholeDocumentParts,
+  confineSectionRevision,
+  resolveRevisionScope
+} from './artifact-revision-service'
 
 const LESSON = [
   '# 第八章 呼吸',
@@ -188,6 +194,36 @@ describe('ArtifactRevisionService', () => {
     await expect(service.revise({ artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: '润色' }))
       .resolves.toMatchObject({ ok: false, code: 'MISSING_API_KEY' })
     expect(await readFile(path, 'utf8')).toBe(LESSON)
+  })
+})
+
+describe('whole-document revisions of long documents', () => {
+  it('revises section by section and saves one version', async () => {
+    const paragraph = '肺通气是指肺与外界环境之间的气体交换过程。'.repeat(200)
+    const long = `# 呼吸生理综述\n\n${paragraph}\n\n## 一、肺通气\n${paragraph}\n\n## 二、肺换气\n${paragraph}\n`
+    expect(long.length).toBeGreaterThan(WHOLE_DOCUMENT_BATCH_CHARS)
+    const replies = [
+      { summary: '精简开头', revised: '# 呼吸生理综述\n\n本文概述呼吸生理。' },
+      { summary: '精简第一节', revised: '## 一、肺通气\n肺通气由呼吸肌驱动。' },
+      { summary: '精简第二节', revised: '## 二、肺换气\n肺换气依赖分压差。' }
+    ]
+    const { path, artifact, versions, service, fetcher } = await setup(replies[0], long)
+    fetcher.mockImplementation(async () => modelReply(replies[fetcher.mock.calls.length - 1]))
+
+    const outcome = await service.revise({ artifactId: artifact.id, baseVersion: 1, scope: { type: 'whole' }, instruction: '全文精简' })
+
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(outcome).toMatchObject({ ok: true, value: { summary: '逐节修改了 3 节', newVersion: 2, undoVersion: 1 } })
+    if (outcome.ok) expect(outcome.value.changes.map((change) => change.ref)).toEqual(['开头', '一、肺通气', '二、肺换气'])
+    expect(await readFile(path, 'utf8')).toBe(
+      '# 呼吸生理综述\n\n本文概述呼吸生理。\n\n## 一、肺通气\n肺通气由呼吸肌驱动。\n\n## 二、肺换气\n肺换气依赖分压差。\n'
+    )
+    expect((await versions.listVersions(artifact.id)).map((version) => version.version)).toEqual([2, 1])
+  })
+
+  it('revises short documents, or ones without sections, in one go', () => {
+    expect(batchedWholeDocumentParts(LESSON)).toBeNull()
+    expect(batchedWholeDocumentParts('长文没有小节。'.repeat(3000))).toBeNull()
   })
 })
 

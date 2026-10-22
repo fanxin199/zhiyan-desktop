@@ -13,6 +13,7 @@ import {
   buildWriteTermPropagationChanges,
   type WriteTermReplacementSeed
 } from '../../write/term-propagation'
+import { aiChangeHighlightExtension, setAiChangeHighlights, type TextRange } from '../../write/ai-change-highlight'
 
 export type WriteSelectionAnchorRect = {
   left: number
@@ -57,6 +58,8 @@ type Props = {
   completionLongDebounceMs: number
   completionLongMinAcceptScore: number
   recentEdits?: WriteRecentEdit[]
+  /** Text the AI just added, marked until the teacher keeps or undoes the change. */
+  aiChangeHighlights?: TextRange[]
   onChange: (value: string) => void
   onDocumentEdit?: (edits: WriteRecentEdit[]) => void
   onSelectionChange: (selection: WriteEditorSelectionState) => void
@@ -274,6 +277,8 @@ function buildPastedImageMarkdown(
   }
 }
 
+const NO_HIGHLIGHTS: TextRange[] = []
+
 export function WriteMarkdownEditor({
   value,
   workspaceRoot,
@@ -290,6 +295,7 @@ export function WriteMarkdownEditor({
   completionLongDebounceMs,
   completionLongMinAcceptScore,
   recentEdits = [],
+  aiChangeHighlights = NO_HIGHLIGHTS,
   onChange,
   onDocumentEdit,
   onSelectionChange,
@@ -408,6 +414,7 @@ export function WriteMarkdownEditor({
         history(),
         drawSelection(),
         highlightActiveLine(),
+        aiChangeHighlightExtension(),
         indentOnInput(),
         bracketMatching(),
         EditorView.lineWrapping,
@@ -571,6 +578,11 @@ export function WriteMarkdownEditor({
       )
     })
   }, [value])
+
+  // Runs after the value sync above, so the ranges refer to the new text.
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: setAiChangeHighlights.of(aiChangeHighlights) })
+  }, [aiChangeHighlights])
 
   return <div ref={hostRef} className="write-codemirror-host flex h-full min-h-0 w-full min-w-0" />
 }

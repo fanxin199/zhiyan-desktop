@@ -88,6 +88,9 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
   assistantModel: readStoredAssistantModel(),
   filesPanelOpen: readStoredFilesPanelOpen(),
   documentStart: null,
+  activeArtifact: null,
+  aiChangeHighlights: [],
+  revisionRequest: null,
 
   ...createWriteSettingsActions({ set, get }),
   ...createWriteFileActions({
@@ -340,6 +343,13 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
 
   openDocumentStart: (template) => set({ documentStart: template }),
   closeDocumentStart: () => set({ documentStart: null }),
+  setActiveArtifact: (artifact) => set({ activeArtifact: artifact }),
+  setAiChangeHighlights: (ranges) => set({ aiChangeHighlights: ranges }),
+  requestRevision: (instruction) => set((state) => ({
+    assistantOpen: true,
+    revisionRequest: { id: (state.revisionRequest?.id ?? 0) + 1, instruction }
+  })),
+  clearRevisionRequest: () => set({ revisionRequest: null }),
 
   setSelection: (selection) => set({ selection }),
 

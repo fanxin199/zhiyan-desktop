@@ -1,4 +1,4 @@
-import type { ReactElement, RefObject } from 'react'
+import type { ReactElement, ReactNode, RefObject } from 'react'
 import { AlertCircle, Check, ChevronDown, Copy, Download, FileCode2, FilePenLine, Loader2, PanelLeftOpen, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { WriteExportFormat } from '@shared/write-export'
@@ -38,6 +38,8 @@ type Props = {
   setExportMenuOpen: (open: boolean | ((open: boolean) => boolean)) => void
   setModeMenuOpen: (open: boolean | ((open: boolean) => boolean)) => void
   setPreviewMode: (mode: WritePreviewMode) => void
+  /** The document's version menu, once it is registered. */
+  versionMenu?: ReactNode
 }
 
 export function WriteWorkspaceToolbar({
@@ -64,7 +66,8 @@ export function WriteWorkspaceToolbar({
   setAssistantOpen,
   setExportMenuOpen,
   setModeMenuOpen,
-  setPreviewMode
+  setPreviewMode,
+  versionMenu
 }: Props): ReactElement {
   const { t } = useTranslation('common')
   return (
@@ -193,6 +196,7 @@ export function WriteWorkspaceToolbar({
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5">
+            {versionMenu ? <div className="mr-1">{versionMenu}</div> : null}
             <button
               type="button"
               onClick={() => setAssistantOpen(!assistantOpen)}

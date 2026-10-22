@@ -55,7 +55,7 @@ export function ModuleConversationPanel({
   setComposerModel,
   queuedMessages,
   removeQueuedMessage,
-  writeDraftActionLabel = '整理到自由写作台',
+  writeDraftActionLabel = '在文稿中编辑',
   canCreateWriteDraft = false,
   onCreateWriteDraft,
   onSend,

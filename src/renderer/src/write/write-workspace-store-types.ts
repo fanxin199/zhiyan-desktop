@@ -1,5 +1,6 @@
 import type { WriteInlineCompletionSettingsV1 } from '@shared/app-settings'
 import type { DocumentTemplateId } from '@shared/document-templates'
+import type { TextRange } from './ai-change-highlight'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import type { WriteEditorSelectionState } from '../components/write/WriteMarkdownEditor'
 import type { WriteQuotedSelection } from './quoted-selection'
@@ -38,6 +39,12 @@ export type WriteWorkspaceState = {
   filesPanelOpen: boolean
   /** The 文稿 start state is showing, with this template chosen; null shows the open document. */
   documentStart: DocumentTemplateId | null
+  /** The open document's registry entry, once registered. */
+  activeArtifact: { id: string; currentVersion: number } | null
+  /** Text the AI just added to the open document. */
+  aiChangeHighlights: TextRange[]
+  /** A “说一句就改” request from the selection toolbar, picked up by the AI panel. */
+  revisionRequest: { id: number; instruction: string } | null
   selection: WriteEditorSelectionState
   quotedSelections: WriteQuotedSelection[]
   recentEdits: WriteRecentEdit[]
@@ -76,6 +83,10 @@ export type WriteWorkspaceState = {
   setFilesPanelOpen: (open: boolean) => void
   openDocumentStart: (template: DocumentTemplateId) => void
   closeDocumentStart: () => void
+  setActiveArtifact: (artifact: { id: string; currentVersion: number } | null) => void
+  setAiChangeHighlights: (ranges: TextRange[]) => void
+  requestRevision: (instruction: string) => void
+  clearRevisionRequest: () => void
   setSelection: (selection: WriteEditorSelectionState) => void
   recordRecentEdits: (edits: WriteRecentEdit[]) => void
   quoteCurrentSelection: (workspaceRoot: string) => void

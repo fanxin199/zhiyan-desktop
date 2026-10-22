@@ -21,7 +21,6 @@ import {
   mergeComposerFileReferences,
   type ComposerFileContextEntry
 } from '../lib/composer-file-references'
-import { composeWritePrompt } from '../write/quoted-selection'
 import { recordArtifact } from '../lib/artifact-records'
 import { useWriteWorkspaceStore, writeJoinPath } from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
@@ -41,7 +40,7 @@ import { FloatingComposer, type ComposerFileReference } from './chat/FloatingCom
 import { SessionHeader } from './SessionHeader'
 import { RuntimeBanner } from './RuntimeBanner'
 import { SidebarTitlebarToggleButton } from './sidebar/SidebarPrimitives'
-import { WriteAssistantPanel } from './write/WriteAssistantPanel'
+import { DocumentAiPanel } from './documents/DocumentAiPanel'
 import { WriteWorkspaceView } from './write/WriteWorkspaceView'
 import { DocumentStartView } from './documents/DocumentStartView'
 import { ModuleConversationPanel } from './zhiyan/ModuleConversationPanel'
@@ -322,8 +321,6 @@ export function Workbench(): ReactElement {
     composerModelGroups,
     composerPickList,
     createThread,
-    createWriteThread,
-    ensureWriteThreadForWorkspace,
     error,
     interrupt,
     liveAssistant,
@@ -350,8 +347,6 @@ export function Workbench(): ReactElement {
     composerModelGroups: state.composerModelGroups,
     composerPickList: state.composerPickList,
     createThread: state.createThread,
-    createWriteThread: state.createWriteThread,
-    ensureWriteThreadForWorkspace: state.ensureWriteThreadForWorkspace,
     error: state.error,
     interrupt: state.interrupt,
     liveAssistant: state.liveAssistant,
@@ -385,10 +380,8 @@ export function Workbench(): ReactElement {
   const [inlineResearchTaskIds, setInlineResearchTaskIds] =
     useState<InlineResearchTaskIds>({})
   const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
-  const writeAssistantOpen = useWriteWorkspaceStore((state) => state.assistantOpen)
   const documentStart = useWriteWorkspaceStore((state) => state.documentStart)
   const activeWriteFilePath = useWriteWorkspaceStore((state) => state.activeFilePath)
-  const setWriteAssistantOpen = useWriteWorkspaceStore((state) => state.setAssistantOpen)
 
   const activeSkillWorkspace = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId)?.workspace || workspaceRoot || '',
@@ -528,34 +521,9 @@ export function Workbench(): ReactElement {
     return entries
   }
 
-  const sendWritePrompt = (value: string): void => {
-    const userPrompt = value.trim()
-    if (!userPrompt) return
-    const writeState = useWriteWorkspaceStore.getState()
-    const targetWorkspace = writeState.workspaceRoot || workspaceRoot
-    const prompt = composeWritePrompt(userPrompt, writeState.quotedSelections, {
-      workspaceRoot: targetWorkspace,
-      activeFilePath: writeState.activeFilePath
-    })
-    setInput('')
-    void (async () => {
-      const threadId = await ensureWriteThreadForWorkspace(targetWorkspace)
-      if (!threadId) {
-        setInput(userPrompt)
-        return
-      }
-      const sent = await sendMessage(prompt, 'agent')
-      if (sent) useWriteWorkspaceStore.getState().clearQuotedSelections()
-    })()
-  }
-
   const handleSend = (): void => {
     void (async () => {
       const userPrompt = input.trim()
-      if (route === 'write') {
-        sendWritePrompt(userPrompt)
-        return
-      }
       const attachmentIds = composerAttachments.map((attachment) => attachment.id)
       if (!userPrompt && attachmentIds.length === 0 && composerFileReferences.length === 0) return
       const fallbackPrompt = composerFileReferences.length > 0
@@ -711,7 +679,7 @@ export function Workbench(): ReactElement {
   const renderModuleConversation = (
     title: string,
     statusLabels?: { busy: string; ready: string },
-    writeDraft?: { moduleId: InlineModuleId; title: string; actionLabel?: string }
+    writeDraft?: { moduleId: InlineModuleId; title: string; actionLabel: string }
   ): ReactElement => (
     <ModuleConversationPanel
       title={title}
@@ -733,7 +701,7 @@ export function Workbench(): ReactElement {
       setComposerModel={setComposerModel}
       queuedMessages={queuedMessages}
       removeQueuedMessage={removeQueuedMessage}
-      writeDraftActionLabel={writeDraft?.actionLabel ?? '整理到自由写作台'}
+      writeDraftActionLabel={writeDraft?.actionLabel}
       canCreateWriteDraft={Boolean(
         writeDraft &&
         !busy &&
@@ -895,42 +863,8 @@ export function Workbench(): ReactElement {
                 onToggleLeftSidebar={() => setLeftSidebarCollapsed((value) => !value)}
                 input={input}
                 setInput={setInput}
-                onSubmitPrompt={sendWritePrompt}
               />
-              {writeAssistantOpen ? (
-                <div className="h-full w-[380px] shrink-0 border-l border-ds-border-muted">
-                  <WriteAssistantPanel
-                    input={input}
-                    setInput={setInput}
-                    mode={mode}
-                    setMode={setMode}
-                    busy={busy}
-                    runtimeConnection={runtimeConnection}
-                    activeThreadId={activeThreadId}
-                    blocks={blocks}
-                    liveReasoning={liveReasoning}
-                    liveAssistant={liveAssistant}
-                    composerModel={composerModel}
-                    composerPickList={composerPickList}
-                    composerModelGroups={composerModelGroups}
-                    setComposerModel={setComposerModel}
-                    queuedMessages={queuedMessages}
-                    removeQueuedMessage={removeQueuedMessage}
-                    onSend={handleSend}
-                    onInterrupt={(options) => void interrupt(options)}
-                    onRetryConnection={() => void probeRuntime('user')}
-                    onOpenSettings={() => openSettings('agents')}
-                    onNewConversation={() => {
-                      setInput('')
-                      void createWriteThread(
-                        useWriteWorkspaceStore.getState().workspaceRoot || workspaceRoot
-                      )
-                    }}
-                    onCollapse={() => setWriteAssistantOpen(false)}
-                    className="h-full max-h-full w-full"
-                  />
-                </div>
-              ) : null}
+              <DocumentAiPanel />
             </div>
           </>
         ) : (
