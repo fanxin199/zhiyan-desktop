@@ -12,11 +12,9 @@ import {
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
 import { recordArtifact } from '@renderer/lib/artifact-records'
-import type { AppSettingsV1, WritingBlueprintModuleContextV1 } from '@shared/app-settings'
+import type { AppSettingsV1 } from '@shared/app-settings'
 import { wrapUntrustedPromptMaterial } from '@shared/prompt-boundary'
 import {
-  buildImportedWritingBlueprintText,
-  loadRecentWritingBlueprint,
   moduleProjectIdFromDisplayText,
   persistModuleProjectContext
 } from '../../lib/module-context'
@@ -273,7 +271,6 @@ type ModuleConfig = {
   moduleId: ZhiYanSectionModuleId
   title: string
   subtitle: string
-  moduleNotice?: string
   quickPrompts: string[]
   dataGuide?: ModuleDataGuide
   taskEntry: ResearchTaskEntryConfig
@@ -417,7 +414,6 @@ function ResearchTaskEntry({
   const [error, setError] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isDraggingFileOver, setIsDraggingFileOver] = useState(false)
-  const [importableBlueprint, setImportableBlueprint] = useState<WritingBlueprintModuleContextV1 | null>(null)
   const consumedHandoffPathRef = useRef<string | null>(null)
   const researchModuleId = RESEARCH_TASK_MODULE_IDS.includes(
     config.inlineConversationModule as ResearchTaskModuleId
@@ -474,20 +470,6 @@ function ResearchTaskEntry({
     setRecentTask(next)
     persistResearchTaskCard(next)
   }, [recentTask, researchTaskExecution])
-
-  useEffect(() => {
-    if (config.inlineConversationModule !== 'review-writing') {
-      setImportableBlueprint(null)
-      return
-    }
-    let cancelled = false
-    void loadRecentWritingBlueprint().then((blueprint) => {
-      if (!cancelled) setImportableBlueprint(blueprint)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [config.inlineConversationModule])
 
   useEffect(() => {
     if (!handoffFile || consumedHandoffPathRef.current === handoffFile.path) return
@@ -685,23 +667,6 @@ function ResearchTaskEntry({
       persistResearchTaskCard(researchTask)
       setRecentTask(researchTask)
     }
-    if (config.inlineConversationModule === 'paper-polish' && activeSelectedTask.id === 'blueprint') {
-      const projectId = moduleProjectIdFromDisplayText('paper-polish', displayText, config.title)
-      void persistModuleProjectContext(
-        projectId,
-        {
-          writingBlueprint: {
-            sourceModule: 'paper-polish',
-            taskLabel: activeSelectedTask.label,
-            userInput: userInput.trim(),
-            fileNames: files.map((file) => file.name),
-            displayText,
-            updatedAt: new Date().toISOString()
-          }
-        },
-        { writingBlueprintProjectId: projectId }
-      ).catch(() => {})
-    }
     onStartChat(prompt, {
       ...(workspaceRoot ? { workspaceRoot } : {}),
       displayText,
@@ -724,14 +689,6 @@ function ResearchTaskEntry({
 
   function applyQuickPrompt(prompt: string): void {
     setUserInput((current) => current.trim() ? `${current.trim()}\n\n${prompt}` : prompt)
-    setError('')
-  }
-
-  function importWritingBlueprint(): void {
-    if (!importableBlueprint) return
-    const imported = buildImportedWritingBlueprintText(importableBlueprint)
-    setUserInput((current) => current.trim() ? `${current.trim()}\n\n${imported}` : imported)
-    setSelectedTaskId('blueprint')
     setError('')
   }
 
@@ -811,23 +768,6 @@ function ResearchTaskEntry({
           className="min-h-[160px] rounded-xl border border-ds-border bg-ds-main px-3 py-2 text-small text-ds-text outline-none transition placeholder:text-ds-faint focus:border-accent focus:ring-2 focus:ring-accent/10"
           placeholder={activeTaskEntry.placeholder}
         />
-
-        {config.inlineConversationModule === 'review-writing' && importableBlueprint ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-small font-semibold text-ds-text">已有写作蓝图可导入</p>
-              <p className="truncate text-caption text-ds-muted">{importableBlueprint.displayText}</p>
-            </div>
-            <button
-              type="button"
-              onClick={importWritingBlueprint}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-small font-semibold text-accent transition hover:bg-accent/15"
-            >
-              <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
-              导入已有蓝图
-            </button>
-          </div>
-        ) : null}
 
         {files.length > 0 ? (
           <div className="space-y-2">
@@ -1040,12 +980,6 @@ function ModulePageShell({
             {config.dataGuide ? <ModuleDataGuidePanel guide={config.dataGuide} /> : null}
 
             <div className="space-y-3">
-              {config.moduleNotice ? (
-                <p className="flex items-start gap-1.5 text-caption leading-relaxed text-ds-muted">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
-                  <span>{config.moduleNotice}</span>
-                </p>
-              ) : null}
               <ResearchTaskEntry
                 config={config}
                 onStartChat={onStartChat}
@@ -1063,58 +997,6 @@ function ModulePageShell({
       </PageColumn>
     </div>
   )
-}
-
-export const PAPER_CONFIG: ModuleConfig = {
-  moduleId: 'paper-polish',
-  title: '科研文本写作',
-  subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
-  inlineConversationModule: 'paper-polish',
-  moduleNotice: '如需专门撰写国自然申请书，推荐使用「自然基金撰写」模块，内置国自然各模块模板。',
-  taskEntry: {
-    title: '开始一项写作任务',
-    description: '输入研究主题、已有段落或修改要求；也可以添加论文、基金草稿或参考材料。',
-    taskTypes: [
-      {
-        id: 'blueprint',
-        label: '建立写作蓝图',
-        description: '先锁定科学问题、核心假说、章节边界和术语表。',
-        instruction: '请先建立写作蓝图，再等待用户确认，不要直接展开正文。'
-      },
-      {
-        id: 'polish',
-        label: '论文/基金润色',
-        description: '按上下文优化逻辑、证据链、术语和表达。',
-        instruction: '请先判断文本在全文中的功能，再做科研写作层面的润色和结构优化。'
-      },
-      {
-        id: 'translate',
-        label: '中文转英文论文表达',
-        description: '把中文科研文本改写为英文生物医学论文表达。',
-        instruction: '请不要逐句直译，要保留科学含义和作者语气，改写为克制清晰的英文论文表达。'
-      },
-      {
-        id: 'continue',
-        label: '逐段续写',
-        description: '围绕已确认主线逐段生成正文，并形成本节摘要卡片。',
-        instruction: '请每次只写一个小节，写完后生成小节摘要卡和下一节承接点。'
-      }
-    ],
-    placeholder: '请粘贴题目、研究背景、已有段落、修改要求或写作目标。例如：我要写一篇关于缺血再灌注损伤中线粒体稳态的论文 Discussion，请先帮我建立写作蓝图。',
-    fileFilters: [{ name: '科研写作材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
-    submitLabel: '发送写作任务',
-    constraints: [
-      '先判断文本功能和全文位置，再开始写作或修改。',
-      '保留科学含义和作者语气，不把推测写成事实。',
-      '不得编造实验结果、样本量、统计显著性、伦理批准号或不存在的参考文献。',
-      '明确区分用户数据、文献事实、机制推断和待验证假设。'
-    ]
-  },
-  quickPrompts: [
-    '请先帮我建立一个基金/论文写作蓝图：包括项目主线、科学问题、核心假说、研究目的、术语表和各章节写作边界。确认后再逐段写作。',
-    '帮我按上下文逐段优化这篇英文论文。每处理一个 Results 或 Discussion 小节前都要读取全文主线、上一节摘要和本节目的，完成后生成本节摘要卡片。',
-    '帮我把这段中文科研文本改写成英文论文表达。不要逐句翻译，先判断它在全文中的功能，再保持科学含义和作者语气进行改写。'
-  ]
 }
 
 export const LITERATURE_CONFIG: ModuleConfig = {
@@ -1165,115 +1047,6 @@ export const LITERATURE_CONFIG: ModuleConfig = {
     '请对我上传的 PDF 做文献精读：按研究问题、实验设计、关键图、主要结论和局限性整理。',
     '请把这篇文献做成研究生组会汇报 PPT 大纲，包含背景、科学问题、每个主图的讲解、创新点、局限性和讨论问题。',
     '请围绕肠道菌群影响药物代谢检索最新文献，区分综述、原始研究、临床队列和数据库再分析证据，并列出 PMID/DOI。'
-  ]
-}
-
-export const REVIEW_CONFIG: ModuleConfig = {
-  moduleId: 'review-writing',
-  title: '综述撰写',
-  subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
-  inlineConversationModule: 'review-writing',
-  moduleNotice: '本模块专注于综述文章撰写。如需修改已有论文或基金，请使用「文本写作」模块。',
-  taskEntry: {
-    title: '开始综述撰写任务',
-    description: '输入综述主题、中心论点或已有文献列表，先形成论证主线，再分节写作。',
-    taskTypes: [
-      {
-        id: 'blueprint',
-        label: '综述蓝图',
-        description: '确定中心论点、章节逻辑和每节边界。',
-        instruction: '请先生成综述蓝图，包括中心论点、章节结构、每节边界和不能写偏的内容。'
-      },
-      {
-        id: 'outline',
-        label: '章节大纲',
-        description: '把主题拆成可写作的小节和论证顺序。',
-        instruction: '请围绕科研问题生成综述章节大纲，并说明每节承担的论证功能。'
-      },
-      {
-        id: 'evidence-matrix',
-        label: '证据矩阵',
-        description: '按机制、模型、疾病场景和证据等级整理文献。',
-        instruction: '请把文献整理为证据矩阵，区分机制证据、相关性证据、临床队列和待验证假设。'
-      },
-      {
-        id: 'section-draft',
-        label: '分节初稿',
-        description: '每次只写一个小节，并生成摘要卡片。',
-        instruction: '请只撰写用户指定的小节，写完后生成本节摘要卡片和下一节承接点。'
-      }
-    ],
-    placeholder: '请给出综述主题、中心论点、目标期刊/读者或已有文献列表。例如：我想写细胞衰老在组织纤维化中的作用，重点比较不同器官、细胞来源和干预策略。',
-    fileFilters: [{ name: '综述材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
-    submitLabel: '发送综述任务',
-    constraints: [
-      '先形成清晰论证主线，再进入分节写作。',
-      '明确每个小节的论证功能和边界，避免材料堆叠。',
-      '标明证据等级、争议点、替代解释和未解决问题。',
-      '不得编造参考文献或把文献相关性写成因果机制。'
-    ]
-  },
-  quickPrompts: [
-    '帮我设计一篇关于细胞衰老与组织纤维化的综述蓝图，先明确中心论点、章节逻辑和每节边界。',
-    '围绕神经炎症、突触可塑性与认知障碍整理综述大纲，并标出哪些结论有实验证据、哪些只是相关性支持。',
-    '帮我把这些文献组织成综述的段落链条，每次只写一个小节，写完后生成摘要卡片和下一节承接点。'
-  ]
-}
-
-export const GRANT_CONFIG: ModuleConfig = {
-  moduleId: 'grant-writing',
-  title: '自然基金撰写',
-  subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
-  inlineConversationModule: 'grant-writing',
-  taskEntry: {
-    title: '开始自然基金撰写任务',
-    description: '输入项目题目、科学问题、前期基础或拟解决问题，按国自然模块逐步推进。',
-    taskTypes: [
-      {
-        id: 'blueprint',
-        label: '项目蓝图',
-        description: '先固定题目、科学问题、核心假说和三项研究内容。',
-        instruction: '请先建立国自然写作项目蓝图，包括题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。'
-      },
-      {
-        id: 'rationale',
-        label: '立项依据',
-        description: '围绕科学问题组织研究现状、证据链和问题缺口。',
-        instruction: '请只撰写或修改立项依据部分，围绕同一科学问题展开，写完后暂停等待用户确认。'
-      },
-      {
-        id: 'aims-route',
-        label: '研究内容/技术路线',
-        description: '把目标、假说、关键实验和预期结果拆成可执行方案。',
-        instruction: '请把研究内容、关键实验、技术路线和预期结果对应起来，避免目标与实验脱节。'
-      },
-      {
-        id: 'innovation',
-        label: '创新点',
-        description: '检查创新点是否具体对应科学问题和研究内容。',
-        instruction: '请先判断每个创新点是否对应科学问题和研究内容，再改写为具体、可评审的表述。'
-      },
-      {
-        id: 'risk',
-        label: '可行性与风险',
-        description: '补充研究基础、技术风险和替代方案。',
-        instruction: '请补充可行性依据、技术风险、替代方案和结果解释边界。'
-      }
-    ],
-    placeholder: '请输入项目题目、科学问题、核心假说、前期基础或需要修改的基金段落。例如：题目拟为“机械应力调控骨重建的细胞与分子机制研究”，请先建立项目蓝图。',
-    fileFilters: [{ name: '基金材料', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] }],
-    submitLabel: '发送基金任务',
-    constraints: [
-      '所有模块必须围绕同一科学问题和核心假说展开。',
-      '创新点必须具体对应研究内容，避免空泛表述。',
-      '不编造实验结果、预实验数据、样本量、统计显著性或伦理批准信息。',
-      '关键文献论点尽量补 PMID/DOI；无法核实时明确标注。'
-    ]
-  },
-  quickPrompts: [
-    '请先为我的国自然项目建立项目蓝图：题目、科学问题、核心假说、研究目的、三项研究内容、技术路线和创新边界。',
-    '在已确认项目蓝图的基础上，只撰写立项依据部分。要求围绕研究主线展开，关键论点补充 PMID，写完后暂停等待我确认。',
-    '帮我修改基金申请书的创新点，要求先判断每个创新点是否与科学问题和研究内容对应，避免空泛表述。'
   ]
 }
 
@@ -2108,20 +1881,8 @@ export function PptGenPage(props: ModulePageProps): ReactElement {
   return <CoursewarePage className={props.className} />
 }
 
-export function PaperPolishPage(props: ModulePageProps): ReactElement {
-  return <ModulePageShell config={PAPER_CONFIG} {...props} />
-}
-
 export function LiteraturePage(props: ModulePageProps): ReactElement {
   return <ModulePageShell config={LITERATURE_CONFIG} {...props} />
-}
-
-export function ReviewWritingPage(props: ModulePageProps): ReactElement {
-  return <ModulePageShell config={REVIEW_CONFIG} {...props} />
-}
-
-export function GrantWritingPage(props: ModulePageProps): ReactElement {
-  return <ModulePageShell config={GRANT_CONFIG} {...props} />
 }
 
 export function TextbookPage(props: ModulePageProps): ReactElement {

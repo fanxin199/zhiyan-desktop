@@ -8,17 +8,11 @@ import {
   buildResearchTaskPrompt,
   buildSyllabusTaskDisplayText,
   extractResearchTaskFileText,
-  GrantWritingPage,
-  GRANT_CONFIG,
   LITERATURE_CONFIG,
   LiteraturePage,
   loadSyllabusTeacherProfileDefaults,
   buildSyllabusIdentityPromptSections,
   buildSyllabusOutputInstructions,
-  PAPER_CONFIG,
-  PaperPolishPage,
-  REVIEW_CONFIG,
-  ReviewWritingPage,
   SyllabusPage,
   BIOINFORMATICS_CONFIG
 } from './ZhiYanModulePages'
@@ -28,10 +22,7 @@ const noop = vi.fn()
 describe('ZhiYanModulePages research task entries', () => {
   it('renders task input entries for all research modules', () => {
     const pages = [
-      renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop })),
       renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop })),
-      renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop })),
-      renderToStaticMarkup(createElement(GrantWritingPage, { onStartChat: noop })),
       renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
     ]
 
@@ -43,16 +34,13 @@ describe('ZhiYanModulePages research task entries', () => {
       expect(html).not.toContain('快捷任务入口')
     }
 
-    expect(pages[0]).toContain('发送写作任务')
-    expect(pages[1]).toContain('发送文献任务')
-    expect(pages[2]).toContain('发送综述任务')
-    expect(pages[3]).toContain('发送基金任务')
-    expect(pages[4]).toContain('发送分析任务')
+    expect(pages[0]).toContain('发送文献任务')
+    expect(pages[1]).toContain('发送分析任务')
   })
 
   it('offers at most three examples on each research module page', () => {
-    const configs = [PAPER_CONFIG, LITERATURE_CONFIG, REVIEW_CONFIG, GRANT_CONFIG, BIOINFORMATICS_CONFIG]
-    const pages = [PaperPolishPage, LiteraturePage, ReviewWritingPage, GrantWritingPage, BioinformaticsPage]
+    const configs = [LITERATURE_CONFIG, BIOINFORMATICS_CONFIG]
+    const pages = [LiteraturePage, BioinformaticsPage]
 
     for (const config of configs) {
       expect(config.quickPrompts.length).toBeLessThanOrEqual(3)
@@ -67,15 +55,9 @@ describe('ZhiYanModulePages research task entries', () => {
   })
 
   it('does not render a duplicate write desk entry in research task cards', () => {
-    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
     const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
-    const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
-    const grant = renderToStaticMarkup(createElement(GrantWritingPage, { onStartChat: noop }))
     const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
 
-    expect(paper).not.toContain('打开写作工作台')
-    expect(review).not.toContain('打开写作工作台')
-    expect(grant).not.toContain('打开写作工作台')
     expect(literature).not.toContain('打开写作工作台')
     expect(bioinformatics).not.toContain('打开写作工作台')
   })
@@ -109,49 +91,21 @@ describe('ZhiYanModulePages research task entries', () => {
     expect(bioinformatics).toContain('不会根据文件名猜测分组')
   })
 
-  it('renders the review writing module purpose notice', () => {
-    const review = renderToStaticMarkup(createElement(ReviewWritingPage, { onStartChat: noop }))
-    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
-
-    expect(review).toContain('本模块专注于综述文章撰写')
-    expect(review).toContain('请使用「文本写作」模块')
-    expect(paper).not.toContain('本模块专注于综述文章撰写')
-  })
-
-  it('renders the paper writing module grant recommendation notice', () => {
-    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
-    const grant = renderToStaticMarkup(createElement(GrantWritingPage, { onStartChat: noop }))
-
-    expect(paper).toContain('如需专门撰写国自然申请书')
-    expect(paper).toContain('推荐使用「自然基金撰写」模块')
-    expect(grant).not.toContain('如需专门撰写国自然申请书')
-  })
-
   it('renders the drag-and-drop file area only for literature tasks', () => {
     const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: noop }))
-    const paper = renderToStaticMarkup(createElement(PaperPolishPage, { onStartChat: noop }))
+    const bioinformatics = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: noop }))
 
     expect(literature).toContain('拖拽文献材料到这里')
     expect(literature).toContain('支持 PDF、DOC、DOCX、TXT、MD')
-    expect(paper).not.toContain('拖拽文献材料到这里')
+    expect(bioinformatics).not.toContain('拖拽文献材料到这里')
   })
 
-  it('renders local conversation slots for research writing tasks when active', () => {
+  it('renders local conversation slots for research tasks when active', () => {
     const pages = [
-      renderToStaticMarkup(createElement(PaperPolishPage, {
+      renderToStaticMarkup(createElement(LiteraturePage, {
         onStartChat: noop,
         showInlineConversation: true,
-        inlineConversation: createElement('div', null, '文本写作对话')
-      })),
-      renderToStaticMarkup(createElement(ReviewWritingPage, {
-        onStartChat: noop,
-        showInlineConversation: true,
-        inlineConversation: createElement('div', null, '综述撰写对话')
-      })),
-      renderToStaticMarkup(createElement(GrantWritingPage, {
-        onStartChat: noop,
-        showInlineConversation: true,
-        inlineConversation: createElement('div', null, '自然基金撰写对话')
+        inlineConversation: createElement('div', null, '文献阅读对话')
       })),
       renderToStaticMarkup(createElement(BioinformaticsPage, {
         onStartChat: noop,
@@ -160,29 +114,27 @@ describe('ZhiYanModulePages research task entries', () => {
       }))
     ]
 
-    expect(pages[0]).toContain('文本写作对话')
-    expect(pages[1]).toContain('综述撰写对话')
-    expect(pages[2]).toContain('自然基金撰写对话')
-    expect(pages[3]).toContain('科研数据分析对话')
+    expect(pages[0]).toContain('文献阅读对话')
+    expect(pages[1]).toContain('科研数据分析对话')
   })
 })
 
 describe('buildResearchTaskPrompt', () => {
   it('returns null when user input and files are both empty', () => {
-    const task = GRANT_CONFIG.taskEntry!.taskTypes[0]
-    expect(buildResearchTaskPrompt(GRANT_CONFIG, task, '  ', [])).toBeNull()
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    expect(buildResearchTaskPrompt(LITERATURE_CONFIG, task, '  ', [])).toBeNull()
   })
 
   it('includes task type and selected file paths', () => {
-    const task = GRANT_CONFIG.taskEntry!.taskTypes[0]
-    const prompt = buildResearchTaskPrompt(GRANT_CONFIG, task, '请建立项目主线', [{
-      name: 'grant.md',
-      path: 'D:\\project\\grant.md'
+    const task = LITERATURE_CONFIG.taskEntry!.taskTypes[0]
+    const prompt = buildResearchTaskPrompt(LITERATURE_CONFIG, task, '请精读这篇论文', [{
+      name: 'paper.md',
+      path: 'D:\\papers\\paper.md'
     }])
 
-    expect(prompt).toContain('项目蓝图')
-    expect(prompt).toContain('grant.md：D:\\project\\grant.md')
-    expect(prompt).toContain('请建立项目主线')
+    expect(prompt).toContain('单篇 PDF 精读')
+    expect(prompt).toContain('paper.md：D:\\papers\\paper.md')
+    expect(prompt).toContain('请精读这篇论文')
     expect(prompt).toContain('## 科研证据追溯要求（必须执行）')
     expect(prompt).toContain('ZHIYAN_EVIDENCE_V1')
   })
@@ -250,15 +202,6 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('无需逐条联网核实参考文献、PMID、DOI')
   })
 
-  it('keeps grant-writing evidence and fabrication constraints', () => {
-    const task = GRANT_CONFIG.taskEntry!.taskTypes[1]
-    const prompt = buildResearchTaskPrompt(GRANT_CONFIG, task, '请修改立项依据', [])
-
-    expect(prompt).toContain('不编造实验结果')
-    expect(prompt).toContain('PMID/DOI')
-    expect(prompt).toContain('空泛表述')
-  })
-
   it('keeps downstream data analysis QC and interpretation constraints', () => {
     const task = BIOINFORMATICS_CONFIG.taskEntry!.taskTypes[0]
     const prompt = buildResearchTaskPrompt(BIOINFORMATICS_CONFIG, task, '分析差异结果表', [])
@@ -268,10 +211,7 @@ describe('buildResearchTaskPrompt', () => {
     expect(prompt).toContain('不从原始 FASTQ 开始')
   })
 
-  it('uses teacher-facing Chinese labels for writing blueprints and data analysis', () => {
-    expect(PAPER_CONFIG.taskEntry!.taskTypes[0].label).toBe('建立写作蓝图')
-    expect(REVIEW_CONFIG.taskEntry!.taskTypes[0].label).toBe('综述蓝图')
-    expect(GRANT_CONFIG.taskEntry!.taskTypes[0].label).toBe('项目蓝图')
+  it('uses a teacher-facing Chinese title for data analysis', () => {
     expect(BIOINFORMATICS_CONFIG.title).toBe('科研数据分析')
   })
 

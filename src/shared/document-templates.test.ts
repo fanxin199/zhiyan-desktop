@@ -26,6 +26,9 @@ describe('document templates', () => {
       expect(template.draftInstruction).toContain('Markdown')
     }
     expect(DOCUMENT_TEMPLATES.grant.draftInstruction).toContain('技术路线')
+    // Carried over from the old grant writing page.
+    expect(DOCUMENT_TEMPLATES.grant.constraints.join('')).toContain('空泛表述')
+    expect(DOCUMENT_TEMPLATES.review.constraints.join('')).toContain('不把相关性写成因果机制')
   })
 
   it('accepts a blank document without instruction or materials', () => {

@@ -7,10 +7,7 @@ import { PageHeader } from './PageHeader'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import {
   BioinformaticsPage,
-  GrantWritingPage,
   LiteraturePage,
-  PaperPolishPage,
-  ReviewWritingPage,
   SyllabusPage
 } from './ZhiYanModulePages'
 import { getZhiYanSectionModule, type ZhiYanSectionModuleId } from './zhiyan-module-registry'
@@ -52,10 +49,7 @@ describe('PageHeader', () => {
 describe('tool pages', () => {
   const pages: Array<[ZhiYanSectionModuleId, ReactElement, number]> = [
     ['syllabus', createElement(SyllabusPage, { onStartChat: vi.fn() }), 720],
-    ['paper-polish', createElement(PaperPolishPage, { onStartChat: vi.fn() }), 720],
     ['literature', createElement(LiteraturePage, { onStartChat: vi.fn() }), 720],
-    ['review-writing', createElement(ReviewWritingPage, { onStartChat: vi.fn() }), 720],
-    ['grant-writing', createElement(GrantWritingPage, { onStartChat: vi.fn() }), 720],
     ['bioinformatics', createElement(BioinformaticsPage, { onStartChat: vi.fn() }), 720],
     ['ppt-gen', createElement(CoursewarePage), 1152],
     ['textbook', createElement(TextbookWorkbenchPage), 1152],
