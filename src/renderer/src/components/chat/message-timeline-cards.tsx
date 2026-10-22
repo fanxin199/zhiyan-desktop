@@ -31,7 +31,7 @@ export function ReviewPlanCard({
   return (
     <div
       title={relativePath}
-      className="flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border border-ds-border-muted bg-white/[0.78] px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.07)] backdrop-blur-xl dark:border-white/[0.09] dark:bg-white/[0.045]"
+      className="flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border border-ds-border-muted bg-ds-card px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.07)] backdrop-blur-xl"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-accent">
         <ListTodo className="h-5 w-5" strokeWidth={1.9} />
@@ -97,10 +97,10 @@ export function ReviewSummaryCard({ review }: { review: ReviewBlock }): ReactEle
       >
         <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] ${
           failed || incorrect
-            ? 'bg-red-500/10 text-red-600 dark:text-red-300'
+            ? 'bg-ds-danger-soft text-ds-danger'
             : running
               ? 'bg-accent/10 text-accent'
-              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+              : 'bg-ds-success-soft text-ds-success'
         }`}>
           {icon}
         </span>
@@ -406,7 +406,7 @@ export function WritePromptMetaDisclosure({
   if (!summary) return null
 
   return (
-    <div className="mt-2 border-t border-black/5 pt-2 dark:border-white/10">
+    <div className="mt-2 border-t border-ds-border-muted pt-2">
       <button
         type="button"
         onClick={onToggle}
@@ -425,7 +425,7 @@ export function WritePromptMetaDisclosure({
       {expanded ? (
         <div className="mt-2 flex flex-col gap-2">
           {display.context ? (
-            <div className="rounded-xl border border-black/5 bg-white/55 px-3 py-2 text-caption font-normal leading-5 text-ds-muted shadow-sm dark:border-white/10 dark:bg-white/6">
+            <div className="rounded-xl border border-ds-border-muted bg-ds-card px-3 py-2 text-caption font-normal leading-5 text-ds-muted shadow-sm">
               <div className="font-medium text-ds-ink">{t('writePromptContextLabel')}</div>
               {display.context.activeFile ? (
                 <div className="mt-1 truncate">
@@ -466,7 +466,7 @@ function WritePromptQuoteCard({ quote }: { quote: WritePromptDisplayQuote }): Re
           {quote.sourceTitle || t('writePromptReference')}
         </span>
         {lineLabel ? (
-          <span className="shrink-0 rounded-full bg-white/65 px-2 py-0.5 font-mono text-caption text-ds-faint dark:bg-white/8">
+          <span className="shrink-0 rounded-full bg-ds-card px-2 py-0.5 font-mono text-caption text-ds-faint">
             {lineLabel}
           </span>
         ) : null}

@@ -164,12 +164,12 @@ export function ProcessSectionRow({
           type="button"
           onClick={() => setUserExpanded(!(userExpanded ?? defaultExpanded))}
           className={`group flex w-fit max-w-full items-center gap-1.5 rounded-md py-0.5 text-left text-body font-medium transition hover:opacity-85 ${
-            hasError ? 'text-red-600 dark:text-red-300' : 'text-ds-muted'
+            hasError ? 'text-ds-danger' : 'text-ds-muted'
           }`}
         >
           {showActiveError ? (
             <span className="ds-work-logo-slot ds-work-logo-slot-sm mr-0.5">
-              <span className="h-2 w-2 rounded-full bg-red-500 dark:bg-red-300" />
+              <span className="h-2 w-2 rounded-full bg-ds-danger" />
             </span>
           ) : null}
           <span className={active && !hasError ? 'ds-shiny-text' : ''}>{title}</span>
@@ -182,12 +182,12 @@ export function ProcessSectionRow({
       ) : (
         <div
           className={`flex w-fit max-w-full items-center gap-1.5 py-0.5 text-body font-medium ${
-            hasError ? 'text-red-600 dark:text-red-300' : 'text-ds-muted'
+            hasError ? 'text-ds-danger' : 'text-ds-muted'
           }`}
         >
           {showActiveError ? (
             <span className="ds-work-logo-slot ds-work-logo-slot-sm mr-0.5">
-              <span className="h-2 w-2 rounded-full bg-red-500 dark:bg-red-300" />
+              <span className="h-2 w-2 rounded-full bg-ds-danger" />
             </span>
           ) : null}
           <span className={active && !hasError ? 'ds-shiny-text' : ''}>{title}</span>
@@ -286,7 +286,7 @@ function ProcessStackRows({
               onKeyDown={handleKeyDown}
               className={`group flex w-full min-w-0 items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-body leading-6 transition ${
                 isError
-                  ? 'text-red-600 dark:text-red-300'
+                  ? 'text-ds-danger'
                   : 'text-ds-faint hover:text-ds-muted'
               } ${canToggle ? 'cursor-pointer hover:bg-ds-hover/45' : 'cursor-default'}`}
             >
@@ -365,7 +365,7 @@ function ProcessEntryRow({
         onKeyDown={handleKeyDown}
         className={`group flex w-full items-start gap-2 rounded-md px-2 py-1 text-left text-body leading-[1.55] transition ${
           isError
-            ? 'text-red-600 dark:text-red-300'
+            ? 'text-ds-danger'
             : 'text-ds-faint hover:text-ds-ink'
         } ${
           canToggle
@@ -887,13 +887,13 @@ function ProcessEntryDetail({
     }
     if (detail.isError) {
       return (
-        <div className="overflow-hidden rounded-[10px] border border-red-200/80 bg-red-50/80 dark:border-red-800/40 dark:bg-red-500/10">
+        <div className="overflow-hidden rounded-[10px] border border-ds-danger/30 bg-ds-danger-soft">
           {detail.filePath ? (
-            <div className="border-b border-red-200/70 bg-red-100/50 px-3 py-1.5 font-mono text-caption text-red-700 dark:border-red-800/40 dark:bg-red-500/15 dark:text-red-300">
+            <div className="border-b border-ds-danger/30 bg-ds-danger-soft px-3 py-1.5 font-mono text-caption text-ds-danger">
               {detail.filePath}
             </div>
           ) : null}
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words px-3 py-2.5 font-mono text-caption leading-6 text-red-800 dark:text-red-200">
+          <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words px-3 py-2.5 font-mono text-caption leading-6 text-ds-danger">
             {detail.text}
           </pre>
         </div>

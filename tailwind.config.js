@@ -63,7 +63,9 @@ export default {
           'skill-soft': themeColor('--ds-skill-soft'),
           userbubble: themeColor('--ds-bubble-user'),
           userbubbleFg: themeColor('--ds-bubble-user-fg'),
-          overlay: themeColor('--ds-overlay')
+          overlay: themeColor('--ds-overlay'),
+          // Charts follow the accent text color, which stays visible on dark surfaces.
+          chart: themeColor('--ds-accent')
         },
         // Slide thumbnails show slide content, so they use the exported deck's fixed colors in both themes.
         slide: {

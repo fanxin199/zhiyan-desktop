@@ -511,9 +511,9 @@ function CopyFeedbackButton({
           : 'gap-1 px-1.5 py-0.5 hover:bg-ds-hover'
       } ${
         success
-          ? 'text-emerald-500'
+          ? 'text-ds-success'
           : error
-            ? 'text-rose-400'
+            ? 'text-ds-danger'
             : 'text-ds-faint hover:text-ds-muted'
       }`}
     >
@@ -582,7 +582,7 @@ function UserInputBubble({
     <div
       className={`rounded-[22px] border px-4 py-4 text-small leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
         block.status === 'error'
-          ? 'border-red-300/80 bg-red-500/10 dark:border-red-800/60 dark:bg-red-950/35'
+          ? 'border-ds-danger/30 bg-ds-danger-soft'
           : 'border-accent/35 bg-[linear-gradient(180deg,rgba(79,124,255,0.07),rgba(79,124,255,0.11))] text-ds-ink'
       }`}
     >
@@ -671,7 +671,7 @@ function UserInputBubble({
       </div>
 
       {block.errorMessage ? (
-        <p className="mt-3 text-caption text-red-700 dark:text-red-300">{block.errorMessage}</p>
+        <p className="mt-3 text-caption text-ds-danger">{block.errorMessage}</p>
       ) : null}
 
       {block.answers && block.answers.length > 0 && block.status === 'submitted' ? (
@@ -786,7 +786,7 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
       <div
         className={`rounded-[22px] border px-4 py-4 text-small leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
           block.status === 'error'
-            ? 'border-red-300/80 bg-red-500/10 dark:border-red-800/60 dark:bg-red-950/35'
+            ? 'border-ds-danger/30 bg-ds-danger-soft'
             : 'border-accent/35 bg-[linear-gradient(180deg,rgba(79,124,255,0.08),rgba(79,124,255,0.12))] text-ds-ink'
         }`}
       >
@@ -798,13 +798,13 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
         ) : null}
         <p className="mt-2 whitespace-pre-wrap text-body text-ds-ink">{block.summary}</p>
         {block.errorMessage ? (
-          <p className="mt-2 text-caption text-red-700 dark:text-red-300">{block.errorMessage}</p>
+          <p className="mt-2 text-caption text-ds-danger">{block.errorMessage}</p>
         ) : null}
         {!done ? (
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-small font-medium text-white hover:bg-emerald-700"
+              className="rounded-lg bg-ds-success px-3 py-1.5 text-small font-medium text-white hover:bg-ds-success"
               onClick={() => void resolveApproval(block.id, 'allow')}
             >
               {t('approvalAllow')}
@@ -858,9 +858,9 @@ function ToolEntry({ block, nested = false }: { block: ToolBlock; nested?: boole
 
   const tone =
     block.status === 'error'
-      ? 'border-red-300/80 bg-red-500/10 text-red-950 dark:border-red-800/60 dark:bg-red-950/35 dark:text-red-100'
+      ? 'border-ds-danger/30 bg-ds-danger-soft text-ds-danger'
       : block.status === 'running'
-        ? 'border-amber-300/80 bg-amber-500/10 text-amber-950 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-100'
+        ? 'border-ds-warning/30 bg-ds-warning-soft text-ds-warning'
         : 'border-ds-border bg-ds-subtle text-ds-ink'
 
   const Icon = block.toolKind === 'file_change' ? FileEdit : block.toolKind === 'command_execution' ? Terminal : Wrench
@@ -899,7 +899,7 @@ function ToolEntry({ block, nested = false }: { block: ToolBlock; nested?: boole
               {kindLabel}
             </span>
             {block.status === 'running' ? (
-              <span className="rounded-full bg-amber-200/40 px-2 py-0.5 text-caption font-medium text-amber-900 dark:bg-amber-700/30 dark:text-amber-100">
+              <span className="rounded-full bg-ds-warning-soft px-2 py-0.5 text-caption font-medium text-ds-warning">
                 {t('inspectorStatusRunning')}
               </span>
             ) : null}

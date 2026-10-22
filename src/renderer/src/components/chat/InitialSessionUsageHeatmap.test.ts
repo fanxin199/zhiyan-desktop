@@ -6,9 +6,17 @@ import type { DailyUsageState, DailyUsageSummary } from '../../hooks/use-daily-u
 import type { ModelUsageState } from '../../hooks/use-model-usage'
 import {
   InitialSessionUsageHeatmapView,
-  USAGE_HEATMAP_CONTRAST_COLORS,
   usageHeatmapIntensityLevel
 } from './InitialSessionUsageHeatmap'
+
+// Rendered cell colors: the chart color at each level's opacity over white and over the dark canvas.
+const USAGE_HEATMAP_CONTRAST_COLORS = [
+  { level: 0, light: '#f5f7fb', dark: '#2a2a2a' },
+  { level: 1, light: '#aecbf4', dark: '#224669' },
+  { level: 2, light: '#7fadee', dark: '#276197' },
+  { level: 3, light: '#518fe8', dark: '#2c7bc5' },
+  { level: 4, light: '#1769e0', dark: '#339cff' }
+] as const
 
 function bucket(date: string, totalTokens: number, turns = 1) {
   return {

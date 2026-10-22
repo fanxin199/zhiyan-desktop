@@ -1230,7 +1230,7 @@ export function FloatingComposer({
         {composerMenuOpen && slashQuery == null ? (
           <div
             ref={composerMenuPanelRef}
-            className="absolute bottom-12 left-1 z-40 w-48 overflow-hidden rounded-[18px] border border-ds-border bg-white py-1.5 text-small text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
+            className="absolute bottom-12 left-1 z-40 w-48 overflow-hidden rounded-[18px] border border-ds-border bg-ds-elevated py-1.5 text-small text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
           >
             {attachmentUploadEnabled ? (
               <>
@@ -1268,7 +1268,7 @@ export function FloatingComposer({
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ring-1 ring-black/5 transition ${
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ring-1 ring-ds-border-muted transition ${
                     mode === 'plan' ? 'translate-x-[17px]' : 'translate-x-0.5'
                   } shadow-[0_1px_4px_rgba(15,23,42,0.28)]`}
                 />
@@ -1292,7 +1292,7 @@ export function FloatingComposer({
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ring-1 ring-black/5 transition ${
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ring-1 ring-ds-border-muted transition ${
                     goalMenuChecked ? 'translate-x-[17px]' : 'translate-x-0.5'
                   } shadow-[0_1px_4px_rgba(15,23,42,0.28)]`}
                 />
@@ -1325,7 +1325,7 @@ export function FloatingComposer({
                     >
                       <span
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] ${
-                          active && !command.disabled ? 'bg-white text-accent shadow-sm dark:bg-ds-card' : 'bg-ds-hover text-ds-muted'
+                          active && !command.disabled ? 'bg-ds-elevated text-accent shadow-sm dark:bg-ds-card' : 'bg-ds-hover text-ds-muted'
                         }`}
                       >
                         {command.icon}
@@ -1387,7 +1387,7 @@ export function FloatingComposer({
                     >
                       <span
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] ${
-                          active ? 'bg-white text-accent shadow-sm dark:bg-ds-card' : 'bg-ds-hover text-ds-muted'
+                          active ? 'bg-ds-elevated text-accent shadow-sm dark:bg-ds-card' : 'bg-ds-hover text-ds-muted'
                         }`}
                       >
                         <FileText className="h-4 w-4" strokeWidth={1.8} />
@@ -1573,7 +1573,7 @@ export function FloatingComposer({
                       <button
                         type="button"
                         onClick={() => onRemoveAttachment(attachment.id)}
-                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-950 text-white shadow-sm transition hover:bg-zinc-800"
+                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ds-ink text-ds-main shadow-sm transition hover:bg-ds-ink/80"
                         aria-label={t('composerRemoveAttachment')}
                         title={t('composerRemoveAttachment')}
                       >
@@ -1604,7 +1604,7 @@ export function FloatingComposer({
                 )
               ))}
               {attachmentUploadError ? (
-                <span className="min-w-0 break-words text-caption font-medium text-red-600 dark:text-red-300">
+                <span className="min-w-0 break-words text-caption font-medium text-ds-danger">
                   {attachmentUploadError}
                 </span>
               ) : null}
@@ -1687,7 +1687,7 @@ export function FloatingComposer({
                 <button
                   type="button"
                   onClick={() => onInterrupt()}
-                  className="ds-no-drag flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                  className="ds-no-drag flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ds-ink text-ds-main shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:bg-ds-ink/80"
                   aria-label={t('interrupt')}
                   title={t('interrupt')}
                 >
@@ -1698,7 +1698,7 @@ export function FloatingComposer({
                 type="button"
                 disabled={primaryActionDisabled}
                 onClick={handlePrimaryAction}
-                className="ds-no-drag flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-ds-card disabled:text-ds-faint disabled:shadow-none dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 dark:disabled:bg-ds-card dark:disabled:text-ds-faint"
+                className="ds-no-drag flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ds-ink text-ds-main shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:bg-ds-ink/80 disabled:cursor-not-allowed disabled:bg-ds-card disabled:text-ds-faint disabled:shadow-none"
                 aria-label={primaryActionLabel}
                 title={primaryActionLabel}
               >
@@ -1750,7 +1750,7 @@ export function FloatingComposer({
                       <>
                         <span className="ds-composer-usage-context-savings-separator text-ds-faint">·</span>
                         <span
-                          className="ds-composer-usage-context-savings shrink-0 tabular-nums text-emerald-700 dark:text-emerald-300"
+                          className="ds-composer-usage-context-savings shrink-0 tabular-nums text-ds-success"
                           title={t('sessionUsageContextSavingsTitle', {
                             tokens: formatCompactNumber(threadUsage.tokenEconomySavingsTokens)
                           })}

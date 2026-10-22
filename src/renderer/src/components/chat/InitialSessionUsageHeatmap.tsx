@@ -46,19 +46,11 @@ const EMPTY_DAILY_USAGE_BUCKETS: DailyUsageBucket[] = []
 
 export const USAGE_HEATMAP_INTENSITY_CLASSES = [
   'border-ds-border-muted bg-ds-subtle',
-  'border-emerald-400 bg-emerald-500 dark:border-emerald-400/35 dark:bg-emerald-700',
-  'border-teal-400 bg-teal-500 dark:border-teal-300/40 dark:bg-teal-600',
-  'border-cyan-600 bg-cyan-600 dark:border-cyan-300/50 dark:bg-cyan-400',
-  'border-blue-700 bg-blue-700 dark:border-blue-300/60 dark:bg-blue-400'
+  'border-ds-chart/40 bg-ds-chart/35',
+  'border-ds-chart/60 bg-ds-chart/55',
+  'border-ds-chart/80 bg-ds-chart/75',
+  'border-ds-chart bg-ds-chart'
 ]
-
-export const USAGE_HEATMAP_CONTRAST_COLORS = [
-  { level: 0, light: '#f5f7fb', dark: '#2a2a2a' },
-  { level: 1, light: '#10b981', dark: '#047857' },
-  { level: 2, light: '#14b8a6', dark: '#0d9488' },
-  { level: 3, light: '#0891b2', dark: '#22d3ee' },
-  { level: 4, light: '#1d4ed8', dark: '#60a5fa' }
-] as const
 
 function calendarWeeks(buckets: CalendarCell[]): CalendarWeek[] {
   const weeks: CalendarWeek[] = []
@@ -338,7 +330,7 @@ function WarmupStatePanel({
         <div
           className={`mb-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-caption font-semibold ${
             mode === 'error'
-              ? 'border-amber-300/35 bg-amber-50/70 text-amber-900 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100'
+              ? 'border-ds-warning/30 bg-ds-warning-soft text-ds-warning'
               : 'border-accent/15 bg-accent/10 text-accent'
           }`}
         >
@@ -615,7 +607,7 @@ function ModelUsagePanel({
                       return (
                         <span
                           key={segment.key}
-                          className="w-full border-t border-white/35 dark:border-white/10"
+                          className="w-full border-t border-ds-border-muted"
                           style={{
                             height: `${Math.max(4, ratio * barHeight)}px`,
                             backgroundColor: segment.color
@@ -685,7 +677,7 @@ function UsageHeroToggle({
   return (
     <button
       type="button"
-      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-[radial-gradient(circle_at_34%_26%,rgba(91,128,255,0.20),transparent_46%),rgba(255,255,255,0.82)] text-accent shadow-[0_12px_28px_rgba(88,105,150,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-accent/35 hover:bg-white hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 focus:ring-offset-ds-card dark:bg-white/[0.08] dark:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-ds-card text-accent shadow-[0_12px_28px_rgba(88,105,150,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-accent/35 hover:bg-white hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 focus:ring-offset-ds-card dark:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
       onClick={onToggle}
       aria-label={label}
       title={label}
@@ -719,7 +711,7 @@ function CollapsedCalendarCard({ onExpand }: { onExpand: () => void }): ReactEle
 
 function UsagePanelCard({ children }: { children: ReactElement }): ReactElement {
   return (
-    <div className="w-full min-w-0 rounded-[28px] border border-ds-border-muted bg-ds-card/80 p-4 shadow-[0_18px_48px_rgba(86,103,136,0.08)] dark:bg-white/[0.045] sm:p-5">
+    <div className="w-full min-w-0 rounded-[28px] border border-ds-border-muted bg-ds-card/80 p-4 shadow-[0_18px_48px_rgba(86,103,136,0.08)] sm:p-5">
       {children}
     </div>
   )
@@ -821,7 +813,7 @@ export function InitialSessionUsageHeatmapView({
                     <button
                       type="button"
                       className={`min-h-7 rounded-md px-3 transition ${
-                        activeTab === 'overview' ? 'bg-ds-card text-ds-ink shadow-sm dark:bg-white/10' : 'hover:text-ds-ink'
+                        activeTab === 'overview' ? 'bg-ds-card text-ds-ink shadow-sm' : 'hover:text-ds-ink'
                       }`}
                       aria-pressed={activeTab === 'overview'}
                       onClick={() => setActiveTab('overview')}
@@ -831,7 +823,7 @@ export function InitialSessionUsageHeatmapView({
                     <button
                       type="button"
                       className={`min-h-7 rounded-md px-3 transition ${
-                        activeTab === 'models' ? 'bg-ds-card text-ds-ink shadow-sm dark:bg-white/10' : 'hover:text-ds-ink'
+                        activeTab === 'models' ? 'bg-ds-card text-ds-ink shadow-sm' : 'hover:text-ds-ink'
                       }`}
                       title={t('usageHeatmapTabModels')}
                       aria-pressed={activeTab === 'models'}
@@ -847,7 +839,7 @@ export function InitialSessionUsageHeatmapView({
                           key={key}
                           type="button"
                           className={`min-h-7 rounded-md px-2.5 transition ${
-                            rangeKey === key ? 'bg-ds-card text-ds-ink shadow-sm dark:bg-white/10' : 'hover:text-ds-ink'
+                            rangeKey === key ? 'bg-ds-card text-ds-ink shadow-sm' : 'hover:text-ds-ink'
                           }`}
                           aria-pressed={rangeKey === key}
                           onClick={() => onRangeChange?.(key)}
