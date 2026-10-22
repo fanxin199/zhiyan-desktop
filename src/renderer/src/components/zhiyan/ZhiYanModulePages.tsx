@@ -2011,7 +2011,7 @@ export function SyllabusPage({
                         }}
                         className="p-1.5 rounded-lg text-ds-muted hover:text-ds-danger hover:bg-ds-danger-soft transition-colors"
                       >
-                        <Trash2 className="h-4.5 w-4.5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 

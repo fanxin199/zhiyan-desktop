@@ -197,7 +197,7 @@ function QuickActionCard({
       className="flex flex-col items-start gap-3 rounded-xl border border-ds-border-muted bg-ds-card p-5 text-left transition-colors duration-150 hover:border-ds-border hover:bg-ds-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
     >
       <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${ICON_TONE_CLASSES[tone]}`}>
-        <Icon className="h-5.5 w-5.5" strokeWidth={1.8} />
+        <Icon className="h-5 w-5" strokeWidth={1.8} />
       </div>
       <div>
         <h3 className="text-body leading-5 font-semibold text-ds-ink">{title}</h3>
@@ -239,7 +239,7 @@ function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): Re
       aria-label={`继续会话：${thread.title}`}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ds-subtle text-ds-muted transition group-hover:text-accent">
-        <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+        <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body font-semibold text-ds-text">
@@ -269,7 +269,7 @@ function TaskRecommendationCard({
       className="group flex min-w-0 items-center gap-3 rounded-xl border border-accent/15 bg-accent/[0.045] px-3.5 py-3 text-left transition hover:border-accent/30 hover:bg-accent/[0.075]"
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-        <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+        <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-small font-semibold text-ds-text">{recommendation.title}</span>
@@ -361,7 +361,7 @@ export function ZhiYanDashboard({
 
         <div className="mb-8">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-ds-faint" strokeWidth={1.8} />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ds-faint" strokeWidth={1.8} />
             <input
               type="search"
               value={searchQuery}
