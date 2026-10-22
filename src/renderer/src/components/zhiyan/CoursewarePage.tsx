@@ -152,24 +152,24 @@ function moveItem<T>(items: T[], from: number, to: number): T[] {
 
 function SlidePreview({ slide, selected }: { slide: SlideSpec; selected: boolean }): ReactElement {
   return (
-    <div className={`aspect-video overflow-hidden rounded-lg border bg-white p-3 text-slate-800 shadow-sm ${
-      selected ? 'border-accent ring-2 ring-accent/20' : 'border-slate-200'
+    <div className={`aspect-video overflow-hidden rounded-lg border bg-slide-paper p-3 text-slide-ink shadow-sm ${
+      selected ? 'border-accent ring-2 ring-accent/20' : 'border-ds-border-muted'
     }`}>
-      <div className="mb-2 h-1 rounded-full bg-teal-600" />
-      <p className="line-clamp-2 text-thumb-title font-bold leading-tight text-slate-800">{slide.title}</p>
+      <div className="mb-2 h-1 rounded-full bg-slide-accent" />
+      <p className="line-clamp-2 text-thumb-title font-bold leading-tight text-slide-ink">{slide.title}</p>
       {slide.kind === 'interaction' ? (
-        <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 p-2 text-center text-thumb-callout font-semibold">
+        <div className="mt-3 rounded-md border border-slide-line bg-slide-accent-tint p-2 text-center text-thumb-callout font-semibold">
           {slide.interaction?.prompt ?? slide.bullets[0]}
         </div>
       ) : slide.visual?.type === 'flow' && slide.visual.nodes?.length ? (
         <div className="mt-3 flex items-center gap-1">
           {slide.visual.nodes.slice(0, 4).map((node, index) => (
             <div key={`${node}-${index}`} className="flex min-w-0 flex-1 items-center gap-1">
-              <span className="line-clamp-2 flex-1 rounded bg-teal-50 px-1 py-2 text-center text-thumb-body">
+              <span className="line-clamp-2 flex-1 rounded bg-slide-tint px-1 py-2 text-center text-thumb-body">
                 {node}
               </span>
               {index < Math.min(3, (slide.visual?.nodes?.length ?? 1) - 1) && (
-                <ChevronRight className="h-2.5 w-2.5 shrink-0 text-teal-600" />
+                <ChevronRight className="h-2.5 w-2.5 shrink-0 text-slide-accent" />
               )}
             </div>
           ))}
@@ -763,8 +763,8 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         {(message || warning) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-small ${
             message
-              ? 'border-red-300/60 bg-red-50 text-red-800'
-              : 'border-amber-300/60 bg-amber-50 text-amber-800'
+              ? 'border-ds-danger/30 bg-ds-danger-soft text-ds-danger'
+              : 'border-ds-warning/30 bg-ds-warning-soft text-ds-warning'
           }`}>
             {message || warning}
           </div>
@@ -929,7 +929,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                         <img
                           src={asset.imageDataUrl}
                           alt={asset.caption || asset.sourceName || '教材图片'}
-                          className="h-32 w-full bg-white object-contain"
+                          className="h-32 w-full bg-slide-paper object-contain"
                         />
                       )}
                       <div className="p-3">
@@ -1104,7 +1104,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                           ...blueprint,
                           sections: blueprint.sections.filter((_, itemIndex) => itemIndex !== index)
                         })}
-                        className="rounded-lg p-2 text-ds-muted hover:bg-red-50 hover:text-red-600"
+                        className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1323,7 +1323,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                           <img
                             src={asset.imageDataUrl}
                             alt={asset.caption || '教材图片'}
-                            className="h-20 w-full bg-white object-contain"
+                            className="h-20 w-full bg-slide-paper object-contain"
                           />
                           <span className="line-clamp-2 block px-2 py-1.5 text-caption text-ds-text">
                             {asset.caption || `${asset.sourceIndex} 页图片`}
@@ -1367,7 +1367,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                       onPointerMove={handleCropMove}
                       onPointerUp={handleCropEnd}
                       onPointerCancel={handleCropEnd}
-                      className="relative mt-2 max-h-[360px] cursor-crosshair overflow-hidden rounded-lg border border-ds-border bg-slate-100"
+                      className="relative mt-2 max-h-[360px] cursor-crosshair overflow-hidden rounded-lg border border-ds-border bg-ds-subtle"
                     >
                       <img src={pagePreview} alt={`教材第 ${figurePage} 页`} className="block h-auto w-full select-none" draggable={false} />
                       {crop && (
@@ -1437,10 +1437,10 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   导出完整课件包
                 </button>
                 {exportPaths.length > 0 && (
-                  <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-3">
-                    <p className="mb-1 text-caption font-bold text-green-800">导出完成</p>
+                  <div className="mt-3 rounded-xl border border-ds-success/30 bg-ds-success-soft p-3">
+                    <p className="mb-1 text-caption font-bold text-ds-success">导出完成</p>
                     {exportPaths.map((path) => (
-                      <p key={path} className="break-all text-caption leading-relaxed text-green-700">{path}</p>
+                      <p key={path} className="break-all text-caption leading-relaxed text-ds-success">{path}</p>
                     ))}
                   </div>
                 )}

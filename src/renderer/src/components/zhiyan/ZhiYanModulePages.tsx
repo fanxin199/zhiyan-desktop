@@ -272,7 +272,7 @@ type ModuleConfig = {
   icon: LucideIcon
   title: string
   subtitle: string
-  gradient: string
+  iconTone: string
   moduleNotice?: string
   features: Array<{
     title: string
@@ -788,7 +788,7 @@ function ResearchTaskEntry({
               placeholder="例如：样本列 sample_id；分组列 response；Responder 对比 Non-responder；同一患者治疗前后为配对样本。或：不重新统计，仅绘制已有差异结果。"
             />
             {!analysisMetadataValidation.ok ? (
-              <p className="mt-2 text-caption font-semibold text-amber-700 dark:text-amber-300">{analysisMetadataValidation.message}</p>
+              <p className="mt-2 text-caption font-semibold text-ds-warning">{analysisMetadataValidation.message}</p>
             ) : null}
           </div>
         ) : null}
@@ -844,7 +844,7 @@ function ResearchTaskEntry({
                 <button
                   type="button"
                   onClick={() => setFiles((current) => current.filter((item) => item.path !== file.path))}
-                  className="rounded-lg p-1.5 text-ds-muted transition hover:bg-red-500/10 hover:text-red-500"
+                  className="rounded-lg p-1.5 text-ds-muted transition hover:bg-ds-danger-soft hover:text-ds-danger"
                   aria-label="移除文件"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={1.8} />
@@ -855,7 +855,7 @@ function ResearchTaskEntry({
         ) : null}
 
         {error ? (
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-small text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+          <div className="flex items-start gap-2 rounded-lg border border-ds-danger/30 bg-ds-danger-soft px-3 py-2 text-small text-ds-danger">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
             <span>{error}</span>
           </div>
@@ -1005,8 +1005,8 @@ function ModulePageShell({
       <div className="mx-auto w-full max-w-3xl px-6 py-8 sm:px-8 md:px-12">
         {/* Module Header */}
         <div className="mb-8 flex items-center gap-4">
-          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${config.gradient}`}>
-            <Icon className="h-7 w-7 text-white" strokeWidth={1.8} />
+          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${config.iconTone}`}>
+            <Icon className="h-7 w-7" strokeWidth={1.8} />
           </div>
           <div>
             <h1 className="text-display font-bold text-ds-text">{config.title}</h1>
@@ -1099,7 +1099,7 @@ const PPT_CONFIG: ModuleConfig = {
   icon: Presentation,
   title: '课件 PPT 生成',
   subtitle: '上传教材或讲义 PDF，AI 自动生成教学课件',
-  gradient: 'bg-gradient-to-br from-purple-600 to-purple-800',
+  iconTone: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
   features: [
     { title: 'PDF 解析', description: '自动识别教材章节结构和核心内容' },
     { title: '智能配图', description: 'AI 生成配套教学示意图' },
@@ -1117,7 +1117,7 @@ export const PAPER_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '科研文本写作',
   subtitle: '自然基金、论文、综述和长文档的上下文感知写作与润色',
-  gradient: 'bg-gradient-to-br from-rose-600 to-rose-800',
+  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
   inlineConversationModule: 'paper-polish',
   moduleNotice: '如需专门撰写国自然申请书，推荐使用「自然基金撰写」模块，内置国自然各模块模板。',
   taskEntry: {
@@ -1176,7 +1176,7 @@ export const LITERATURE_CONFIG: ModuleConfig = {
   icon: Search,
   title: '文献阅读',
   subtitle: '单篇精读、多篇证据整理和文献汇报 PPT 制作',
-  gradient: 'bg-gradient-to-br from-amber-600 to-amber-800',
+  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
   inlineConversationModule: 'literature',
   taskEntry: {
     title: '开始文献阅读任务',
@@ -1234,7 +1234,7 @@ export const REVIEW_CONFIG: ModuleConfig = {
   icon: Search,
   title: '综述撰写',
   subtitle: '围绕科研问题完成文献框架、证据链整理和分段综述初稿',
-  gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
   inlineConversationModule: 'review-writing',
   moduleNotice: '本模块专注于综述文章撰写。如需修改已有论文或基金，请使用「文本写作」模块。',
   taskEntry: {
@@ -1293,7 +1293,7 @@ export const GRANT_CONFIG: ModuleConfig = {
   icon: PenTool,
   title: '自然基金撰写',
   subtitle: '辅助撰写国自然申请书的立项依据、研究内容和技术路线',
-  gradient: 'bg-gradient-to-br from-orange-600 to-orange-800',
+  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
   inlineConversationModule: 'grant-writing',
   taskEntry: {
     title: '开始自然基金撰写任务',
@@ -1357,7 +1357,7 @@ const TEXTBOOK_CONFIG: ModuleConfig = {
   icon: BookOpen,
   title: '教材与基金撰写',
   subtitle: 'AI 辅助撰写教材章节、基金申请书和学术综述',
-  gradient: 'bg-gradient-to-br from-teal-600 to-teal-800',
+  iconTone: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
   features: [
     { title: '教材写作', description: '按章节结构撰写教材内容' },
     { title: '国自然申请', description: '辅助撰写国家自然科学基金申请书' },
@@ -1375,7 +1375,7 @@ export const BIOINFORMATICS_CONFIG: ModuleConfig = {
   icon: Microscope,
   title: '科研数据分析',
   subtitle: '基于整理好的 bulk mRNA 和单细胞数据做可视化、解释和报告',
-  gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800',
+  iconTone: 'bg-ds-domain-research-soft text-ds-domain-research',
   inlineConversationModule: 'bioinformatics',
   dataGuide: {
     title: '数据格式说明',
@@ -1893,8 +1893,8 @@ export function SyllabusPage({
       <div className="mx-auto w-full max-w-3xl px-6 py-8 sm:px-8 md:px-12">
         {/* Module Header */}
         <div className="mb-6 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800">
-            <GraduationCap className="h-7 w-7 text-white" strokeWidth={1.8} />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ds-domain-teaching-soft text-ds-domain-teaching">
+            <GraduationCap className="h-7 w-7" strokeWidth={1.8} />
           </div>
           <div>
             <h1 className="text-display font-bold text-ds-text">智能教案生成</h1>
@@ -1904,7 +1904,7 @@ export function SyllabusPage({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {formError ? (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-small leading-relaxed text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <div className="flex items-start gap-2 rounded-xl border border-ds-danger/30 bg-ds-danger-soft px-3 py-2 text-small leading-relaxed text-ds-danger">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
               <span>{formError}</span>
             </div>
@@ -2145,7 +2145,7 @@ export function SyllabusPage({
                           setExtractError(null)
                           if (fileInputRef.current) fileInputRef.current.value = ''
                         }}
-                        className="p-1.5 rounded-lg text-ds-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        className="p-1.5 rounded-lg text-ds-muted hover:text-ds-danger hover:bg-ds-danger-soft transition-colors"
                       >
                         <Trash2 className="h-4.5 w-4.5" />
                       </button>
@@ -2153,19 +2153,19 @@ export function SyllabusPage({
 
                     {/* 文件正文提取状态 */}
                     {isExtracting && (
-                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-small text-blue-600">
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-soft border border-accent/30 text-small text-accent-strong">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span>正在提取文件正文，请稍候...</span>
                       </div>
                     )}
                     {extractError && (
-                      <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-small text-red-600">
+                      <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-ds-danger-soft border border-ds-danger/30 text-small text-ds-danger">
                         <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                         <span>{extractError}</span>
                       </div>
                     )}
                     {extractedContent && !extractError && (
-                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-small text-green-600">
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ds-success-soft border border-ds-success/30 text-small text-ds-success">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>
                           已成功提取文件正文：
@@ -2188,7 +2188,7 @@ export function SyllabusPage({
             <button
               type="submit"
               disabled={isExtracting}
-              className={`w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium py-3 px-4 shadow hover:opacity-95 hover:shadow-md transition-all text-body leading-5 ${isExtracting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl bg-accent text-white font-medium py-3 px-4 shadow hover:opacity-95 hover:shadow-md transition-all text-body leading-5 ${isExtracting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isExtracting ? (
                 <><Loader2 className="h-5 w-5 animate-spin" /> 文件正文提取中...</>

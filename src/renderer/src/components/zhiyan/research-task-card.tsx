@@ -336,11 +336,11 @@ export function buildResearchTaskResumeText(task: ResearchTaskCardV1): string {
 }
 
 const STATUS_VIEW: Record<ResearchTaskStatus, { label: string; className: string }> = {
-  queued: { label: '等待开始', className: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200' },
-  running: { label: '正在执行', className: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200' },
-  completed: { label: '已完成', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200' },
-  failed: { label: '需要继续', className: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-200' },
-  paused: { label: '已暂停', className: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200' }
+  queued: { label: '等待开始', className: 'bg-ds-subtle text-ds-ink' },
+  running: { label: '正在执行', className: 'bg-accent-soft text-accent-strong' },
+  completed: { label: '已完成', className: 'bg-ds-success-soft text-ds-success' },
+  failed: { label: '需要继续', className: 'bg-ds-danger-soft text-ds-danger' },
+  paused: { label: '已暂停', className: 'bg-ds-warning-soft text-ds-warning' }
 }
 
 export function ResearchTaskCardPanel({
@@ -397,7 +397,7 @@ export function ResearchTaskCardPanel({
           最近完成动作：<span className="font-semibold text-ds-text">{task.lastSuccessfulStep}</span>
         </p>
       ) : null}
-      {task.errorMessage ? <p className="mt-2 text-caption text-red-600 dark:text-red-300">{task.errorMessage}</p> : null}
+      {task.errorMessage ? <p className="mt-2 text-caption text-ds-danger">{task.errorMessage}</p> : null}
 
       <div className="mt-3 flex justify-end">
         <button type="button" onClick={() => onContinue(task)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-small font-semibold text-accent transition hover:bg-accent/15">

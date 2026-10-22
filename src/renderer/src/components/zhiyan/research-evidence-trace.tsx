@@ -49,27 +49,27 @@ export const RESEARCH_EVIDENCE_VIEW: Record<ResearchEvidenceKind, {
 }> = {
   user_material: {
     label: '用户材料',
-    className: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200'
+    className: 'bg-ds-subtle text-ds-ink'
   },
   full_text: {
     label: '全文证据',
-    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200'
+    className: 'bg-ds-success-soft text-ds-success'
   },
   abstract_metadata: {
     label: '摘要/元数据',
-    className: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200'
+    className: 'bg-accent-soft text-accent-strong'
   },
   database_result: {
     label: '数据库结果',
-    className: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
+    className: 'bg-accent-soft text-accent-strong'
   },
   correlation_inference: {
     label: '相关性推断',
-    className: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200'
+    className: 'bg-ds-warning-soft text-ds-warning'
   },
   mechanism_hypothesis: {
     label: '机制假设',
-    className: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200'
+    className: 'bg-ds-skill-soft text-ds-skill'
   }
 }
 
@@ -344,7 +344,7 @@ export function ResearchEvidenceTracePanel({
               <p className="mt-1 break-all text-caption text-ds-muted">{metadata}</p>
               {record.locator ? <p className="mt-1 text-caption text-ds-muted">证据位置：{record.locator}</p> : null}
               {record.verification === 'missing_identifier' ? (
-                <p className="mt-1 inline-flex items-center gap-1 text-caption text-amber-700 dark:text-amber-300"><AlertTriangle className="h-3.5 w-3.5" />缺少 DOI/PMID，请核验后引用</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-caption text-ds-warning"><AlertTriangle className="h-3.5 w-3.5" />缺少 DOI/PMID，请核验后引用</p>
               ) : null}
               {record.note ? <p className="mt-1 text-caption text-ds-muted">限制：{record.note}</p> : null}
             </article>

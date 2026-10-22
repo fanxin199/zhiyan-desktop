@@ -280,10 +280,10 @@ export function AnalysisEnvironmentPreflight({
     <div
       className={`rounded-xl border px-4 py-3 ${
         ready
-          ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+          ? 'border-ds-success/30 bg-ds-success-soft'
           : danger
-            ? 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10'
-            : 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10'
+            ? 'border-ds-danger/30 bg-ds-danger-soft'
+            : 'border-ds-warning/30 bg-ds-warning-soft'
       }`}
       data-testid="analysis-environment-preflight"
     >
@@ -291,12 +291,12 @@ export function AnalysisEnvironmentPreflight({
         {model.tone === 'checking' || busy
           ? <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent" strokeWidth={1.8} />
           : ready
-            ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" strokeWidth={1.8} />
-            : <AlertCircle className={`mt-0.5 h-4 w-4 shrink-0 ${danger ? 'text-red-600' : 'text-amber-600'}`} strokeWidth={1.8} />}
+            ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-ds-success" strokeWidth={1.8} />
+            : <AlertCircle className={`mt-0.5 h-4 w-4 shrink-0 ${danger ? 'text-ds-danger' : 'text-ds-warning'}`} strokeWidth={1.8} />}
         <div className="min-w-0 flex-1">
           <p className="text-small font-semibold text-ds-text">{model.title}</p>
           <p className="mt-1 text-caption leading-relaxed text-ds-muted">{busy && busyLabel ? busyLabel : model.description}</p>
-          {errorMessage ? <p className="mt-2 text-caption font-semibold text-red-600 dark:text-red-300">{errorMessage}</p> : null}
+          {errorMessage ? <p className="mt-2 text-caption font-semibold text-ds-danger">{errorMessage}</p> : null}
         </div>
       </div>
       {!model.ready && model.action !== 'none' ? (

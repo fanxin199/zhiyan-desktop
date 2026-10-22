@@ -672,7 +672,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
     <div className={`flex h-full flex-col overflow-hidden bg-ds-main ${className}`}>
       <div className="flex shrink-0 items-center justify-between border-b border-ds-border-muted px-6 py-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ds-domain-teaching-soft text-ds-domain-teaching">
             <BookOpen className="h-5 w-5" strokeWidth={1.9} />
           </div>
           <div className="min-w-0">
@@ -702,7 +702,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
       </div>
 
       {message ? (
-        <div className="mx-6 mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-small text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="mx-6 mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-ds-warning/30 bg-ds-warning-soft px-3 py-2 text-small text-ds-warning">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{message}</span>
         </div>
@@ -1060,7 +1060,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     type="button"
                     title="删除章"
                     onClick={() => deleteChapter(chapterIndex)}
-                    className="rounded-lg p-2 text-ds-muted hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -1098,7 +1098,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                             confirmed: !section.confirmed
                           })}
                           className={`rounded-lg px-2 py-1.5 text-caption font-semibold ${
-                            section.confirmed ? 'bg-emerald-600 text-white' : 'border border-ds-border text-ds-muted'
+                            section.confirmed ? 'bg-ds-success text-white' : 'border border-ds-border text-ds-muted'
                           }`}
                         >
                           {section.confirmed ? '已确认' : '待确认'}
@@ -1107,7 +1107,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                           type="button"
                           title="删除节"
                           onClick={() => deleteSection(chapterIndex, sectionIndex)}
-                          className="rounded-lg p-2 text-ds-muted hover:bg-red-50 hover:text-red-600"
+                          className="rounded-lg p-2 text-ds-muted hover:bg-ds-danger-soft hover:text-ds-danger"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -1331,10 +1331,10 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     <div className="mb-1 flex items-center gap-2">
                       <span className={`rounded-full px-2 py-0.5 text-caption font-bold ${
                         item.severity === 'error'
-                          ? 'bg-red-100 text-red-700'
+                          ? 'bg-ds-danger-soft text-ds-danger'
                           : item.severity === 'warning'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-sky-100 text-sky-700'
+                            ? 'bg-ds-warning-soft text-ds-warning'
+                            : 'bg-accent-soft text-accent-strong'
                       }`}>
                         {item.severity}
                       </span>
@@ -1377,7 +1377,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   导出 Markdown / DOCX / 项目包
                 </button>
                 {exportPaths.length > 0 ? (
-                  <div className="mt-3 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-caption text-emerald-800">
+                  <div className="mt-3 space-y-1 rounded-lg border border-ds-success/30 bg-ds-success-soft p-3 text-caption text-ds-success">
                     {exportPaths.map((path) => (
                       <p key={path} className="break-all">{path}</p>
                     ))}

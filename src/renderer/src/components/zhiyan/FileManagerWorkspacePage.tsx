@@ -210,11 +210,11 @@ export function fileManagerModuleHandoffAvailability(entry: WorkspaceEntry): Rec
 }
 
 function iconForEntry(entry: WorkspaceEntry): ReactElement {
-  if (entry.type === 'directory') return <Folder className="h-4 w-4 text-amber-500" strokeWidth={1.8} />
+  if (entry.type === 'directory') return <Folder className="h-4 w-4 text-ds-warning" strokeWidth={1.8} />
   const category = fileCategory(entry)
-  if (category === 'images') return <FileImage className="h-4 w-4 text-emerald-600" strokeWidth={1.8} />
-  if (category === 'data') return <FileSpreadsheet className="h-4 w-4 text-sky-600" strokeWidth={1.8} />
-  if (entry.ext.toLowerCase() === 'pdf') return <FileText className="h-4 w-4 text-red-500" strokeWidth={1.8} />
+  if (category === 'images') return <FileImage className="h-4 w-4 text-ds-success" strokeWidth={1.8} />
+  if (category === 'data') return <FileSpreadsheet className="h-4 w-4 text-accent-strong" strokeWidth={1.8} />
+  if (entry.ext.toLowerCase() === 'pdf') return <FileText className="h-4 w-4 text-ds-danger" strokeWidth={1.8} />
   if (entry.ext.toLowerCase() === 'md' || entry.ext.toLowerCase() === 'txt') {
     return <FileCode2 className="h-4 w-4 text-accent" strokeWidth={1.8} />
   }
@@ -538,7 +538,7 @@ export function FileManagerWorkspacePage({
             </div>
           ) : null}
 
-          {message ? <div className="mb-3 whitespace-pre-wrap border-l-2 border-red-500 bg-red-50 px-3 py-2 text-caption text-red-700 dark:bg-red-500/10 dark:text-red-200">{message}</div> : null}
+          {message ? <div className="mb-3 whitespace-pre-wrap border-l-2 border-ds-danger bg-ds-danger-soft px-3 py-2 text-caption text-ds-danger">{message}</div> : null}
 
           <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
             <section className="flex min-h-0 flex-col border border-ds-border-muted bg-ds-card">
@@ -558,15 +558,15 @@ export function FileManagerWorkspacePage({
                 <div className="flex flex-wrap items-center gap-2 border-b border-accent/20 bg-accent/5 px-3 py-2 text-caption text-ds-text">
                   <span className="font-semibold">已选 {selectedFiles.length} 个文件</span>
                   <button type="button" onClick={sendSelectedToAi} className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-ds-card px-2.5 py-1.5 font-semibold text-accent hover:bg-accent/10"><Send className="h-3.5 w-3.5" />交给 AI 分析</button>
-                  <button type="button" onClick={() => setDeletePending(true)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-semibold text-red-600 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" />删除</button>
+                  <button type="button" onClick={() => setDeletePending(true)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-semibold text-ds-danger hover:bg-ds-danger-soft"><Trash2 className="h-3.5 w-3.5" />删除</button>
                 </div>
               ) : null}
 
               {deletePending ? (
-                <div className="flex flex-wrap items-center gap-2 border-b border-red-200 bg-red-50 px-3 py-2 text-caption text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-200">
+                <div className="flex flex-wrap items-center gap-2 border-b border-ds-danger/30 bg-ds-danger-soft px-3 py-2 text-caption text-ds-danger">
                   <span className="font-semibold">将永久删除 {selectedFiles.length} 个文件。</span>
-                  <button type="button" onClick={() => void deleteSelectedFiles()} className="rounded-md bg-red-600 px-2.5 py-1.5 font-semibold text-white">确认删除</button>
-                  <button type="button" onClick={() => setDeletePending(false)} className="rounded-md px-2.5 py-1.5 font-semibold hover:bg-red-500/10">取消</button>
+                  <button type="button" onClick={() => void deleteSelectedFiles()} className="rounded-md bg-ds-danger px-2.5 py-1.5 font-semibold text-white">确认删除</button>
+                  <button type="button" onClick={() => setDeletePending(false)} className="rounded-md px-2.5 py-1.5 font-semibold hover:bg-ds-danger-soft">取消</button>
                 </div>
               ) : null}
 
@@ -624,9 +624,9 @@ export function FileManagerWorkspacePage({
                     {preview.kind === 'loading' ? <div className="flex h-full min-h-48 items-center justify-center gap-2 text-small text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在加载预览</div> : null}
                     {preview.kind === 'image' ? <img src={preview.dataUrl} alt={selectedEntry?.name ?? ''} className="max-h-full w-full object-contain" /> : null}
                     {preview.kind === 'text' ? <><pre className="whitespace-pre-wrap break-words font-mono text-caption leading-5 text-ds-text">{preview.content}</pre>{preview.truncated ? <p className="mt-3 text-caption text-ds-muted">仅显示文件开头内容。</p> : null}</> : null}
-                    {preview.kind === 'pdf' ? <div className="space-y-3 text-small text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-red-500" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-white" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
+                    {preview.kind === 'pdf' ? <div className="space-y-3 text-small text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-ds-danger" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-slide-paper" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
                     {preview.kind === 'unsupported' ? <div className="space-y-2 text-small text-ds-muted"><File className="h-8 w-8 text-ds-faint" /><p>此格式暂不支持内嵌预览。</p><p>{preview.message}</p></div> : null}
-                    {preview.kind === 'error' ? <div className="text-small text-red-600">{preview.message}</div> : null}
+                    {preview.kind === 'error' ? <div className="text-small text-ds-danger">{preview.message}</div> : null}
                   </div>
                 </>
               ) : (
