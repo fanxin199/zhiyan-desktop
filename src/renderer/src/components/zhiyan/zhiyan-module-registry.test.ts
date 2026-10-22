@@ -17,12 +17,12 @@ describe('ZhiYan module registry', () => {
       'syllabus',
       'ppt-gen',
       'textbook',
+      'write',
       'paper-polish',
       'literature',
       'review-writing',
       'grant-writing',
       'bioinformatics',
-      'write',
       'chat',
       'file-manager'
     ])
@@ -48,19 +48,27 @@ describe('ZhiYan module registry', () => {
   })
 
   it('derives sidebar and dashboard collections from the same definitions', () => {
-    expect(getZhiYanSidebarModules().map((module) => module.id)).toEqual(ZHIYAN_MODULE_ROUTE_IDS)
+    expect(getZhiYanSidebarModules().map((module) => module.id)).toEqual([
+      'dashboard',
+      'syllabus',
+      'ppt-gen',
+      'textbook',
+      'write',
+      'literature',
+      'bioinformatics',
+      'chat',
+      'file-manager'
+    ])
     expect(getZhiYanDashboardModules('teaching').map((module) => module.dashboard?.title)).toEqual([
       '智能教案',
       '制作课件 PPT',
       '教材编写'
     ])
     expect(getZhiYanDashboardModules('research').map((module) => module.id)).toEqual([
-      'paper-polish',
+      'write',
       'literature',
-      'review-writing',
-      'grant-writing',
       'bioinformatics'
     ])
-    expect(getZhiYanDashboardModules('capabilities').map((module) => module.id)).toEqual(['write', 'chat'])
+    expect(getZhiYanDashboardModules('capabilities').map((module) => module.id)).toEqual(['chat'])
   })
 })

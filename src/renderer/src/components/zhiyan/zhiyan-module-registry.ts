@@ -99,6 +99,19 @@ export const ZHIYAN_MODULE_REGISTRY = [
     dashboard: { title: '教材编写' }
   },
   {
+    // 文稿 keeps the route id of the writing workspace it grew from; the paper, review and grant
+    // pages below became its templates (Task 1.4.1).
+    id: 'write',
+    icon: FileText,
+    sidebarLabel: '文稿',
+    section: 'research',
+    taskDescription: '论文、综述、国自然和日常文稿：一句话开始，AI 先写初稿，说一句就改',
+    keywords: ['文稿', '写作', '论文', '综述', '基金', '国自然', '润色', '草稿', '自由写作台', 'DOCX', 'PDF', '导出'],
+    requiredCapabilities: ['ai', 'workspace-files', 'write-workspace', 'native-docx-export'],
+    showInSidebar: true,
+    dashboard: { title: '文稿' }
+  },
+  {
     id: 'paper-polish',
     icon: PenTool,
     sidebarLabel: '文本写作',
@@ -106,8 +119,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '自然基金、论文润色和长文档分段写作，先锁定项目主线',
     keywords: ['论文', '基金', '写作', '润色', '文本', '英文', '中文', 'Discussion', 'Results', '蓝图'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'write-workspace'],
-    showInSidebar: true,
-    dashboard: { title: '文本写作' }
+    // Opens 文稿 with this template; kept for old sessions and links.
+    showInSidebar: false
   },
   {
     id: 'literature',
@@ -128,8 +141,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '围绕科研问题组织文献、框架和初稿',
     keywords: ['综述', '文献', '框架', '证据矩阵', '章节', '初稿', 'review'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research', 'write-workspace'],
-    showInSidebar: true,
-    dashboard: { title: '综述撰写' }
+    // Opens 文稿 with this template; kept for old sessions and links.
+    showInSidebar: false
   },
   {
     id: 'grant-writing',
@@ -139,8 +152,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '辅助立项依据、研究内容与技术路线成稿',
     keywords: ['自然基金', '基金', '国自然', 'NSFC', '立项依据', '技术路线', '研究内容'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research', 'write-workspace'],
-    showInSidebar: true,
-    dashboard: { title: '自然基金撰写' }
+    // Opens 文稿 with this template; kept for old sessions and links.
+    showInSidebar: false
   },
   {
     id: 'bioinformatics',
@@ -152,17 +165,6 @@ export const ZHIYAN_MODULE_REGISTRY = [
     requiredCapabilities: ['ai', 'workspace-files', 'python-base', 'python-bioinformatics'],
     showInSidebar: true,
     dashboard: { title: '科研数据分析' }
-  },
-  {
-    id: 'write',
-    icon: FileText,
-    sidebarLabel: '自由写作台',
-    section: 'capabilities',
-    taskDescription: '自由草稿、长文编辑、局部润色和 DOCX/PDF 导出',
-    keywords: ['自由写作台', '写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档', '草稿'],
-    requiredCapabilities: ['workspace-files', 'write-workspace', 'native-docx-export'],
-    showInSidebar: true,
-    dashboard: { title: '自由写作台' }
   },
   {
     id: 'chat',

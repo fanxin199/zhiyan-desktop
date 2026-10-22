@@ -84,7 +84,7 @@ describe('ZhiYanDashboard recent use', () => {
     expect([literature, syllabus, writing, chat].map(recentThreadFeatureLabel)).toEqual([
       '文献阅读',
       '智能教案',
-      '自由写作台',
+      '文稿',
       'AI 对话'
     ])
 
@@ -95,7 +95,7 @@ describe('ZhiYanDashboard recent use', () => {
 
     const html = renderToStaticMarkup(dashboard({ recentThreads: [writing, chat], onOpenRecentThread: noop }))
     expect(html).toContain('写作助手对话')
-    expect(html).toContain('自由写作台')
+    expect(html).toContain('文稿')
     expect(html).not.toContain('Write Assistant')
   })
 
@@ -164,11 +164,12 @@ describe('ZhiYanDashboard quick search', () => {
     expect(html.indexOf('输入关键词搜索功能，或直接描述需求…')).toBeLessThan(html.indexOf('教学工具'))
   })
 
-  it('positions the writing capability as a free writing desk', () => {
+  it('offers one 文稿 card for papers, reviews, grants and everyday writing', () => {
     const html = renderToStaticMarkup(dashboard())
 
-    expect(html).toContain('自由写作台')
-    expect(html).toContain('自由草稿、长文编辑、局部润色和 DOCX/PDF 导出')
+    expect(html).toContain('文稿')
+    expect(html).toContain('论文、综述、国自然和日常文稿')
+    expect(html).not.toContain('综述撰写')
   })
 })
 

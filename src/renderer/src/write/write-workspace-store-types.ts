@@ -1,4 +1,5 @@
 import type { WriteInlineCompletionSettingsV1 } from '@shared/app-settings'
+import type { DocumentTemplateId } from '@shared/document-templates'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import type { WriteEditorSelectionState } from '../components/write/WriteMarkdownEditor'
 import type { WriteQuotedSelection } from './quoted-selection'
@@ -35,6 +36,8 @@ export type WriteWorkspaceState = {
   assistantOpen: boolean
   assistantModel: string
   filesPanelOpen: boolean
+  /** The 文稿 start state is showing, with this template chosen; null shows the open document. */
+  documentStart: DocumentTemplateId | null
   selection: WriteEditorSelectionState
   quotedSelections: WriteQuotedSelection[]
   recentEdits: WriteRecentEdit[]
@@ -71,6 +74,8 @@ export type WriteWorkspaceState = {
   setAssistantOpen: (open: boolean) => void
   setAssistantModel: (model: string) => void
   setFilesPanelOpen: (open: boolean) => void
+  openDocumentStart: (template: DocumentTemplateId) => void
+  closeDocumentStart: () => void
   setSelection: (selection: WriteEditorSelectionState) => void
   recordRecentEdits: (edits: WriteRecentEdit[]) => void
   quoteCurrentSelection: (workspaceRoot: string) => void

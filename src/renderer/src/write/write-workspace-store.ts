@@ -87,6 +87,7 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
   assistantOpen: readStoredAssistantOpen(),
   assistantModel: readStoredAssistantModel(),
   filesPanelOpen: readStoredFilesPanelOpen(),
+  documentStart: null,
 
   ...createWriteSettingsActions({ set, get }),
   ...createWriteFileActions({
@@ -336,6 +337,9 @@ export const useWriteWorkspaceStore = create<WriteWorkspaceState>((set, get) => 
     writeBrowserStorageItem(WRITE_FILES_PANEL_OPEN_KEY, open ? '1' : '0')
     set({ filesPanelOpen: open })
   },
+
+  openDocumentStart: (template) => set({ documentStart: template }),
+  closeDocumentStart: () => set({ documentStart: null }),
 
   setSelection: (selection) => set({ selection }),
 

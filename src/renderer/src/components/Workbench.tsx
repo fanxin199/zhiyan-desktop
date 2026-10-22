@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import type { SkillListItem } from '@shared/ds-gui-api'
 import type { ArtifactRegisterInput } from '@shared/artifact'
+import { documentTemplateForModule } from '@shared/document-templates'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
 import type { SendMessageOverrides, TeacherProjectStartContext } from '../store/chat-store-types'
@@ -28,11 +29,8 @@ import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashb
 import {
   BioinformaticsPage,
   FileManagerPage,
-  GrantWritingPage,
   LiteraturePage,
-  PaperPolishPage,
   PptGenPage,
-  ReviewWritingPage,
   SyllabusPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
@@ -424,6 +422,14 @@ export function Workbench(): ReactElement {
     if (route !== 'chat') setComposerFileReferences([])
   }, [route])
 
+  // Old links to the paper, review and grant pages open 文稿 with the matching template.
+  useEffect(() => {
+    const template = documentTemplateForModule(route)
+    if (!template) return
+    useWriteWorkspaceStore.getState().openDocumentStart(template)
+    void openWrite()
+  }, [openWrite, route])
+
   const attachmentUploadEnabled = isChatAttachmentUploadEnabled({
     runtimeConnection,
     route,
@@ -589,6 +595,13 @@ export function Workbench(): ReactElement {
     void openWrite()
   }
   const openRegisteredModule = (moduleId: ZhiYanModuleRouteId): void => {
+    // The paper, review and grant pages became templates of 文稿.
+    const template = documentTemplateForModule(moduleId)
+    if (template) {
+      useWriteWorkspaceStore.getState().openDocumentStart(template)
+      openWriteMode()
+      return
+    }
     if (moduleId === 'write') {
       openWriteMode()
       return
@@ -810,24 +823,6 @@ export function Workbench(): ReactElement {
           />
         ) : route === 'ppt-gen' ? (
           <PptGenPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
-        ) : route === 'paper-polish' ? (
-          <PaperPolishPage
-            onStartChat={handleModuleQuickPrompt}
-            researchTaskExecution={researchTaskExecutionFor('paper-polish')}
-            showInlineConversation={isInlineModuleConversationVisible({
-              inlineConversationThreadIds,
-              moduleId: 'paper-polish',
-              activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('文本写作', {
-              busy: '正在处理写作任务',
-              ready: '写作任务已完成'
-            }, {
-              moduleId: 'paper-polish',
-              title: '文本写作结果'
-            })}
-            className="ds-no-drag"
-          />
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
@@ -845,42 +840,6 @@ export function Workbench(): ReactElement {
             inlineConversation={renderModuleConversation('文献解读', {
               busy: '正在解读',
               ready: '解读已完成'
-            })}
-            className="ds-no-drag"
-          />
-        ) : route === 'review-writing' ? (
-          <ReviewWritingPage
-            onStartChat={handleModuleQuickPrompt}
-            researchTaskExecution={researchTaskExecutionFor('review-writing')}
-            showInlineConversation={isInlineModuleConversationVisible({
-              inlineConversationThreadIds,
-              moduleId: 'review-writing',
-              activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('综述撰写', {
-              busy: '正在处理综述任务',
-              ready: '综述任务已完成'
-            }, {
-              moduleId: 'review-writing',
-              title: '综述撰写结果'
-            })}
-            className="ds-no-drag"
-          />
-        ) : route === 'grant-writing' ? (
-          <GrantWritingPage
-            onStartChat={handleModuleQuickPrompt}
-            researchTaskExecution={researchTaskExecutionFor('grant-writing')}
-            showInlineConversation={isInlineModuleConversationVisible({
-              inlineConversationThreadIds,
-              moduleId: 'grant-writing',
-              activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('自然基金撰写', {
-              busy: '正在处理基金任务',
-              ready: '基金任务已完成'
-            }, {
-              moduleId: 'grant-writing',
-              title: '自然基金撰写结果'
             })}
             className="ds-no-drag"
           />
