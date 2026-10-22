@@ -1713,7 +1713,7 @@ export function FloatingComposer({
           <div className="ds-composer-footer-left flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {showThreadUsageFooter ? (
               <div
-                className="ds-composer-usage ds-no-drag inline-flex min-h-7 max-w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 overflow-visible rounded-lg border border-ds-border-muted bg-ds-card/72 px-2.5 py-0.5 text-[12.5px] font-medium leading-5 text-ds-muted shadow-sm"
+                className="ds-composer-usage ds-no-drag inline-flex min-h-7 max-w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 overflow-visible rounded-lg border border-ds-border-muted bg-ds-card/70 px-2.5 py-0.5 text-[12.5px] font-medium leading-5 text-ds-muted shadow-sm"
                 title={
                   threadUsage
                     ? t('sessionUsageDetailsTitle', {

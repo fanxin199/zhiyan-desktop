@@ -100,9 +100,9 @@ export function MessageTimelineEmptyHero({
 export function ThreadForkBanner({ parentTitle }: { parentTitle: string }): ReactElement {
   const { t } = useTranslation('common')
   return (
-    <div className="rounded-[18px] border border-accent/16 bg-accent/7 px-4 py-3 text-ds-muted shadow-[0_14px_36px_rgba(0,136,255,0.05)]">
+    <div className="rounded-[18px] border border-accent/15 bg-accent/5 px-4 py-3 text-ds-muted shadow-[0_14px_36px_rgba(0,136,255,0.05)]">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-accent/12 text-accent">
+        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-accent/10 text-accent">
           <GitFork className="h-4 w-4" strokeWidth={1.85} />
         </span>
         <span className="min-w-0">
@@ -126,7 +126,7 @@ export function ThreadForkPoint({ parentTitle }: { parentTitle: string }): React
     <div className="flex items-center gap-3 py-1 text-[12px] font-medium text-ds-faint">
       <span className="h-px min-w-6 flex-1 bg-ds-border-muted" />
       <span
-        className="inline-flex max-w-[min(100%,420px)] items-center gap-1.5 rounded-full border border-accent/16 bg-ds-card/78 px-3 py-1.5 text-accent shadow-sm"
+        className="inline-flex max-w-[min(100%,420px)] items-center gap-1.5 rounded-full border border-accent/15 bg-ds-card/80 px-3 py-1.5 text-accent shadow-sm"
         title={parentTitle ? t('threadForkPointFrom', { title: parentTitle }) : t('threadForkPoint')}
       >
         <GitFork className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />

@@ -248,8 +248,8 @@ function HeatmapGrid({
                         onMouseEnter={() => onSelect(bucket)}
                         onFocus={() => onSelect(bucket)}
                         onClick={() => onSelect(bucket)}
-                        className={`aspect-square w-full rounded-[3px] border transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-ds-bg ${USAGE_HEATMAP_INTENSITY_CLASSES[usageHeatmapIntensityLevel(bucket, maxTokens, maxTurns)]} ${
-                          selected?.date === bucket.date ? 'ring-2 ring-accent ring-offset-2 ring-offset-ds-bg' : ''
+                        className={`aspect-square w-full rounded-[3px] border transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-ds-card ${USAGE_HEATMAP_INTENSITY_CLASSES[usageHeatmapIntensityLevel(bucket, maxTokens, maxTurns)]} ${
+                          selected?.date === bucket.date ? 'ring-2 ring-accent ring-offset-2 ring-offset-ds-card' : ''
                         }`}
                       />
                     ) : (
@@ -289,7 +289,7 @@ function PreviewCalendar({ mode }: { mode: Exclude<UsageViewMode, 'populated'> }
                     : patterned
                       ? strong
                         ? 'border-accent/35 bg-accent/35 dark:border-accent/45 dark:bg-accent/30'
-                        : 'border-accent/18 bg-accent/16 dark:border-accent/25 dark:bg-accent/16'
+                        : 'border-accent/20 bg-accent/15 dark:border-accent/25 dark:bg-accent/15'
                       : 'border-ds-border-muted bg-ds-subtle/70'
                 return <span key={cell} className={`h-[13px] w-[13px] rounded-[3px] border ${className}`} />
               })}
@@ -339,7 +339,7 @@ function WarmupStatePanel({
           className={`mb-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[12px] font-semibold ${
             mode === 'error'
               ? 'border-amber-300/35 bg-amber-50/70 text-amber-900 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100'
-              : 'border-accent/15 bg-accent/8 text-accent'
+              : 'border-accent/15 bg-accent/10 text-accent'
           }`}
         >
           {icon}
@@ -529,7 +529,7 @@ function ModelUsagePanel({
         <div className="relative min-w-0" onMouseLeave={() => setActiveDayIndex(null)}>
           {activeDay && activeBreakdown ? (
             <div
-              className={`pointer-events-none absolute top-0 z-20 w-[min(18rem,calc(100vw-4rem))] max-w-full rounded-[18px] border border-ds-border bg-ds-card/98 p-3 shadow-[0_18px_46px_rgba(15,23,42,0.12)] backdrop-blur-xl ${tooltipTransformClass}`}
+              className={`pointer-events-none absolute top-0 z-20 w-[min(18rem,calc(100vw-4rem))] max-w-full rounded-[18px] border border-ds-border bg-ds-card p-3 shadow-[0_18px_46px_rgba(15,23,42,0.12)] backdrop-blur-xl ${tooltipTransformClass}`}
               style={{ left: `${tooltipAnchorPercent}%` }}
             >
               <div className="flex items-start justify-between gap-3">
@@ -601,11 +601,11 @@ function ModelUsagePanel({
                   onMouseEnter={() => setActiveDayIndex(index)}
                   onFocus={() => setActiveDayIndex(index)}
                   onClick={() => setActiveDayIndex(index)}
-                  className="relative z-[1] flex min-h-[112px] items-end rounded-[10px] px-1 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-ds-bg"
+                  className="relative z-[1] flex min-h-[112px] items-end rounded-[10px] px-1 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-ds-card"
                 >
                   <span
                     className={`flex w-full flex-col-reverse overflow-hidden rounded-t-[6px] shadow-[inset_0_1px_0_rgba(255,255,255,0.36)] transition ${
-                      active ? 'ring-1 ring-accent/18' : ''
+                      active ? 'ring-1 ring-accent/20' : ''
                     }`}
                     style={{ height: `${barHeight}px` }}
                   >
@@ -685,7 +685,7 @@ function UsageHeroToggle({
   return (
     <button
       type="button"
-      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-[radial-gradient(circle_at_34%_26%,rgba(91,128,255,0.20),transparent_46%),rgba(255,255,255,0.82)] text-accent shadow-[0_12px_28px_rgba(88,105,150,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-accent/35 hover:bg-white hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 focus:ring-offset-ds-bg dark:bg-white/[0.08] dark:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-[radial-gradient(circle_at_34%_26%,rgba(91,128,255,0.20),transparent_46%),rgba(255,255,255,0.82)] text-accent shadow-[0_12px_28px_rgba(88,105,150,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-accent/35 hover:bg-white hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 focus:ring-offset-ds-card dark:bg-white/[0.08] dark:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
       onClick={onToggle}
       aria-label={label}
       title={label}
@@ -719,7 +719,7 @@ function CollapsedCalendarCard({ onExpand }: { onExpand: () => void }): ReactEle
 
 function UsagePanelCard({ children }: { children: ReactElement }): ReactElement {
   return (
-    <div className="w-full min-w-0 rounded-[28px] border border-ds-border-muted bg-ds-card/82 p-4 shadow-[0_18px_48px_rgba(86,103,136,0.08)] dark:bg-white/[0.045] sm:p-5">
+    <div className="w-full min-w-0 rounded-[28px] border border-ds-border-muted bg-ds-card/80 p-4 shadow-[0_18px_48px_rgba(86,103,136,0.08)] dark:bg-white/[0.045] sm:p-5">
       {children}
     </div>
   )

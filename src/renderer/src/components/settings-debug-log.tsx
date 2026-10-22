@@ -19,7 +19,7 @@ function WriteInlineEditDebugText({
       <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ds-faint">
         {label}
       </div>
-      <pre className="max-h-72 min-h-[88px] overflow-auto whitespace-pre-wrap rounded-xl border border-ds-border-muted bg-ds-main/72 p-3 font-mono text-[11.5px] leading-5 text-ds-ink">
+      <pre className="max-h-72 min-h-[88px] overflow-auto whitespace-pre-wrap rounded-xl border border-ds-border-muted bg-ds-main/70 p-3 font-mono text-[11.5px] leading-5 text-ds-ink">
         {value || '—'}
       </pre>
     </div>

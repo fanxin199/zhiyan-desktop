@@ -82,7 +82,7 @@ export function WriteWorkspaceToolbar({
                 ariaLabel={t('sidebarExpand')}
               />
             ) : null}
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/9 text-accent">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
             </span>
             <div className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.01em] text-ds-ink">
@@ -162,7 +162,7 @@ export function WriteWorkspaceToolbar({
                     }}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[13px] transition ${
                       item.active
-                        ? 'bg-accent/12 text-accent'
+                        ? 'bg-accent/10 text-accent'
                         : 'text-ds-ink hover:bg-slate-100'
                     } ${!activeFileIsText ? 'cursor-not-allowed opacity-40' : ''}`}
                   >

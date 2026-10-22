@@ -564,7 +564,7 @@ export function WriteWorkspaceView({
         onToggleLeftSidebar={onToggleLeftSidebar}
       />
       <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden pb-3 pt-3">
-        <div className="min-w-0 flex-1 overflow-hidden rounded-[28px] border border-ds-border bg-ds-card/88 shadow-[0_20px_56px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+        <div className="min-w-0 flex-1 overflow-hidden rounded-[28px] border border-ds-border bg-ds-card/90 shadow-[0_20px_56px_rgba(15,23,42,0.06)] backdrop-blur-xl">
           <WriteWorkspaceDocumentPane
             activeFilePath={activeFilePath}
             activeFileIsImage={activeFileIsImage}

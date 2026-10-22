@@ -116,7 +116,7 @@ export function WriteAssistantPanel({
           >
             <PanelRightClose className="h-4 w-4" strokeWidth={1.85} />
           </button>
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] bg-ds-surface-subtle px-3 py-1.5 dark:bg-white/8">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] bg-ds-subtle px-3 py-1.5 dark:bg-white/8">
             <Sparkles className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} />
             <span className="min-w-0 truncate text-[13px] font-medium text-ds-ink">
               {t('writeAssistant')}
@@ -170,7 +170,7 @@ export function WriteAssistantPanel({
               <button
                 type="button"
                 onClick={() => setAssistantPrompt(t('writeAssistantSummarizePrompt', { file: activeFileLabel }))}
-                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-300">
                   <FileText className="h-3.5 w-3.5" strokeWidth={1.9} />
@@ -180,7 +180,7 @@ export function WriteAssistantPanel({
               <button
                 type="button"
                 onClick={() => setAssistantPrompt(t('writeAssistantOutlinePrompt', { file: activeFileLabel }))}
-                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                   <ListTodo className="h-3.5 w-3.5" strokeWidth={1.9} />
@@ -196,7 +196,7 @@ export function WriteAssistantPanel({
                     setAssistantPrompt(t('writeAssistantPolishSelectionPrompt'))
                   }
                 }}
-                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/72 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
+                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300">
                   <MessageSquareQuote className="h-3.5 w-3.5" strokeWidth={1.9} />

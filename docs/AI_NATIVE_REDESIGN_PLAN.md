@@ -36,7 +36,7 @@
 ### 2.2 视觉与可读性
 
 1. 首页 11 张不同色相的饱和渐变卡片，带 hover 放大，主次不清。
-2. **未定义的颜色类**：`text-ds-text` 在 10 个文件中出现 128 次，但 `tailwind.config.js` 没有 `ds.text` 键，也没有对应 CSS，这些元素实际继承父元素颜色，是多处标题显示为灰色的直接原因；`*-ds-card-muted`（3 处）、`*-ds-surface-subtle`（1 处）同样未定义。
+2. **未定义的颜色类**：`text-ds-text` 在 10 个文件中出现 128 次，但 `tailwind.config.js` 没有 `ds.text` 键，也没有对应 CSS，这些元素只能继承父元素颜色；`*-ds-card-muted`（3 处）、`*-ds-surface-subtle`（1 处）、`ring-offset-ds-bg`（4 处）同样未定义。另外，主题色都以 `var(...)` 定义，Tailwind v3 不为其生成 `/N` 透明度类，`bg-accent/10` 这类写法有 338 处从未生效。（已在 Task 0.1.1 修复）
 3. **字号**：601 处 `text-[Npx]` 硬编码，其中 443 处 ≤ 13px（默认 1.1 倍界面缩放后约 ≤ 14px）；只有 5 个字号令牌。
 4. **颜色**：655 处直接使用 Tailwind 原色类、65 处十六进制颜色；主色 `#0088ff` 上的白字对比度约 3.5:1，低于 WCAG AA 正文要求的 4.5:1；`--ds-text-faint`（`#8a93a4`，对白底约 3.1:1）在 169 处用于文字。
 5. 主按钮不可用时只显示浅蓝色，不说明缺什么。
@@ -376,10 +376,10 @@ type TeacherPreference = {
 
 #### Task 0.1 · 设计令牌
 
-- [ ] **0.1.1** 修复未定义的颜色类：在 `tailwind.config.js` 中增加 `ds.text`（指向 `--ds-text`），并处理 `*-ds-card-muted`、`*-ds-surface-subtle`；新增源码扫描测试，保证组件中使用的每个 `text-` / `bg-` / `border-ds-*` 类都有定义。
+- [x] **0.1.1** 修复未定义的颜色类：在 `tailwind.config.js` 中增加 `ds.text`（指向 `--ds-text`）和 `ds.card-muted`；`*-ds-surface-subtle` 改用已有的 `ds-subtle`，`ring-offset-ds-bg` 改为 `ring-offset-ds-card`。实施中发现 `/N` 透明度类从未生成，已改用 `color-mix(... <alpha-value> ...)` 定义全部主题色，并把 23 处不在 5 的倍数档位上的透明度归整到最近档位。新增 `src/main/renderer-theme-colors.test.ts`，用真实 Tailwind 编译渲染层用到的每个主题色类，并断言都有 CSS 输出。
 - [ ] **0.1.2** 按 §5.1–§5.3 建立字号、颜色、领域色和圆角令牌（含深色值），主色改为 `#1769E0`，新增 `--ds-warning`；增加令牌对比度单元测试（正文与说明文字 ≥ 4.5:1）。
 - [ ] **0.1.3** 按 §5.1 映射表迁移 601 处 `text-[Npx]`，按目录分批提交：`components/zhiyan/` → `components/write/` → `components/chat/` → 其余；完成后用源码扫描测试禁止新增。
-- [ ] **0.1.4** 将 655 处 Tailwind 原色类和 65 处十六进制颜色替换为令牌，同样分批进行，完成后禁止新增。
+- [ ] **0.1.4** 将 655 处 Tailwind 原色类和 65 处十六进制颜色替换为令牌，同样分批进行，完成后禁止新增。其中 36 处原色透明度不在 5 的倍数档位上（如 `bg-white/8`），Tailwind 不会生成，替换时一并处理。
 
 #### Task 0.2 · 统一页头与图标
 
@@ -400,7 +400,7 @@ type TeacherPreference = {
 #### Task 0.5 · 术语与缺陷
 
 - [ ] **0.5.1** 按 §5.5 修改文案与显示逻辑；推理强度移入设置，简化为“AI 模式：快速 / 深度”。
-- [ ] **0.5.2** 修复写作助手回复 Markdown 未渲染：在 `WriteAssistantPanel` → `MessageTimeline` 路径中复现并定位走纯文本渲染的分支，统一使用 `AssistantMarkdown`；回归测试覆盖中文标点紧邻 `**` 和编号列表。
+- [ ] **0.5.2** 修复写作助手回复 Markdown 未渲染：在 `WriteAssistantPanel` → `MessageTimeline` 路径中复现并定位走纯文本渲染的分支，统一使用 `AssistantMarkdown`；回归测试覆盖中文标点紧邻 `**` 和编号列表。（2026-10-22 复查时，同一条回复已能正确渲染，原始文本可能只在会话恢复或流式输出等特定状态下出现，需先找到复现条件。）
 - [ ] **0.5.3** 不可用的主按钮按 §5.4 改为“可点击并指出缺少项”，包括 `ResearchTaskEntry` 的发送按钮、课件“生成课件蓝图”、教材“AI 解析出版社要求”等。
 
 #### Task 0.6 · P0 验收
@@ -583,4 +583,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**尚未开始。下一项为 Task 0.1.1（修复未定义的颜色类）。**
+当前执行任务：**Task 0.1.1 已完成。下一项为 Task 0.1.2（建立字号、颜色、领域色和圆角令牌）。**

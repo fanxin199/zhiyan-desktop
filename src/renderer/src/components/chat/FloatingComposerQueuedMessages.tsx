@@ -18,7 +18,7 @@ export function FloatingComposerQueuedMessages({ messages, onRemove }: Props): R
   if (messages.length === 0) return null
 
   return (
-    <div className="mb-2 rounded-[22px] border border-ds-border bg-ds-card/88 px-4 py-3 shadow-sm backdrop-blur-xl">
+    <div className="mb-2 rounded-[22px] border border-ds-border bg-ds-card/90 px-4 py-3 shadow-sm backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 text-[13px] font-medium text-ds-ink">
           <Clock3 className="h-3.5 w-3.5 text-ds-muted" strokeWidth={1.9} />
