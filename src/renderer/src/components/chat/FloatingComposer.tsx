@@ -1172,7 +1172,7 @@ export function FloatingComposer({
           <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 flex justify-center">
             <div className="pointer-events-auto flex min-h-11 w-full max-w-[46rem] items-center gap-2 rounded-full border border-ds-border bg-ds-card/95 px-3 py-1.5 text-ds-muted shadow-[0_12px_34px_rgba(15,23,42,0.10)] backdrop-blur-xl dark:bg-ds-card/90">
               <Target className="h-3.5 w-3.5 shrink-0 text-ds-faint" strokeWidth={1.9} />
-              <div className="flex min-w-0 flex-1 items-center gap-1.5 text-[13px] leading-5">
+              <div className="flex min-w-0 flex-1 items-center gap-1.5 text-small leading-5">
                 <span className="shrink-0 font-semibold text-ds-ink">
                   {goalBannerLabel}
                 </span>
@@ -1230,7 +1230,7 @@ export function FloatingComposer({
         {composerMenuOpen && slashQuery == null ? (
           <div
             ref={composerMenuPanelRef}
-            className="absolute bottom-12 left-1 z-40 w-48 overflow-hidden rounded-[18px] border border-ds-border bg-white py-1.5 text-[13px] text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
+            className="absolute bottom-12 left-1 z-40 w-48 overflow-hidden rounded-[18px] border border-ds-border bg-white py-1.5 text-small text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
           >
             {attachmentUploadEnabled ? (
               <>
@@ -1303,7 +1303,7 @@ export function FloatingComposer({
 
         {slashQuery != null ? (
           <div className="ds-card-strong absolute bottom-full left-1/2 z-30 mb-2 w-[calc(100%_-_1rem)] max-w-[760px] -translate-x-1/2 overflow-hidden rounded-[16px] p-1.5 shadow-[0_18px_46px_rgba(15,23,42,0.14)]">
-            <div className="flex h-7 items-center px-2.5 text-[11.5px] font-semibold text-ds-muted">
+            <div className="flex h-7 items-center px-2.5 text-caption font-semibold text-ds-muted">
               {t('slashCommandMenuTitle')}
             </div>
             {filteredSlashCommands.length > 0 ? (
@@ -1331,20 +1331,20 @@ export function FloatingComposer({
                         {command.icon}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13.5px] font-semibold leading-5 text-inherit">
+                        <span className="block truncate text-body font-semibold leading-5 text-inherit">
                           {command.title}
                         </span>
-                        <span className="mt-0.5 block truncate text-[12px] leading-4 text-ds-faint">
+                        <span className="mt-0.5 block truncate text-caption leading-4 text-ds-faint">
                           {command.description}
                         </span>
                       </span>
                       <span className="hidden min-w-[106px] shrink-0 flex-col items-end gap-1 sm:flex">
                         {command.scopeLabel ? (
-                          <span className="text-[10.5px] font-semibold leading-none text-ds-muted">
+                          <span className="text-caption font-semibold leading-none text-ds-muted">
                             {command.scopeLabel}
                           </span>
                         ) : null}
-                        <span className="max-w-[150px] truncate rounded-full border border-ds-border-muted px-2 py-0.5 text-[10.5px] font-semibold leading-4 text-ds-faint">
+                        <span className="max-w-[150px] truncate rounded-full border border-ds-border-muted px-2 py-0.5 text-caption font-semibold leading-4 text-ds-faint">
                           {command.badge ?? `/${command.id}`}
                         </span>
                       </span>
@@ -1353,7 +1353,7 @@ export function FloatingComposer({
                 })}
               </div>
             ) : (
-              <div className="rounded-[12px] border border-dashed border-ds-border-muted px-3 py-3 text-[12px] text-ds-faint">
+              <div className="rounded-[12px] border border-dashed border-ds-border-muted px-3 py-3 text-caption text-ds-faint">
                 {t('slashCommandEmpty')}
               </div>
             )}
@@ -1362,7 +1362,7 @@ export function FloatingComposer({
 
         {showFileMentionMenu ? (
           <div className="ds-card-strong absolute bottom-full left-1/2 z-30 mb-2 w-[calc(100%_-_1rem)] max-w-[680px] -translate-x-1/2 overflow-hidden rounded-[16px] p-1.5 shadow-[0_18px_46px_rgba(15,23,42,0.14)]">
-            <div className="flex h-7 items-center gap-2 px-2.5 text-[11.5px] font-semibold text-ds-muted">
+            <div className="flex h-7 items-center gap-2 px-2.5 text-caption font-semibold text-ds-muted">
               <FileText className="h-3.5 w-3.5 text-ds-faint" strokeWidth={1.9} />
               <span>{t('composerFileMentionMenuTitle')}</span>
               {fileMentionLoading ? (
@@ -1393,14 +1393,14 @@ export function FloatingComposer({
                         <FileText className="h-4 w-4" strokeWidth={1.8} />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13.5px] font-semibold leading-5 text-inherit">
+                        <span className="block truncate text-body font-semibold leading-5 text-inherit">
                           {reference.name}
                         </span>
-                        <span className="mt-0.5 block truncate text-[12px] leading-4 text-ds-faint">
+                        <span className="mt-0.5 block truncate text-caption leading-4 text-ds-faint">
                           {reference.relativePath}
                         </span>
                       </span>
-                      <span className="hidden max-w-[170px] shrink-0 truncate rounded-full border border-ds-border-muted px-2 py-0.5 text-[10.5px] font-semibold leading-4 text-ds-faint sm:block">
+                      <span className="hidden max-w-[170px] shrink-0 truncate rounded-full border border-ds-border-muted px-2 py-0.5 text-caption font-semibold leading-4 text-ds-faint sm:block">
                         {formatComposerFileMentionToken(reference.relativePath)}
                       </span>
                     </button>
@@ -1408,7 +1408,7 @@ export function FloatingComposer({
                 })}
               </div>
             ) : (
-              <div className="rounded-[12px] border border-dashed border-ds-border-muted px-3 py-3 text-[12px] text-ds-faint">
+              <div className="rounded-[12px] border border-dashed border-ds-border-muted px-3 py-3 text-caption text-ds-faint">
                 {fileMentionLoading ? t('composerFileMentionLoading') : t('composerFileMentionEmpty')}
               </div>
             )}
@@ -1426,11 +1426,11 @@ export function FloatingComposer({
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-center gap-2">
-                  <div className="truncate text-[14px] font-semibold text-ds-ink">
+                  <div className="truncate text-body font-semibold text-ds-ink">
                     {activeThreadGoal ? activeThreadGoal.objective : t('goalNoActiveTitle')}
                   </div>
                   {activeThreadGoal ? (
-                    <span className="shrink-0 rounded-lg border border-ds-border-muted bg-ds-card px-2 py-0.5 text-[11px] font-semibold text-ds-muted">
+                    <span className="shrink-0 rounded-lg border border-ds-border-muted bg-ds-card px-2 py-0.5 text-caption font-semibold text-ds-muted">
                       {t(`goalStatusShort.${activeThreadGoal.status}`)}
                     </span>
                   ) : null}
@@ -1440,7 +1440,7 @@ export function FloatingComposer({
                     <button
                       type="button"
                       onClick={setGoalFromComposerInput}
-                      className="rounded-full border border-ds-border bg-ds-card px-3 py-1.5 text-[12px] font-semibold text-ds-ink transition hover:bg-ds-hover"
+                      className="rounded-full border border-ds-border bg-ds-card px-3 py-1.5 text-caption font-semibold text-ds-ink transition hover:bg-ds-hover"
                     >
                       {t('goalSetCurrentInput')}
                     </button>
@@ -1512,9 +1512,9 @@ export function FloatingComposer({
           <textarea
             ref={draft.textareaRef}
             rows={1}
-            className={`ds-no-drag block min-w-0 resize-none break-words bg-transparent px-1 py-0.5 text-[15px] leading-[1.45] text-ds-ink placeholder:text-ds-faint focus:outline-none [overflow-wrap:anywhere] ${
+            className={`ds-no-drag block min-w-0 resize-none break-words bg-transparent px-1 py-0.5 text-heading leading-[1.45] text-ds-ink placeholder:text-ds-faint focus:outline-none [overflow-wrap:anywhere] ${
               canCompose ? '' : 'opacity-80'
-            } ${compact ? 'text-[14px]' : 'min-h-[40px]'}`}
+            } ${compact ? 'text-body' : 'min-h-[40px]'}`}
             placeholder={placeholder}
             value={input}
             disabled={!canCompose}
@@ -1535,7 +1535,7 @@ export function FloatingComposer({
               {fileReferences.map((reference) => (
                 <span
                   key={reference.relativePath}
-                  className="ds-no-drag inline-flex h-7 max-w-full items-center gap-1.5 rounded-lg border border-ds-border-muted bg-ds-card/80 px-2 text-[12px] font-medium text-ds-muted"
+                  className="ds-no-drag inline-flex h-7 max-w-full items-center gap-1.5 rounded-lg border border-ds-border-muted bg-ds-card/80 px-2 text-caption font-medium text-ds-muted"
                   title={reference.relativePath}
                 >
                   <FileText className="h-3.5 w-3.5 shrink-0 text-ds-faint" strokeWidth={1.8} />
@@ -1584,7 +1584,7 @@ export function FloatingComposer({
                 ) : (
                   <span
                     key={attachment.id}
-                    className="ds-no-drag inline-flex h-7 max-w-full items-center gap-1.5 rounded-lg border border-ds-border-muted bg-ds-card/80 px-2 text-[12px] font-medium text-ds-muted"
+                    className="ds-no-drag inline-flex h-7 max-w-full items-center gap-1.5 rounded-lg border border-ds-border-muted bg-ds-card/80 px-2 text-caption font-medium text-ds-muted"
                     title={attachment.id}
                   >
                     <ImagePlus className="h-3.5 w-3.5 shrink-0 text-ds-faint" strokeWidth={1.8} />
@@ -1604,7 +1604,7 @@ export function FloatingComposer({
                 )
               ))}
               {attachmentUploadError ? (
-                <span className="min-w-0 break-words text-[12px] font-medium text-red-600 dark:text-red-300">
+                <span className="min-w-0 break-words text-caption font-medium text-red-600 dark:text-red-300">
                   {attachmentUploadError}
                 </span>
               ) : null}
@@ -1644,7 +1644,7 @@ export function FloatingComposer({
                     </button>
                     {mode === 'plan' ? (
                       <span
-                        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-ds-hover px-2.5 text-[13px] font-medium text-ds-muted"
+                        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-ds-hover px-2.5 text-small font-medium text-ds-muted"
                         title={t('slashCommandPlanTitle')}
                       >
                         <ListTodo className="h-3.5 w-3.5" strokeWidth={1.9} />
@@ -1653,7 +1653,7 @@ export function FloatingComposer({
                     ) : null}
                     {activeThreadGoal?.status === 'active' ? (
                       <span
-                        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-ds-hover px-2.5 text-[13px] font-medium text-ds-muted"
+                        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-ds-hover px-2.5 text-small font-medium text-ds-muted"
                         title={t('slashCommandGoalTitle')}
                       >
                         <Target className="h-3.5 w-3.5" strokeWidth={1.9} />
@@ -1713,7 +1713,7 @@ export function FloatingComposer({
           <div className="ds-composer-footer-left flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {showThreadUsageFooter ? (
               <div
-                className="ds-composer-usage ds-no-drag inline-flex min-h-7 max-w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 overflow-visible rounded-lg border border-ds-border-muted bg-ds-card/70 px-2.5 py-0.5 text-[12.5px] font-medium leading-5 text-ds-muted shadow-sm"
+                className="ds-composer-usage ds-no-drag inline-flex min-h-7 max-w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 overflow-visible rounded-lg border border-ds-border-muted bg-ds-card/70 px-2.5 py-0.5 text-small font-medium leading-5 text-ds-muted shadow-sm"
                 title={
                   threadUsage
                     ? t('sessionUsageDetailsTitle', {
@@ -1787,7 +1787,7 @@ export function FloatingComposer({
             ) : null}
           </div>
           {footerHint ? (
-            <div className="ds-composer-footer-hint min-w-0 flex-1 text-right text-[12.5px] font-medium text-ds-faint">
+            <div className="ds-composer-footer-hint min-w-0 flex-1 text-right text-small font-medium text-ds-faint">
               <span className="block truncate">{footerHint}</span>
             </div>
           ) : null}

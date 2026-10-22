@@ -297,7 +297,7 @@ function PreviewCalendar({ mode }: { mode: Exclude<UsageViewMode, 'populated'> }
           ))}
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-end gap-2 text-[10.5px] font-medium tracking-[0] text-ds-faint">
+      <div className="mt-2 flex items-center justify-end gap-2 text-caption font-medium tracking-[0] text-ds-faint">
         <span className={mode === 'loading' ? 'animate-pulse' : ''}>--</span>
         <div className="flex items-center gap-1">
           {USAGE_HEATMAP_INTENSITY_CLASSES.map((className, index) => (
@@ -336,7 +336,7 @@ function WarmupStatePanel({
       <PreviewCalendar mode={mode} />
       <div className="w-full min-w-0 border-t border-ds-border-muted pt-5 sm:max-w-[310px] md:w-[310px] md:shrink-0 md:border-l md:border-t-0 md:pl-5 md:pt-0">
         <div
-          className={`mb-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[12px] font-semibold ${
+          className={`mb-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-caption font-semibold ${
             mode === 'error'
               ? 'border-amber-300/35 bg-amber-50/70 text-amber-900 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100'
               : 'border-accent/15 bg-accent/10 text-accent'
@@ -345,16 +345,16 @@ function WarmupStatePanel({
           {icon}
           <span>{t(`usageHeatmapWarmupBadge.${mode}`)}</span>
         </div>
-        <h2 className="text-[18px] font-semibold leading-7 tracking-[0] text-ds-ink">
+        <h2 className="text-title font-semibold leading-7 tracking-[0] text-ds-ink">
           {t(`usageHeatmapWarmupTitle.${mode}`)}
         </h2>
-        <p className="mt-2 text-[13.5px] leading-6 text-ds-muted">
+        <p className="mt-2 text-body leading-6 text-ds-muted">
           {t(`usageHeatmapWarmupSub.${mode}`)}
         </p>
         {mode === 'error' ? (
           <button
             type="button"
-            className="mt-4 inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-ds-border-muted bg-ds-subtle px-3 py-1.5 text-[12.5px] font-medium text-ds-muted transition hover:text-ds-ink"
+            className="mt-4 inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-ds-border-muted bg-ds-subtle px-3 py-1.5 text-small font-medium text-ds-muted transition hover:text-ds-ink"
             onClick={onRefresh}
           >
             <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -369,10 +369,10 @@ function WarmupStatePanel({
 function Metric({ label, value }: { label: string; value: string }): ReactElement {
   return (
     <span className="grid min-h-[52px] min-w-0 grid-rows-[auto_1fr] rounded-md bg-ds-subtle px-2.5 py-2">
-      <span className="min-w-0 truncate whitespace-nowrap text-[12px] leading-4 text-ds-faint" title={label}>
+      <span className="min-w-0 truncate whitespace-nowrap text-caption leading-4 text-ds-faint" title={label}>
         {label}
       </span>
-      <span className="mt-0.5 min-w-0 truncate text-[15px] font-semibold leading-5 tabular-nums text-ds-ink" title={value}>
+      <span className="mt-0.5 min-w-0 truncate text-heading font-semibold leading-5 tabular-nums text-ds-ink" title={value}>
         {value}
       </span>
     </span>
@@ -496,7 +496,7 @@ function ModelUsagePanel({
 
   if (state.loading && !usage) {
     return (
-      <div className="grid min-h-[180px] place-items-center text-[12px] text-ds-faint">
+      <div className="grid min-h-[180px] place-items-center text-caption text-ds-faint">
         {t('usageHeatmapLoading')}
       </div>
     )
@@ -504,7 +504,7 @@ function ModelUsagePanel({
 
   if (modelBuckets.length === 0) {
     return (
-      <div className="grid min-h-[180px] place-items-center rounded-md bg-ds-subtle text-[12px] text-ds-faint">
+      <div className="grid min-h-[180px] place-items-center rounded-md bg-ds-subtle text-caption text-ds-faint">
         {t('usageHeatmapModelsEmpty', { model: fallbackModel || '-' })}
       </div>
     )
@@ -513,13 +513,13 @@ function ModelUsagePanel({
   return (
     <div className="min-w-0">
       <div className="mb-3 flex items-baseline gap-3 px-1">
-        <span className="text-[13px] font-medium text-ds-muted">{t('usageHeatmapTokens')}</span>
-        <span className="text-[20px] font-semibold tabular-nums text-ds-ink">
+        <span className="text-small font-medium text-ds-muted">{t('usageHeatmapTokens')}</span>
+        <span className="text-title font-semibold tabular-nums text-ds-ink">
           {formatTokenCount(usage?.totals.totalTokens ?? 0, locale)}
         </span>
       </div>
       <div className="grid min-h-[206px] grid-cols-[44px_1fr] gap-2">
-        <div className="grid grid-rows-5 pb-5 pt-14 text-right text-[11px] leading-none text-ds-faint">
+        <div className="grid grid-rows-5 pb-5 pt-14 text-right text-caption leading-none text-ds-faint">
           {[1, 0.75, 0.5, 0.25, 0].map((ratio) => (
             <span key={ratio}>
               {ratio === 0 ? '0' : formatCompactNumber(maxTokens * ratio)}
@@ -533,8 +533,8 @@ function ModelUsagePanel({
               style={{ left: `${tooltipAnchorPercent}%` }}
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="text-[12.5px] font-semibold text-ds-ink">{activeDay.date}</span>
-                <span className="whitespace-nowrap text-[12.5px] font-semibold tabular-nums text-ds-ink">
+                <span className="text-small font-semibold text-ds-ink">{activeDay.date}</span>
+                <span className="whitespace-nowrap text-small font-semibold tabular-nums text-ds-ink">
                   {t('usageHeatmapModelTooltipTotalTokens', {
                     value: formatTokenCount(activeBreakdown.total, locale)
                   })}
@@ -544,7 +544,7 @@ function ModelUsagePanel({
                 {tooltipRows.map((row) => (
                   <div
                     key={row.key}
-                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[12px] leading-5"
+                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-caption leading-5"
                   >
                     <span
                       className="h-2.5 w-2.5 rounded-[3px]"
@@ -625,7 +625,7 @@ function ModelUsagePanel({
                     })}
                   </span>
                 </button>
-                <span className="truncate text-center text-[11px] text-ds-faint">
+                <span className="truncate text-center text-caption text-ds-faint">
                   {dateLabel}
                 </span>
               </div>
@@ -641,7 +641,7 @@ function ModelUsagePanel({
           return (
             <div
               key={bucket.model}
-              className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)_auto] items-center gap-3 text-[12px] leading-5"
+              className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)_auto] items-center gap-3 text-caption leading-5"
               title={summary}
               aria-label={summary}
             >
@@ -703,7 +703,7 @@ function CollapsedCalendarCard({ onExpand }: { onExpand: () => void }): ReactEle
       <button
         type="button"
         data-testid="usage-insights-toggle"
-        className="inline-flex min-h-8 items-center gap-2 rounded-full border border-ds-border-muted bg-ds-card/70 px-3 py-1 text-[12px] font-medium text-ds-muted shadow-sm backdrop-blur transition hover:border-accent/30 hover:bg-ds-card hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+        className="inline-flex min-h-8 items-center gap-2 rounded-full border border-ds-border-muted bg-ds-card/70 px-3 py-1 text-caption font-medium text-ds-muted shadow-sm backdrop-blur transition hover:border-accent/30 hover:bg-ds-card hover:text-ds-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
         onClick={onExpand}
         aria-label={t('usageHeatmapExpand')}
         title={t('usageHeatmapExpand')}
@@ -817,7 +817,7 @@ export function InitialSessionUsageHeatmapView({
             {mode === 'populated' ? (
               <div className="mx-auto flex w-full max-w-[560px] min-w-0 flex-col gap-3">
                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="inline-flex w-fit max-w-full rounded-lg bg-ds-subtle p-1 text-[12.5px] font-medium text-ds-muted">
+                  <div className="inline-flex w-fit max-w-full rounded-lg bg-ds-subtle p-1 text-small font-medium text-ds-muted">
                     <button
                       type="button"
                       className={`min-h-7 rounded-md px-3 transition ${
@@ -841,7 +841,7 @@ export function InitialSessionUsageHeatmapView({
                     </button>
                   </div>
                   <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
-                    <div className="flex min-w-0 items-center gap-1 self-start rounded-lg bg-ds-subtle p-1 text-[12px] font-medium text-ds-muted sm:self-auto">
+                    <div className="flex min-w-0 items-center gap-1 self-start rounded-lg bg-ds-subtle p-1 text-caption font-medium text-ds-muted sm:self-auto">
                       {USAGE_RANGE_KEYS.map((key) => (
                         <button
                           key={key}
@@ -872,7 +872,7 @@ export function InitialSessionUsageHeatmapView({
                       selected={activeBucket}
                       onSelect={setActiveBucket}
                     />
-                    <p className="text-[11.5px] leading-5 text-ds-faint">
+                    <p className="text-caption leading-5 text-ds-faint">
                       {t('usageHeatmapOverviewCaption', {
                         tokens: formatCompactNumber(totals.totalTokens),
                         activeDays: totals.activeDays
@@ -894,7 +894,7 @@ export function InitialSessionUsageHeatmapView({
                   <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
                     <button
                       type="button"
-                      className="inline-flex min-h-9 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border-muted bg-ds-subtle px-3 py-1.5 text-[12.5px] font-medium text-ds-muted transition hover:text-ds-ink disabled:opacity-60 sm:w-auto"
+                      className="inline-flex min-h-9 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border-muted bg-ds-subtle px-3 py-1.5 text-small font-medium text-ds-muted transition hover:text-ds-ink disabled:opacity-60 sm:w-auto"
                       onClick={onRefresh}
                       disabled={state.loading}
                       title={t('usageHeatmapRefresh')}

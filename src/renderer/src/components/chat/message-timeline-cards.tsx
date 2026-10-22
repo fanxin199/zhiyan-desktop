@@ -37,14 +37,14 @@ export function ReviewPlanCard({
         <ListTodo className="h-5 w-5" strokeWidth={1.9} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[14.5px] font-semibold text-ds-ink">{title}</div>
-        <div className="mt-0.5 truncate text-[12.5px] text-ds-muted">{t('reviewPlanCardHint')}</div>
+        <div className="truncate text-heading font-semibold text-ds-ink">{title}</div>
+        <div className="mt-0.5 truncate text-small text-ds-muted">{t('reviewPlanCardHint')}</div>
       </div>
       {onOpen ? (
         <button
           type="button"
           onClick={onOpen}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-ds-border bg-ds-card px-3 text-[13px] font-medium text-ds-ink transition hover:bg-ds-hover"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-ds-border bg-ds-card px-3 text-small font-medium text-ds-ink transition hover:bg-ds-hover"
         >
           <FileEdit className="h-3.5 w-3.5" strokeWidth={1.9} />
           {t('reviewPlanOpen')}
@@ -55,7 +55,7 @@ export function ReviewPlanCard({
           type="button"
           onClick={onBuild}
           disabled={busy}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-accent px-4 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(0,136,255,0.22)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-accent px-4 text-small font-semibold text-white shadow-[0_10px_24px_rgba(0,136,255,0.22)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Hammer className="h-3.5 w-3.5" strokeWidth={1.9} />
           {t('planBuild')}
@@ -105,10 +105,10 @@ export function ReviewSummaryCard({ review }: { review: ReviewBlock }): ReactEle
           {icon}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[15px] font-semibold text-ds-ink">
+          <span className="block truncate text-heading font-semibold text-ds-ink">
             {review.title}
           </span>
-          <span className="mt-0.5 block truncate text-[12.5px] text-ds-muted">
+          <span className="mt-0.5 block truncate text-small text-ds-muted">
             {statusText}
           </span>
         </span>
@@ -122,15 +122,15 @@ export function ReviewSummaryCard({ review }: { review: ReviewBlock }): ReactEle
       {expanded ? (
         <div className="border-t border-ds-border-muted/70 px-5 py-4">
           {review.output?.overallExplanation?.trim() ? (
-            <p className="whitespace-pre-wrap text-[14px] leading-6 text-ds-muted">
+            <p className="whitespace-pre-wrap text-body leading-6 text-ds-muted">
               {review.output.overallExplanation}
             </p>
           ) : review.reviewText?.trim() ? (
-            <p className="whitespace-pre-wrap text-[14px] leading-6 text-ds-muted">
+            <p className="whitespace-pre-wrap text-body leading-6 text-ds-muted">
               {review.reviewText}
             </p>
           ) : (
-            <p className="text-[14px] leading-6 text-ds-muted">{statusText}</p>
+            <p className="text-body leading-6 text-ds-muted">{statusText}</p>
           )}
 
           {findings.length > 0 ? (
@@ -141,21 +141,21 @@ export function ReviewSummaryCard({ review }: { review: ReviewBlock }): ReactEle
                   className="rounded-[12px] border border-ds-border-muted bg-ds-card-muted/45 px-3.5 py-3"
                 >
                   <div className="flex min-w-0 items-start gap-2">
-                    <span className="mt-0.5 shrink-0 rounded-md bg-ds-card px-1.5 py-0.5 font-mono text-[11px] text-ds-muted">
+                    <span className="mt-0.5 shrink-0 rounded-md bg-ds-card px-1.5 py-0.5 font-mono text-caption text-ds-muted">
                       P{finding.priority}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="break-words text-[14px] font-semibold text-ds-ink">
+                      <div className="break-words text-body font-semibold text-ds-ink">
                         {finding.title.replace(/^\[P[0-3]\]\s*/i, '')}
                       </div>
-                      <div className="mt-1 break-all font-mono text-[11.5px] text-ds-faint">
+                      <div className="mt-1 break-all font-mono text-caption text-ds-faint">
                         {finding.codeLocation.absoluteFilePath}:{finding.codeLocation.lineRange.start}
                         -{finding.codeLocation.lineRange.end}
                       </div>
                     </div>
                   </div>
                   {finding.body.trim() ? (
-                    <p className="mt-2 whitespace-pre-wrap text-[13.5px] leading-6 text-ds-muted">
+                    <p className="mt-2 whitespace-pre-wrap text-body leading-6 text-ds-muted">
                       {finding.body}
                     </p>
                   ) : null}
@@ -218,11 +218,11 @@ export function TurnChangeSummary({
           <FileEdit className="h-5 w-5" strokeWidth={1.85} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[18px] font-semibold tracking-[-0.02em] text-ds-ink">
+          <span className="block text-title font-semibold tracking-[-0.02em] text-ds-ink">
             {title}
           </span>
           {totals ? (
-            <span className="mt-1 block font-mono text-[12px]">
+            <span className="mt-1 block font-mono text-caption">
               <span className="text-ds-diff-added">+{totals.added}</span>
               <span className="mx-1.5 text-ds-faint">·</span>
               <span className="text-ds-diff-removed">-{totals.removed}</span>
@@ -259,12 +259,12 @@ export function TurnChangeSummary({
                   }`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block break-all text-[14px] font-medium text-ds-ink">
+                    <span className="block break-all text-body font-medium text-ds-ink">
                       {primary}
                     </span>
                   </span>
                   {stats ? (
-                    <span className="shrink-0 font-mono text-[12px] tabular-nums">
+                    <span className="shrink-0 font-mono text-caption tabular-nums">
                       <span className="text-ds-diff-added">+{stats.added}</span>
                       <span className="ml-1.5 text-ds-diff-removed">-{stats.removed}</span>
                     </span>
@@ -332,7 +332,7 @@ export function WorkMetaRow({
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className="group flex w-fit max-w-full items-center gap-1.5 rounded-md py-1 text-left text-[15px] font-medium text-ds-muted transition hover:opacity-85"
+      className="group flex w-fit max-w-full items-center gap-1.5 rounded-md py-1 text-left text-heading font-medium text-ds-muted transition hover:opacity-85"
     >
       <span className={`tabular-nums ${processing ? 'ds-shiny-text' : ''}`}>{mainLabel}</span>
       {showThoughtSuffix ? (
@@ -371,7 +371,7 @@ export function ModelMetaTag({
       className={`flex min-w-0 text-right ${className}`.trim()}
       title={t('turnModelBadgeTitle', { model: label })}
     >
-      <span className="truncate font-mono text-[12px] tracking-tight text-ds-faint/85">
+      <span className="truncate font-mono text-caption tracking-tight text-ds-faint/85">
         {label}
       </span>
     </div>
@@ -411,7 +411,7 @@ export function WritePromptMetaDisclosure({
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="group flex w-full min-w-0 items-center gap-1.5 rounded-lg py-0.5 text-left text-[12px] font-medium text-ds-muted transition hover:text-ds-ink"
+        className="group flex w-full min-w-0 items-center gap-1.5 rounded-lg py-0.5 text-left text-caption font-medium text-ds-muted transition hover:text-ds-ink"
       >
         <MessageSquareQuote className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.85} />
         <span className="min-w-0 flex-1 truncate">{summary}</span>
@@ -425,7 +425,7 @@ export function WritePromptMetaDisclosure({
       {expanded ? (
         <div className="mt-2 flex flex-col gap-2">
           {display.context ? (
-            <div className="rounded-xl border border-black/5 bg-white/55 px-3 py-2 text-[12px] font-normal leading-5 text-ds-muted shadow-sm dark:border-white/10 dark:bg-white/6">
+            <div className="rounded-xl border border-black/5 bg-white/55 px-3 py-2 text-caption font-normal leading-5 text-ds-muted shadow-sm dark:border-white/10 dark:bg-white/6">
               <div className="font-medium text-ds-ink">{t('writePromptContextLabel')}</div>
               {display.context.activeFile ? (
                 <div className="mt-1 truncate">
@@ -460,24 +460,24 @@ function WritePromptQuoteCard({ quote }: { quote: WritePromptDisplayQuote }): Re
 
   return (
     <figure className="rounded-xl border border-accent/15 bg-accent/[0.055] px-3 py-2.5 text-left shadow-sm">
-      <figcaption className="flex min-w-0 items-center gap-2 text-[12px] leading-5">
+      <figcaption className="flex min-w-0 items-center gap-2 text-caption leading-5">
         <MessageSquareQuote className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.9} />
         <span className="min-w-0 flex-1 truncate font-medium text-ds-ink">
           {quote.sourceTitle || t('writePromptReference')}
         </span>
         {lineLabel ? (
-          <span className="shrink-0 rounded-full bg-white/65 px-2 py-0.5 font-mono text-[11px] text-ds-faint dark:bg-white/8">
+          <span className="shrink-0 rounded-full bg-white/65 px-2 py-0.5 font-mono text-caption text-ds-faint dark:bg-white/8">
             {lineLabel}
           </span>
         ) : null}
       </figcaption>
-      <blockquote className="mt-2 max-h-36 overflow-auto border-l-2 border-accent/35 pl-3 text-[12.5px] font-normal leading-6 text-ds-muted">
+      <blockquote className="mt-2 max-h-36 overflow-auto border-l-2 border-accent/35 pl-3 text-small font-normal leading-6 text-ds-muted">
         <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
           {quote.text}
         </div>
       </blockquote>
       {quote.sourceFilePath ? (
-        <div className="mt-2 truncate font-mono text-[11px] font-normal text-ds-faint" title={quote.sourceFilePath}>
+        <div className="mt-2 truncate font-mono text-caption font-normal text-ds-faint" title={quote.sourceFilePath}>
           {quote.sourceFilePath}
         </div>
       ) : null}

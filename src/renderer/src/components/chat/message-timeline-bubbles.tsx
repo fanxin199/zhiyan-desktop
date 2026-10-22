@@ -112,15 +112,15 @@ function UserMessageBubble({
               }
             }}
             rows={2}
-            className="block w-full min-w-0 resize-none break-words bg-transparent text-[15px] font-medium leading-[1.58] text-ds-ink outline-none [overflow-wrap:anywhere]"
+            className="block w-full min-w-0 resize-none break-words bg-transparent text-heading font-medium leading-[1.58] text-ds-ink outline-none [overflow-wrap:anywhere]"
           />
           <div className="mt-2 flex items-center justify-between gap-3">
-            <span className="text-[12px] text-ds-faint">{t('rewindHint')}</span>
+            <span className="text-caption text-ds-faint">{t('rewindHint')}</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={cancelEdit}
-                className="rounded-md px-3 py-1 text-[13px] font-medium text-ds-muted transition hover:bg-ds-hover hover:text-ds-ink"
+                className="rounded-md px-3 py-1 text-small font-medium text-ds-muted transition hover:bg-ds-hover hover:text-ds-ink"
               >
                 {t('rewindCancel')}
               </button>
@@ -128,7 +128,7 @@ function UserMessageBubble({
                 type="button"
                 onClick={() => void submit()}
                 disabled={!draft.trim() || busy}
-                className="rounded-md bg-accent px-3 py-1 text-[13px] font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-accent px-3 py-1 text-small font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t('rewindResend')}
               </button>
@@ -201,11 +201,11 @@ function ClawInboundMessageCard({
 
   return (
     <div className="w-full max-w-[min(560px,calc(100vw-3rem))] rounded-[18px] border border-ds-border bg-ds-card px-4 py-3 text-left shadow-[0_14px_34px_rgba(86,103,136,0.08)]">
-      <div className="flex items-center gap-2 text-[12px] font-semibold text-ds-muted">
+      <div className="flex items-center gap-2 text-caption font-semibold text-ds-muted">
         <MessageSquareQuote className="h-3.5 w-3.5" strokeWidth={1.8} />
         <span>{t('clawTimelineInbound', { source: display.sourceLabel ?? t('claw') })}</span>
       </div>
-      <div className="mt-2 whitespace-pre-wrap break-words text-[15px] leading-6 text-ds-ink [overflow-wrap:anywhere]">
+      <div className="mt-2 whitespace-pre-wrap break-words text-heading leading-6 text-ds-ink [overflow-wrap:anywhere]">
         {text}
       </div>
       {meta.length > 0 ? (
@@ -213,7 +213,7 @@ function ClawInboundMessageCard({
           {meta.map((item) => (
             <span
               key={item}
-              className="rounded-md border border-ds-border-muted bg-ds-subtle px-2 py-0.5 text-[11px] text-ds-muted"
+              className="rounded-md border border-ds-border-muted bg-ds-subtle px-2 py-0.5 text-caption text-ds-muted"
             >
               {item}
             </span>
@@ -412,7 +412,7 @@ function RuntimeMetaChips({
   ) {
     return null
   }
-  const chipClass = 'inline-flex max-w-full items-center gap-1 rounded-md border border-ds-border-muted bg-ds-card/75 px-1.5 py-0.5 text-[11px] font-medium text-ds-faint'
+  const chipClass = 'inline-flex max-w-full items-center gap-1 rounded-md border border-ds-border-muted bg-ds-card/75 px-1.5 py-0.5 text-caption font-medium text-ds-faint'
   return (
     <div className={`mt-2 flex min-w-0 flex-wrap gap-1.5 ${align === 'right' ? 'justify-end' : ''}`}>
       {!hideAttachments && attachmentIds.length > 0 ? (
@@ -580,14 +580,14 @@ function UserInputBubble({
 
   return (
     <div
-      className={`rounded-[22px] border px-4 py-4 text-[13px] leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
+      className={`rounded-[22px] border px-4 py-4 text-small leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
         block.status === 'error'
           ? 'border-red-300/80 bg-red-500/10 dark:border-red-800/60 dark:bg-red-950/35'
           : 'border-accent/35 bg-[linear-gradient(180deg,rgba(79,124,255,0.07),rgba(79,124,255,0.11))] text-ds-ink'
       }`}
     >
       <div className="font-semibold text-accent">{t('userInputTitle')}</div>
-      <p className="mt-1 text-[12px] text-ds-muted">{statusLabel}</p>
+      <p className="mt-1 text-caption text-ds-muted">{statusLabel}</p>
 
       <div className="mt-3 flex flex-col gap-4">
         {block.questions.map((question, index) => {
@@ -596,17 +596,17 @@ function UserInputBubble({
           return (
             <div key={question.id} className="rounded-xl border border-ds-border bg-ds-card/60 p-3">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ds-muted">
+                <div className="text-caption font-semibold uppercase tracking-[0.12em] text-ds-muted">
                   {question.header}
                 </div>
-                <div className="text-[12px] text-ds-faint">
+                <div className="text-caption text-ds-faint">
                   {t('userInputQuestionProgress', {
                     current: index + 1,
                     total: block.questions.length
                   })}
                 </div>
               </div>
-              <p className="mt-1.5 whitespace-pre-wrap text-[14px] font-medium text-ds-ink">
+              <p className="mt-1.5 whitespace-pre-wrap text-body font-medium text-ds-ink">
                 {question.question}
               </p>
               <div className="mt-3 grid gap-2">
@@ -624,8 +624,8 @@ function UserInputBubble({
                           : 'border-ds-border bg-ds-card text-ds-muted hover:bg-ds-hover hover:text-ds-ink'
                       }`}
                     >
-                      <span className="block text-[13px] font-semibold">{option.label}</span>
-                      <span className="mt-0.5 block text-[12px] leading-5 text-ds-faint">
+                      <span className="block text-small font-semibold">{option.label}</span>
+                      <span className="mt-0.5 block text-caption leading-5 text-ds-faint">
                         {option.description}
                       </span>
                     </button>
@@ -647,8 +647,8 @@ function UserInputBubble({
                       : 'border-ds-border bg-ds-card text-ds-muted hover:bg-ds-hover hover:text-ds-ink'
                   }`}
                 >
-                  <span className="block text-[13px] font-semibold">{t('userInputOther')}</span>
-                  <span className="mt-0.5 block text-[12px] leading-5 text-ds-faint">
+                  <span className="block text-small font-semibold">{t('userInputOther')}</span>
+                  <span className="mt-0.5 block text-caption leading-5 text-ds-faint">
                     {t('userInputOtherDescription')}
                   </span>
                 </button>
@@ -661,7 +661,7 @@ function UserInputBubble({
                       chooseOption(question, USER_INPUT_OTHER_LABEL, e.target.value)
                     }
                     placeholder={t('userInputCustomPlaceholder')}
-                    className="min-h-20 resize-y rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[13px] leading-5 text-ds-ink outline-none transition placeholder:text-ds-faint focus:border-accent/60 disabled:cursor-default disabled:opacity-80"
+                    className="min-h-20 resize-y rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small leading-5 text-ds-ink outline-none transition placeholder:text-ds-faint focus:border-accent/60 disabled:cursor-default disabled:opacity-80"
                   />
                 ) : null}
               </div>
@@ -671,11 +671,11 @@ function UserInputBubble({
       </div>
 
       {block.errorMessage ? (
-        <p className="mt-3 text-[12px] text-red-700 dark:text-red-300">{block.errorMessage}</p>
+        <p className="mt-3 text-caption text-red-700 dark:text-red-300">{block.errorMessage}</p>
       ) : null}
 
       {block.answers && block.answers.length > 0 && block.status === 'submitted' ? (
-        <div className="mt-3 rounded-lg bg-ds-card px-3 py-2 text-[12px] text-ds-muted">
+        <div className="mt-3 rounded-lg bg-ds-card px-3 py-2 text-caption text-ds-muted">
           {block.answers.map((answer) => (
             <div key={answer.id} className="flex gap-2">
               <span className="font-mono text-ds-faint">{answer.id}</span>
@@ -690,14 +690,14 @@ function UserInputBubble({
           <button
             type="button"
             disabled={!canSubmit}
-            className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-accent px-3 py-1.5 text-small font-medium text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={submit}
           >
             {t('userInputSubmit')}
           </button>
           <button
             type="button"
-            className="rounded-lg border border-ds-border bg-ds-card px-3 py-1.5 text-[13px] font-medium text-ds-ink hover:bg-ds-hover"
+            className="rounded-lg border border-ds-border bg-ds-card px-3 py-1.5 text-small font-medium text-ds-ink hover:bg-ds-hover"
             onClick={cancel}
           >
             {t('userInputCancel')}
@@ -749,7 +749,7 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
           <AssistantMarkdown text={block.text} streaming={streaming} />
         </div>
         {!streaming ? (
-          <div className="mt-1 flex min-h-5 min-w-0 items-center justify-between gap-3 text-[11.5px] text-ds-faint opacity-0 transition duration-150 group-hover/message:opacity-100">
+          <div className="mt-1 flex min-h-5 min-w-0 items-center justify-between gap-3 text-caption text-ds-faint opacity-0 transition duration-150 group-hover/message:opacity-100">
             <span className="min-w-0 truncate">{createdAtLabel ?? ''}</span>
             <CopyFeedbackButton text={block.text} />
           </div>
@@ -759,7 +759,7 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
   }
   if (block.kind === 'reasoning') {
     return (
-      <div className="ds-card-soft rounded-[20px] px-4 py-3 text-[13.5px] leading-6 text-ds-muted">
+      <div className="ds-card-soft rounded-[20px] px-4 py-3 text-body leading-6 text-ds-muted">
         <div className="ds-markdown">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
         </div>
@@ -784,7 +784,7 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
             : t('approvalPending')
     return (
       <div
-        className={`rounded-[22px] border px-4 py-4 text-[13px] leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
+        className={`rounded-[22px] border px-4 py-4 text-small leading-6 shadow-[0_12px_30px_rgba(86,103,136,0.04)] ${
           block.status === 'error'
             ? 'border-red-300/80 bg-red-500/10 dark:border-red-800/60 dark:bg-red-950/35'
             : 'border-accent/35 bg-[linear-gradient(180deg,rgba(79,124,255,0.08),rgba(79,124,255,0.12))] text-ds-ink'
@@ -792,53 +792,53 @@ export function MessageBubble({ block, nested = false }: { block: ChatBlock; nes
       >
         <div className="font-semibold text-accent">{t('approvalTitle')}</div>
         {block.toolName ? (
-          <div className="mt-1 text-[12px] text-ds-muted">
+          <div className="mt-1 text-caption text-ds-muted">
             {t('approvalTool', { name: block.toolName })}
           </div>
         ) : null}
-        <p className="mt-2 whitespace-pre-wrap text-[14px] text-ds-ink">{block.summary}</p>
+        <p className="mt-2 whitespace-pre-wrap text-body text-ds-ink">{block.summary}</p>
         {block.errorMessage ? (
-          <p className="mt-2 text-[12px] text-red-700 dark:text-red-300">{block.errorMessage}</p>
+          <p className="mt-2 text-caption text-red-700 dark:text-red-300">{block.errorMessage}</p>
         ) : null}
         {!done ? (
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-emerald-700"
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-small font-medium text-white hover:bg-emerald-700"
               onClick={() => void resolveApproval(block.id, 'allow')}
             >
               {t('approvalAllow')}
             </button>
             <button
               type="button"
-              className="rounded-lg border border-ds-border bg-ds-card px-3 py-1.5 text-[13px] font-medium text-ds-ink hover:bg-ds-hover"
+              className="rounded-lg border border-ds-border bg-ds-card px-3 py-1.5 text-small font-medium text-ds-ink hover:bg-ds-hover"
               onClick={() => void resolveApproval(block.id, 'deny')}
             >
               {t('approvalDeny')}
             </button>
           </div>
         ) : (
-          <p className="mt-2 text-[12px] font-medium text-ds-muted">{statusLabel}</p>
+          <p className="mt-2 text-caption font-medium text-ds-muted">{statusLabel}</p>
         )}
       </div>
     )
   }
   if (block.kind === 'compaction') {
     return (
-      <div className="ds-card-soft rounded-[18px] px-3 py-2 text-[13.5px] text-ds-muted">
+      <div className="ds-card-soft rounded-[18px] px-3 py-2 text-body text-ds-muted">
         {block.detail || block.summary}
       </div>
     )
   }
   if (block.kind === 'review') {
     return (
-      <div className="ds-card-soft rounded-[18px] px-3 py-2 text-[13.5px] text-ds-muted">
+      <div className="ds-card-soft rounded-[18px] px-3 py-2 text-body text-ds-muted">
         {block.reviewText || block.title}
       </div>
     )
   }
   return (
-    <div className="ds-card-soft rounded-[18px] px-3 py-2 text-[13.5px] text-ds-muted">
+    <div className="ds-card-soft rounded-[18px] px-3 py-2 text-body text-ds-muted">
       {block.text}
     </div>
   )
@@ -888,24 +888,24 @@ function ToolEntry({ block, nested = false }: { block: ToolBlock; nested?: boole
           if (!canExpand || block.status === 'running') return
           setOpen((v) => !v)
         }}
-        className={`flex w-full items-start gap-2 px-4 py-3 text-left text-[13.5px] leading-6 ${
+        className={`flex w-full items-start gap-2 px-4 py-3 text-left text-body leading-6 ${
           canExpand && block.status !== 'running' ? 'cursor-pointer' : 'cursor-default'
         }`}
       >
         <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" strokeWidth={1.75} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-semibold uppercase tracking-[0.12em] text-[11px] opacity-75">
+            <span className="font-semibold uppercase tracking-[0.12em] text-caption opacity-75">
               {kindLabel}
             </span>
             {block.status === 'running' ? (
-              <span className="rounded-full bg-amber-200/40 px-2 py-0.5 text-[11px] font-medium text-amber-900 dark:bg-amber-700/30 dark:text-amber-100">
+              <span className="rounded-full bg-amber-200/40 px-2 py-0.5 text-caption font-medium text-amber-900 dark:bg-amber-700/30 dark:text-amber-100">
                 {t('inspectorStatusRunning')}
               </span>
             ) : null}
             {typeof exitCode === 'number' ? (
               <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-mono ${
+                className={`rounded-full px-2 py-0.5 text-caption font-mono ${
                   exitCode === 0
                     ? 'bg-ds-success-soft text-ds-success'
                     : 'bg-ds-danger-soft text-ds-danger'
@@ -915,19 +915,19 @@ function ToolEntry({ block, nested = false }: { block: ToolBlock; nested?: boole
               </span>
             ) : null}
             {sessionId ? (
-              <span className="rounded-full bg-ds-card px-2 py-0.5 text-[11px] font-mono text-ds-muted" title={sessionId}>
+              <span className="rounded-full bg-ds-card px-2 py-0.5 text-caption font-mono text-ds-muted" title={sessionId}>
                 {sessionStatus === 'running' ? t('inspectorStatusRunning') : sessionStatus || 'session'} {sessionId.slice(0, 12)}
               </span>
             ) : null}
             {typeof durationMs === 'number' ? (
-              <span className="rounded-full bg-ds-card px-2 py-0.5 text-[11px] font-mono text-ds-muted">
+              <span className="rounded-full bg-ds-card px-2 py-0.5 text-caption font-mono text-ds-muted">
                 {formatDuration(durationMs)}
               </span>
             ) : null}
           </div>
           <div className="mt-0.5 break-words">
             {block.filePath ? (
-              <span className="font-mono text-[12px] opacity-90">{block.filePath} — </span>
+              <span className="font-mono text-caption opacity-90">{block.filePath} — </span>
             ) : null}
             <span>{block.summary}</span>
           </div>
@@ -946,7 +946,7 @@ function ToolEntry({ block, nested = false }: { block: ToolBlock; nested?: boole
           {patchText !== undefined ? (
             <DiffView patch={patchText} filePath={block.filePath} />
           ) : (
-            <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-6 text-ds-ink">
+            <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words font-mono text-caption leading-6 text-ds-ink">
               {block.detail}
             </pre>
           )}

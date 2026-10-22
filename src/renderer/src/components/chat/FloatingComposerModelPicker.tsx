@@ -341,9 +341,9 @@ export function FloatingComposerModelPicker({
             role="menu"
             aria-label={activeProviderGroup.label}
             style={submenuStyle}
-            className="fixed z-[1001] overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-[13px] text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
+            className="fixed z-[1001] overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-small text-ds-muted shadow-[0_18px_48px_rgba(15,23,42,0.16)] dark:bg-ds-card"
           >
-            <div className="px-2.5 pb-1 pt-1 text-[11px] font-bold uppercase tracking-[0.08em] text-ds-faint">
+            <div className="px-2.5 pb-1 pt-1 text-caption font-bold uppercase tracking-[0.08em] text-ds-faint">
               {t('composerModel')}
             </div>
             {activeProviderGroup.modelIds.map((id) => (
@@ -386,7 +386,7 @@ export function FloatingComposerModelPicker({
           aria-expanded={menuOpen}
           aria-haspopup="menu"
           aria-label={t('composerModelControls')}
-          className={`flex h-9 min-w-0 flex-1 items-center justify-end gap-1 rounded-full py-2 pl-3 pr-1 text-[13px] font-medium outline-none transition ${
+          className={`flex h-9 min-w-0 flex-1 items-center justify-end gap-1 rounded-full py-2 pl-3 pr-1 text-small font-medium outline-none transition ${
             canChangeModel
               ? 'text-current focus-visible:ring-2 focus-visible:ring-accent/25'
               : 'cursor-not-allowed text-ds-faint'
@@ -396,7 +396,7 @@ export function FloatingComposerModelPicker({
             {modelLabel}
           </span>
           {reasoningEnabled ? (
-            <span className="shrink-0 text-[12px] font-semibold text-ds-faint">
+            <span className="shrink-0 text-caption font-semibold text-ds-faint">
               {currentReasoningLabel}
             </span>
           ) : null}
@@ -404,7 +404,7 @@ export function FloatingComposerModelPicker({
             <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.8} />
           </span>
         </button>
-        {renderMenu('fixed z-[1000] overflow-x-hidden overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-[12.5px] shadow-[0_18px_50px_rgba(15,23,42,0.16)] dark:bg-ds-card')}
+        {renderMenu('fixed z-[1000] overflow-x-hidden overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-small shadow-[0_18px_50px_rgba(15,23,42,0.16)] dark:bg-ds-card')}
       </div>
     )
   }
@@ -424,7 +424,7 @@ export function FloatingComposerModelPicker({
         type="button"
         disabled={!canChangeModel}
         onClick={() => setMenuOpen((open) => !open)}
-        className={`flex h-9 max-w-full items-center gap-1.5 rounded-full px-2.5 text-[13.5px] font-semibold transition disabled:cursor-not-allowed ${
+        className={`flex h-9 max-w-full items-center gap-1.5 rounded-full px-2.5 text-body font-semibold transition disabled:cursor-not-allowed ${
           canChangeModel ? 'hover:bg-ds-hover' : ''
         }`}
         aria-expanded={menuOpen}
@@ -442,7 +442,7 @@ export function FloatingComposerModelPicker({
       </button>
 
       {menuOpen && canChangeModel ? (
-        renderMenu('fixed z-[1000] overflow-x-hidden overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-[13px] text-ds-muted shadow-[0_22px_64px_rgba(15,23,42,0.18)] dark:bg-ds-card')
+        renderMenu('fixed z-[1000] overflow-x-hidden overflow-y-auto rounded-xl border border-ds-border bg-white p-1.5 text-small text-ds-muted shadow-[0_22px_64px_rgba(15,23,42,0.18)] dark:bg-ds-card')
       ) : null}
     </div>
   )
@@ -608,7 +608,7 @@ function MenuSectionTitle({
   icon: ReactElement
 }): ReactElement {
   return (
-    <div className="flex h-8 items-center gap-2 px-2 text-[12px] font-bold uppercase tracking-[0.08em] text-ds-faint">
+    <div className="flex h-8 items-center gap-2 px-2 text-caption font-bold uppercase tracking-[0.08em] text-ds-faint">
       {icon}
       <span>{children}</span>
     </div>
@@ -642,7 +642,7 @@ function PickerRow({
       }`}
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-semibold">{title}</span>
+        <span className="block truncate text-small font-semibold">{title}</span>
       </span>
       {selected ? <Check className="h-4 w-4 shrink-0 text-accent" strokeWidth={2} /> : null}
     </button>
@@ -686,9 +686,9 @@ function ProviderRow({
       }`}
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-semibold">{title}</span>
+        <span className="block truncate text-small font-semibold">{title}</span>
         {subtitle ? (
-          <span className="block truncate text-[11.5px] font-medium text-ds-faint">{subtitle}</span>
+          <span className="block truncate text-caption font-medium text-ds-faint">{subtitle}</span>
         ) : null}
       </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-ds-faint" strokeWidth={1.8} />

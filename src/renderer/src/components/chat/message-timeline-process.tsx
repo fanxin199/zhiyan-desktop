@@ -163,7 +163,7 @@ export function ProcessSectionRow({
         <button
           type="button"
           onClick={() => setUserExpanded(!(userExpanded ?? defaultExpanded))}
-          className={`group flex w-fit max-w-full items-center gap-1.5 rounded-md py-0.5 text-left text-[14px] font-medium transition hover:opacity-85 ${
+          className={`group flex w-fit max-w-full items-center gap-1.5 rounded-md py-0.5 text-left text-body font-medium transition hover:opacity-85 ${
             hasError ? 'text-red-600 dark:text-red-300' : 'text-ds-muted'
           }`}
         >
@@ -181,7 +181,7 @@ export function ProcessSectionRow({
         </button>
       ) : (
         <div
-          className={`flex w-fit max-w-full items-center gap-1.5 py-0.5 text-[14px] font-medium ${
+          className={`flex w-fit max-w-full items-center gap-1.5 py-0.5 text-body font-medium ${
             hasError ? 'text-red-600 dark:text-red-300' : 'text-ds-muted'
           }`}
         >
@@ -202,7 +202,7 @@ export function ProcessSectionRow({
         >
           {shouldRenderDetail ? (
             section.kind === 'reasoning' ? (
-            <div className="ds-markdown text-[13.5px] leading-6 text-ds-muted">
+            <div className="ds-markdown text-body leading-6 text-ds-muted">
               <AssistantMarkdown text={reasoningText} streaming={active && processing} />
             </div>
           ) : (
@@ -284,7 +284,7 @@ function ProcessStackRows({
               tabIndex={canToggle ? 0 : undefined}
               onClick={handleToggle}
               onKeyDown={handleKeyDown}
-              className={`group flex w-full min-w-0 items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-[13.5px] leading-6 transition ${
+              className={`group flex w-full min-w-0 items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-body leading-6 transition ${
                 isError
                   ? 'text-red-600 dark:text-red-300'
                   : 'text-ds-faint hover:text-ds-muted'
@@ -363,7 +363,7 @@ function ProcessEntryRow({
         tabIndex={canToggle ? 0 : undefined}
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
-        className={`group flex w-full items-start gap-2 rounded-md px-2 py-1 text-left text-[13.5px] leading-[1.55] transition ${
+        className={`group flex w-full items-start gap-2 rounded-md px-2 py-1 text-left text-body leading-[1.55] transition ${
           isError
             ? 'text-red-600 dark:text-red-300'
             : 'text-ds-faint hover:text-ds-ink'
@@ -387,7 +387,7 @@ function ProcessEntryRow({
             {verb}
           </span>
           {rest ? (
-            <span className="ml-1.5 font-mono text-[13px]">
+            <span className="ml-1.5 font-mono text-small">
               <ProcessSummaryText block={block} summary={rest} />
             </span>
           ) : null}
@@ -711,7 +711,7 @@ function RuntimeMetaBadges({
   ) {
     return null
   }
-  const chipClass = 'inline-flex max-w-full items-center gap-1 rounded-md border border-ds-border-muted bg-ds-card/75 px-1.5 py-0.5 text-[11px] font-medium text-ds-faint'
+  const chipClass = 'inline-flex max-w-full items-center gap-1 rounded-md border border-ds-border-muted bg-ds-card/75 px-1.5 py-0.5 text-caption font-medium text-ds-faint'
   return (
     <div className="ml-7 mt-1 flex min-w-0 flex-wrap gap-1.5">
       {childLabel ? (
@@ -866,14 +866,14 @@ function ProcessEntryDetail({
   if (detail.kind === 'reasoning') {
     const streamReason = block.id === 'live-reasoning' && processing
     return (
-      <div className="ds-markdown text-[13.5px] leading-6 text-ds-muted">
+      <div className="ds-markdown text-body leading-6 text-ds-muted">
         <AssistantMarkdown text={detail.text} streaming={streamReason} />
       </div>
     )
   }
   if (detail.kind === 'assistant') {
     return (
-      <div className="ds-markdown text-[13.5px] leading-6 text-ds-ink">
+      <div className="ds-markdown text-body leading-6 text-ds-ink">
         <AssistantMarkdown
           text={detail.text}
           streaming={processing && block.kind === 'assistant' && block.id === 'live-assistant'}
@@ -889,24 +889,24 @@ function ProcessEntryDetail({
       return (
         <div className="overflow-hidden rounded-[10px] border border-red-200/80 bg-red-50/80 dark:border-red-800/40 dark:bg-red-500/10">
           {detail.filePath ? (
-            <div className="border-b border-red-200/70 bg-red-100/50 px-3 py-1.5 font-mono text-[12px] text-red-700 dark:border-red-800/40 dark:bg-red-500/15 dark:text-red-300">
+            <div className="border-b border-red-200/70 bg-red-100/50 px-3 py-1.5 font-mono text-caption text-red-700 dark:border-red-800/40 dark:bg-red-500/15 dark:text-red-300">
               {detail.filePath}
             </div>
           ) : null}
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words px-3 py-2.5 font-mono text-[12px] leading-6 text-red-800 dark:text-red-200">
+          <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words px-3 py-2.5 font-mono text-caption leading-6 text-red-800 dark:text-red-200">
             {detail.text}
           </pre>
         </div>
       )
     }
     return (
-      <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-6 text-ds-ink">
+      <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words font-mono text-caption leading-6 text-ds-ink">
         {detail.text}
       </pre>
     )
   }
   if (detail.kind === 'text') {
-    return <p className="whitespace-pre-wrap text-[13.5px] leading-6 text-ds-muted">{detail.text}</p>
+    return <p className="whitespace-pre-wrap text-body leading-6 text-ds-muted">{detail.text}</p>
   }
   if (detail.kind === 'approval' && block.kind === 'approval') {
     return <MessageBubble block={block} nested />

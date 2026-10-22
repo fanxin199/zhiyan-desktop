@@ -23,19 +23,19 @@ function RuntimeWakeHero({
     <div className="ds-runtime-wake-hero ds-no-drag px-6 pb-8 pt-12 text-center md:pt-16">
       <WhaleHeroStage />
 
-      <p className="text-[12px] font-semibold uppercase tracking-[0] text-accent">
+      <p className="text-caption font-semibold uppercase tracking-[0] text-accent">
         {t('runtimeOfflineHeroKicker')}
       </p>
-      <h1 className="mt-2 max-w-[620px] text-[26px] font-semibold leading-tight tracking-[0] text-ds-ink md:text-[32px]">
+      <h1 className="mt-2 max-w-[620px] text-display font-semibold leading-tight tracking-[0] text-ds-ink">
         {t('runtimeOfflineHeroTitle')}
       </h1>
-      <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-ds-muted">
+      <p className="mt-3 max-w-[620px] text-heading leading-7 text-ds-muted">
         {t('runtimeOfflineHeroSub')}
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
-          className="ds-chip inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium text-ds-ink transition hover:text-ds-ink"
+          className="ds-chip inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-small font-medium text-ds-ink transition hover:text-ds-ink"
           onClick={onRetry}
         >
           <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -43,7 +43,7 @@ function RuntimeWakeHero({
         </button>
         <button
           type="button"
-          className="ds-chip-muted inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium text-ds-muted transition hover:text-ds-ink"
+          className="ds-chip-muted inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-small font-medium text-ds-muted transition hover:text-ds-ink"
           onClick={onOpenSettings}
         >
           <Settings className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -77,15 +77,15 @@ export function MessageTimelineEmptyHero({
     return (
       <div className="ds-no-drag flex flex-col items-center justify-center px-6 py-24 text-center">
         <FolderOpen className="mb-4 h-8 w-8 text-ds-muted" strokeWidth={1.6} />
-        <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-ds-ink">
+        <h1 className="text-display font-semibold tracking-[-0.02em] text-ds-ink">
           {t('selectWorkspace')}
         </h1>
-        <p className="mt-2 max-w-sm text-[14.5px] leading-6 text-ds-muted">
+        <p className="mt-2 max-w-sm text-body leading-6 text-ds-muted">
           {t('emptyHeroSubNoWorkspace')}
         </p>
         <button
           type="button"
-          className="ds-chip mt-5 rounded-full px-5 py-2.5 text-[13px] font-medium text-ds-ink transition hover:text-ds-ink"
+          className="ds-chip mt-5 rounded-full px-5 py-2.5 text-small font-medium text-ds-ink transition hover:text-ds-ink"
           onClick={onPickWorkspace}
         >
           {t('selectWorkspace')}
@@ -106,10 +106,10 @@ export function ThreadForkBanner({ parentTitle }: { parentTitle: string }): Reac
           <GitFork className="h-4 w-4" strokeWidth={1.85} />
         </span>
         <span className="min-w-0">
-          <span className="block text-[13.5px] font-semibold text-ds-ink">
+          <span className="block text-body font-semibold text-ds-ink">
             {t('threadForkBannerTitle')}
           </span>
-          <span className="mt-1 block text-[12.5px] leading-5 text-ds-muted">
+          <span className="mt-1 block text-small leading-5 text-ds-muted">
             {parentTitle
               ? t('threadForkBannerSub', { title: parentTitle })
               : t('threadForkBannerSubUnknown')}
@@ -123,7 +123,7 @@ export function ThreadForkBanner({ parentTitle }: { parentTitle: string }): Reac
 export function ThreadForkPoint({ parentTitle }: { parentTitle: string }): ReactElement {
   const { t } = useTranslation('common')
   return (
-    <div className="flex items-center gap-3 py-1 text-[12px] font-medium text-ds-faint">
+    <div className="flex items-center gap-3 py-1 text-caption font-medium text-ds-faint">
       <span className="h-px min-w-6 flex-1 bg-ds-border-muted" />
       <span
         className="inline-flex max-w-[min(100%,420px)] items-center gap-1.5 rounded-full border border-accent/15 bg-ds-card/80 px-3 py-1.5 text-accent shadow-sm"

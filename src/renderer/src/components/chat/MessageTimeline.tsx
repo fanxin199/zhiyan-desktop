@@ -132,7 +132,7 @@ export function MessageTimeline({
             <button
               type="button"
               onClick={() => loadEarlierTurns({ userInitiated: true })}
-              className="ds-chip rounded-full px-4 py-2 text-[13px] font-medium text-ds-muted transition hover:text-ds-ink"
+              className="ds-chip rounded-full px-4 py-2 text-small font-medium text-ds-muted transition hover:text-ds-ink"
             >
               {t('timelineShowEarlierTurns', { count: Math.min(hiddenTurnCount, TURN_PAGE_SIZE) })}
             </button>
@@ -194,7 +194,7 @@ export function MessageTimeline({
               onClick={() => {
                 collapseEarlierTurns()
               }}
-              className="rounded-full px-3 py-1.5 text-[12.5px] font-medium text-ds-faint transition hover:bg-ds-hover hover:text-ds-ink"
+              className="rounded-full px-3 py-1.5 text-small font-medium text-ds-faint transition hover:bg-ds-hover hover:text-ds-ink"
             >
               {t('timelineCollapseEarlierTurns')}
             </button>
@@ -372,7 +372,7 @@ function LiveTurnProgressRow(): ReactElement {
   const { t } = useTranslation('common')
 
   return (
-    <div className="flex w-fit max-w-full items-center gap-2 py-0.5 text-[14px] font-medium text-ds-muted">
+    <div className="flex w-fit max-w-full items-center gap-2 py-0.5 text-body font-medium text-ds-muted">
       <span className="ds-work-logo-slot ds-work-logo-slot-sm mr-0.5">
         <AnimatedWorkLogo active phase="trail" size="sm" />
       </span>
