@@ -175,3 +175,5 @@ npm run dist:win
 ## 五、当前执行位置
 
 当前执行任务：**4.1 与 4.2 已完成并同步 main；v0.2.0-alpha.1 Windows 安装包已完成构建验证**。
+
+后续界面与 AI 交互重组见 `docs/AI_NATIVE_REDESIGN_PLAN.md`；本计划 3.1 的导航结论已被其取代。

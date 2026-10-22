@@ -105,6 +105,7 @@ npm run dist:win
 
 ## 项目文档
 
+- [AI 原生重组实施计划](docs/AI_NATIVE_REDESIGN_PLAN.md)
 - [产品升级执行计划](docs/PRODUCT_UPGRADE_PLAN.md)
 - [教师版发布验收](docs/TEACHER_RELEASE_ACCEPTANCE.md)
 - [产品路线图](docs/PROJECT_ROADMAP.md)

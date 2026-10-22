@@ -65,6 +65,7 @@ npm run dist:win
 
 ## 当前优化计划
 
-前端体验和功能模块的逐步优化任务见 `docs/UX_OPTIMIZATION_PLAN.md`。
-该文档按 P0→P3 优先级排列，每个任务带 `[ ]` 复选框。
+界面与 AI 交互的重组任务见 `docs/AI_NATIVE_REDESIGN_PLAN.md`（自 2026-10-22 起）。
+该文档按 P0→P4 优先级排列，每个任务带 `[ ]` 复选框。
 AI Agent 每次进入项目时应读取该文件，从第一个未完成的 `[ ]` 继续执行，每次只完成一个任务。
+`docs/UX_OPTIMIZATION_PLAN.md` 已全部完成，仅作历史参考；与新计划冲突之处以新计划为准。
