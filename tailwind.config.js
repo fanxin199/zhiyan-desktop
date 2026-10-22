@@ -48,6 +48,12 @@ export default {
           'success-soft': themeColor('--ds-success-soft'),
           danger: themeColor('--ds-danger'),
           'danger-soft': themeColor('--ds-danger-soft'),
+          warning: themeColor('--ds-warning'),
+          'warning-soft': themeColor('--ds-warning-soft'),
+          'domain-teaching': themeColor('--ds-domain-teaching'),
+          'domain-teaching-soft': themeColor('--ds-domain-teaching-soft'),
+          'domain-research': themeColor('--ds-domain-research'),
+          'domain-research-soft': themeColor('--ds-domain-research-soft'),
           'diff-added': themeColor('--ds-diff-added'),
           'diff-added-soft': themeColor('--ds-diff-added-soft'),
           'diff-removed': themeColor('--ds-diff-removed'),
@@ -58,22 +64,35 @@ export default {
           userbubbleFg: themeColor('--ds-bubble-user-fg')
         }
       },
+      // Solid accent fills carry white text, so they use a fill shade that stays dark enough in dark mode.
+      backgroundColor: {
+        accent: {
+          DEFAULT: themeColor('--ds-accent-fill')
+        }
+      },
       boxShadow: {
         composer: 'var(--ds-shadow-composer)',
         shell: 'var(--ds-shadow-shell)',
         panel: 'var(--ds-shadow-panel)'
       },
       fontSize: {
+        caption: 'var(--ds-font-caption)',
+        small: 'var(--ds-font-small)',
+        body: 'var(--ds-font-body)',
+        heading: 'var(--ds-font-heading)',
+        title: 'var(--ds-font-title)',
+        display: 'var(--ds-font-display)',
         'ui-caption': '11.5px',
         'ui-meta': '12px',
         'ui-body-sm': '12.5px',
         'ui-body': '13.5px',
         'ui-title': '24px'
       },
+      lineHeight: {
+        prose: 'var(--ds-leading-prose)'
+      },
       borderRadius: {
-        xl: '14px',
-        '2xl': '18px',
-        '3xl': '22px'
+        xl: '12px'
       }
     }
   },

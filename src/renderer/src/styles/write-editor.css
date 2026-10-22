@@ -681,11 +681,11 @@ html[data-theme='dark'] .cm-write-md-code-block-html > pre span {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--ds-accent) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-accent-fill) 84%, transparent);
   border-radius: 12px;
-  background: var(--ds-accent);
+  background: var(--ds-accent-fill);
   color: white;
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--ds-accent) 22%, transparent);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ds-accent-fill) 22%, transparent);
   transition: filter 140ms ease, transform 140ms ease, opacity 140ms ease;
 }
 

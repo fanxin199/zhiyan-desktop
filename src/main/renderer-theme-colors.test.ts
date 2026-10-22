@@ -61,6 +61,25 @@ describe('renderer theme colors', () => {
     const root = await compileUtilities(['text-ds-text', 'bg-ds-card-muted', 'bg-accent/10'])
 
     expect([...generatedClassNames(root)].sort()).toEqual(['bg-accent/10', 'bg-ds-card-muted', 'text-ds-text'])
-    expect(root.toString()).toContain('color-mix(in srgb, var(--ds-accent) calc(0.1 * 100%), transparent)')
+    expect(root.toString()).toContain('color-mix(in srgb, var(--ds-accent-fill) calc(0.1 * 100%), transparent)')
+  })
+
+  it('maps accent fills, typography and radii to design tokens', async () => {
+    const root = await compileUtilities(['bg-accent', 'text-accent', 'text-body', 'leading-prose', 'rounded-xl', 'rounded-2xl'])
+    const rule = (className: string): string => {
+      let text = ''
+      root.walkRules((candidate) => {
+        if (candidate.selector === `.${className}`) text = candidate.toString()
+      })
+      return text
+    }
+
+    expect(rule('bg-accent')).toContain('var(--ds-accent-fill)')
+    expect(rule('text-accent')).toContain('var(--ds-accent)')
+    expect(rule('text-accent')).not.toContain('--ds-accent-fill')
+    expect(rule('text-body')).toContain('font-size: var(--ds-font-body)')
+    expect(rule('leading-prose')).toContain('line-height: var(--ds-leading-prose)')
+    expect(rule('rounded-xl')).toContain('border-radius: 12px')
+    expect(rule('rounded-2xl')).toContain('border-radius: 1rem')
   })
 })

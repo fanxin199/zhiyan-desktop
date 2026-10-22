@@ -3,6 +3,13 @@
   --ds-window-controls-safe-inset: 0px;
   --ds-write-titlebar-extra-inset: 0px;
   --ds-ui-scale: 1.1;
+  --ds-font-caption: 12px;
+  --ds-font-small: 13px;
+  --ds-font-body: 14px;
+  --ds-font-heading: 15px;
+  --ds-font-title: 18px;
+  --ds-font-display: 24px;
+  --ds-leading-prose: 1.7;
   --bg-app: #f5f7fa;
   --bg-sidebar: #f4f7fb;
   --bg-canvas: #fbfcfe;
@@ -31,9 +38,10 @@
   --ds-text-faint: var(--text-tertiary);
   --ds-bubble-user: rgba(0, 0, 0, 0.06);
   --ds-bubble-user-fg: #222222;
-  --ds-accent: #0088ff;
-  --ds-accent-soft: rgba(0, 136, 255, 0.14);
-  --ds-success: #128a4a;
+  --ds-accent: #1769e0;
+  --ds-accent-fill: #1769e0;
+  --ds-accent-soft: rgba(23, 105, 224, 0.14);
+  --ds-success: #0e7a42;
   --ds-danger: #c92a2a;
   --ds-diff-added: #128a4a;
   --ds-diff-added-soft: rgba(18, 138, 74, 0.1);
@@ -42,8 +50,13 @@
   --ds-skill: #7c3aed;
   --ds-skill-soft: rgba(124, 58, 237, 0.12);
   --ds-success-soft: rgba(17, 185, 129, 0.14);
+  --ds-warning: #8a5a00;
   --ds-warning-soft: rgba(245, 158, 11, 0.14);
   --ds-danger-soft: rgba(239, 68, 68, 0.12);
+  --ds-domain-teaching: #0f6e56;
+  --ds-domain-teaching-soft: #e1f5ee;
+  --ds-domain-research: #3c3489;
+  --ds-domain-research-soft: #eeedfe;
   --ds-shadow-shell: 0 12px 30px rgba(15, 23, 42, 0.08);
   --ds-shadow-panel: 0 16px 44px rgba(15, 23, 42, 0.06);
   --ds-shadow-composer: 0 18px 46px rgba(15, 23, 42, 0.1),
@@ -85,7 +98,7 @@
   --ds-table-head-bg: rgba(244, 247, 252, 0.96);
   --ds-scrollbar-thumb: rgba(95, 104, 120, 0.22);
   --ds-scrollbar-thumb-hover: rgba(95, 104, 120, 0.32);
-  --ds-selection: rgba(0, 136, 255, 0.18);
+  --ds-selection: rgba(23, 105, 224, 0.18);
   --ds-shadow-card-soft: 0 10px 28px rgba(15, 23, 42, 0.06);
   --ds-shadow-card-strong: 0 14px 36px rgba(15, 23, 42, 0.09);
   --ds-shadow-chip: inset 0 1px 0 rgba(255, 255, 255, 0.78);
@@ -132,6 +145,7 @@
   --ds-bubble-user: rgba(255, 255, 255, 0.08);
   --ds-bubble-user-fg: #ffffff;
   --ds-accent: #339cff;
+  --ds-accent-fill: #1769e0;
   --ds-accent-soft: rgba(51, 156, 255, 0.18);
   --ds-success: #40c977;
   --ds-danger: #fa423e;
@@ -142,8 +156,13 @@
   --ds-skill: #ad7bf9;
   --ds-skill-soft: rgba(173, 123, 249, 0.16);
   --ds-success-soft: rgba(64, 201, 119, 0.18);
+  --ds-warning: #ef9f27;
   --ds-warning-soft: rgba(245, 158, 11, 0.18);
   --ds-danger-soft: rgba(250, 66, 62, 0.18);
+  --ds-domain-teaching: #9fe1cb;
+  --ds-domain-teaching-soft: #085041;
+  --ds-domain-research: #cecbf6;
+  --ds-domain-research-soft: #3c3489;
   --ds-shadow-shell: 0 38px 96px rgba(0, 0, 0, 0.55);
   --ds-shadow-panel: 0 22px 58px rgba(0, 0, 0, 0.35);
   --ds-shadow-composer: 0 28px 78px rgba(0, 0, 0, 0.45),
