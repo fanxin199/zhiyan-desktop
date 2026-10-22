@@ -1107,7 +1107,6 @@
   "writePromptReference": "Text reference",
   "writePromptReferenceLines": "lines {{start}}-{{end}}",
   "writePromptActiveFile": "Current file",
-  "writePromptWorkspace": "Workspace",
   "writeNoFileOpen": "No file open",
   "writeChooseFileTitle": "Open a file to start writing",
   "writeChooseFileSub": "Choose an existing document from the workspace, or create a new Markdown file.",

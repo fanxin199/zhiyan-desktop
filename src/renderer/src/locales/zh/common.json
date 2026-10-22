@@ -1107,7 +1107,6 @@
   "writePromptReference": "文本引用",
   "writePromptReferenceLines": "{{start}}-{{end}} 行",
   "writePromptActiveFile": "当前文件",
-  "writePromptWorkspace": "工作空间",
   "writeNoFileOpen": "尚未打开文件",
   "writeChooseFileTitle": "先打开一个文件再开始写",
   "writeChooseFileSub": "从工作区里选择一个已有文档，或者新建一个 Markdown 文件。",

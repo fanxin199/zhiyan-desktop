@@ -30,17 +30,11 @@ function UserMessageBubble({
 }): ReactElement {
   const { t } = useTranslation('common')
   const busy = useChatStore((s) => s.busy)
-  const route = useChatStore((s) => s.route)
   const rewindAndResend = useChatStore((s) => s.rewindAndResend)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(block.text)
   const [writeMetaOpen, setWriteMetaOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const parsedWritePrompt = useMemo(() => {
-    if (route !== 'write') return null
-    const parsed = parseWritePromptForDisplay(block.text)
-    return parsed?.userInput.trim() ? parsed : null
-  }, [block.text, route])
   const parsedClawPrompt = useMemo(() => {
     const parsed = parseClawUserPromptForDisplay(block.text)
     if (!parsed.managed && !parsed.inbound && block.managedBy !== 'claw') return null
@@ -50,7 +44,13 @@ function UserMessageBubble({
     typeof block.meta?.displayText === 'string' && block.meta.displayText.trim()
       ? block.meta.displayText.trim()
       : null
-  const displayText = metaDisplayText ?? parsedWritePrompt?.userInput ?? parsedClawPrompt?.text ?? block.text
+  // Writing assistant messages carry the writing context ahead of the teacher's words, sometimes in
+  // the stored display text as well; show only what the teacher typed, on every page.
+  const parsedWritePrompt = useMemo(() => {
+    const parsed = parseWritePromptForDisplay(metaDisplayText ?? block.text)
+    return parsed?.userInput.trim() ? parsed : null
+  }, [block.text, metaDisplayText])
+  const displayText = parsedWritePrompt?.userInput ?? metaDisplayText ?? parsedClawPrompt?.text ?? block.text
   const canEdit = !metaDisplayText
   const showClawInboundCard = parsedClawPrompt?.inbound === true
 

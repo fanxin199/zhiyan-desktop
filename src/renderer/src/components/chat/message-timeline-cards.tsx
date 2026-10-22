@@ -352,11 +352,6 @@ export function WorkMetaRow({
   )
 }
 
-/**
- * Tiny mono "via <model>" tag rendered above the user message body. Subtle by
- * design — no pill, no ring, just faint monospaced text right-aligned at the
- * top of the bubble. Hidden when there's no model selection to surface.
- */
 function writePromptMetaSummary(
   display: WritePromptDisplay,
   t: (key: string, opts?: Record<string, unknown>) => string
@@ -410,12 +405,6 @@ export function WritePromptMetaDisclosure({
                 <div className="mt-1 truncate">
                   <span className="text-ds-faint">{t('writePromptActiveFile')} </span>
                   <span className="font-mono text-ds-muted">{display.context.activeFile}</span>
-                </div>
-              ) : null}
-              {display.context.workspaceRoot ? (
-                <div className="mt-0.5 truncate" title={display.context.workspaceRoot}>
-                  <span className="text-ds-faint">{t('writePromptWorkspace')} </span>
-                  <span className="font-mono text-ds-muted">{display.context.workspaceRoot}</span>
                 </div>
               ) : null}
             </div>
