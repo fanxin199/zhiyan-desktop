@@ -47,17 +47,17 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onOrganizeMaterial}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-ds-elevated"
             >
-              <ClipboardPaste className="h-4 w-4 text-sky-600 dark:text-sky-300" strokeWidth={1.9} />
+              <ClipboardPaste className="h-4 w-4 text-accent-strong" strokeWidth={1.9} />
               {t('writeStartOrganizeMaterial')}
             </button>
             <button
               type="button"
               onClick={onPickWorkspace}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-white/70 px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-white dark:bg-white/[0.055] dark:hover:bg-white/[0.08]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ds-border bg-ds-card px-5 text-body font-semibold text-ds-ink shadow-sm transition hover:bg-ds-elevated"
             >
-              <FolderOpen className="h-4 w-4 text-violet-600 dark:text-violet-300" strokeWidth={1.9} />
+              <FolderOpen className="h-4 w-4 text-ds-skill" strokeWidth={1.9} />
               {t('writeStartChangeWorkspace')}
             </button>
           </div>
@@ -66,9 +66,9 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onRefreshWorkspace}
-              className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-ds-border-muted bg-white/52 px-4 py-3 text-left transition hover:border-accent/25 hover:bg-white/78 dark:bg-white/[0.035] dark:hover:bg-white/[0.07]"
+              className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-ds-border-muted bg-ds-card px-4 py-3 text-left transition hover:border-accent/25 hover:bg-ds-card"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-strong">
                 <RefreshCw className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
@@ -83,9 +83,9 @@ export function WriteWorkspaceStart({
             <button
               type="button"
               onClick={onAskAssistant}
-              className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-ds-border-muted bg-white/52 px-4 py-3 text-left transition hover:border-accent/25 hover:bg-white/78 dark:bg-white/[0.035] dark:hover:bg-white/[0.07]"
+              className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-ds-border-muted bg-ds-card px-4 py-3 text-left transition hover:border-accent/25 hover:bg-ds-card"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ds-success-soft text-ds-success">
                 <ListTodo className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
@@ -100,7 +100,7 @@ export function WriteWorkspaceStart({
           </div>
         </section>
 
-        <aside className="write-start-card min-w-0 rounded-[24px] border border-ds-border-muted bg-white/58 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.07)] dark:bg-white/[0.04]">
+        <aside className="write-start-card min-w-0 rounded-[24px] border border-ds-border-muted bg-ds-card p-5 shadow-[0_18px_48px_rgba(15,23,42,0.07)]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="text-caption font-semibold text-ds-faint">
@@ -110,12 +110,12 @@ export function WriteWorkspaceStart({
                 {workspaceName}
               </div>
             </div>
-            <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-caption font-semibold text-emerald-700 dark:text-emerald-300">
+            <span className="shrink-0 rounded-full bg-ds-success-soft px-2.5 py-1 text-caption font-semibold text-ds-success">
               {t('writeStartReadyLabel')}
             </span>
           </div>
 
-          <div className="mt-5 rounded-[20px] border border-ds-border-muted bg-white/76 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.64)] dark:bg-white/[0.035] dark:shadow-none">
+          <div className="mt-5 rounded-[20px] border border-ds-border-muted bg-ds-card p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.64)] dark:shadow-none">
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                 <FilePenLine className="h-5 w-5" strokeWidth={1.9} />
@@ -130,10 +130,10 @@ export function WriteWorkspaceStart({
               </div>
             </div>
             <div className="mt-6 space-y-3" aria-hidden="true">
-              <div className="h-3 w-2/3 rounded-full bg-slate-900/10 dark:bg-white/10" />
-              <div className="h-2.5 w-full rounded-full bg-slate-900/5 dark:bg-white/10" />
-              <div className="h-2.5 w-11/12 rounded-full bg-slate-900/5 dark:bg-white/10" />
-              <div className="h-2.5 w-4/5 rounded-full bg-slate-900/5 dark:bg-white/10" />
+              <div className="h-3 w-2/3 rounded-full bg-ds-hover" />
+              <div className="h-2.5 w-full rounded-full bg-ds-hover" />
+              <div className="h-2.5 w-11/12 rounded-full bg-ds-hover" />
+              <div className="h-2.5 w-4/5 rounded-full bg-ds-hover" />
               <div className="pt-2">
                 <div className="h-2.5 w-1/2 rounded-full bg-accent/15" />
               </div>

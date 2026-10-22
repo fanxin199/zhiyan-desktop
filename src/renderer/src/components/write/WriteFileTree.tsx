@@ -173,7 +173,7 @@ export function WriteFileTree({
             {isDirectory ? (
               <Folder className="h-3.5 w-3.5 shrink-0 text-ds-muted" strokeWidth={1.75} />
             ) : imageEntry ? (
-              <Image className={`h-3.5 w-3.5 shrink-0 ${selected ? 'text-accent' : 'text-emerald-600/75 dark:text-emerald-300/80'}`} strokeWidth={1.8} />
+              <Image className={`h-3.5 w-3.5 shrink-0 ${selected ? 'text-accent' : 'text-ds-success/75'}`} strokeWidth={1.8} />
             ) : (
               <FileText className={`h-3.5 w-3.5 shrink-0 ${selected ? 'text-accent' : 'text-ds-faint/90'}`} strokeWidth={1.8} />
             )}
@@ -230,7 +230,7 @@ export function WriteFileTree({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-2">
         {error ? (
-          <div className="mx-2 mt-2 rounded-lg border border-red-200/70 bg-red-50/80 px-2.5 py-2 text-caption leading-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+          <div className="mx-2 mt-2 rounded-lg border border-ds-danger/30 bg-ds-danger-soft px-2.5 py-2 text-caption leading-5 text-ds-danger">
             {error}
           </div>
         ) : rootLoading || !hasRootSnapshot ? (

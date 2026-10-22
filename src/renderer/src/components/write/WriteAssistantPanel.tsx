@@ -103,9 +103,9 @@ export function WriteAssistantPanel({
 
   return (
     <aside
-      className={`write-assistant-panel ds-no-drag flex min-h-0 flex-col border-l border-ds-border-muted bg-white backdrop-blur-xl dark:bg-ds-canvas ${className}`}
+      className={`write-assistant-panel ds-no-drag flex min-h-0 flex-col border-l border-ds-border-muted bg-ds-elevated backdrop-blur-xl dark:bg-ds-canvas ${className}`}
     >
-      <div className="shrink-0 border-b border-ds-border-muted bg-white/92 dark:bg-ds-card">
+      <div className="shrink-0 border-b border-ds-border-muted bg-ds-card dark:bg-ds-card">
         <div className="flex h-12 min-w-0 items-center gap-2 px-4">
           <button
             type="button"
@@ -116,7 +116,7 @@ export function WriteAssistantPanel({
           >
             <PanelRightClose className="h-4 w-4" strokeWidth={1.85} />
           </button>
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] bg-ds-subtle px-3 py-1.5 dark:bg-white/8">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] bg-ds-subtle px-3 py-1.5">
             <Sparkles className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} />
             <span className="min-w-0 truncate text-small font-medium text-ds-ink">
               {t('writeAssistant')}
@@ -172,7 +172,7 @@ export function WriteAssistantPanel({
                 onClick={() => setAssistantPrompt(t('writeAssistantSummarizePrompt', { file: activeFileLabel }))}
                 className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
                   <FileText className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
                 <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantSummarize')}</span>
@@ -182,7 +182,7 @@ export function WriteAssistantPanel({
                 onClick={() => setAssistantPrompt(t('writeAssistantOutlinePrompt', { file: activeFileLabel }))}
                 className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ds-success-soft text-ds-success">
                   <ListTodo className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
                 <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantOutline')}</span>
@@ -198,7 +198,7 @@ export function WriteAssistantPanel({
                 }}
                 className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-ds-border-muted bg-ds-card/70 px-2 py-2.5 text-center transition hover:border-accent/25 hover:bg-ds-hover"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ds-warning-soft text-ds-warning">
                   <MessageSquareQuote className="h-3.5 w-3.5" strokeWidth={1.9} />
                 </span>
                 <span className="line-clamp-2 text-caption font-medium leading-4 text-ds-ink">{t('writeAssistantPolishSelection')}</span>
@@ -208,7 +208,7 @@ export function WriteAssistantPanel({
         )}
       </div>
 
-      <div className="shrink-0 border-t border-ds-border-muted bg-white/92 px-4 pb-4 pt-3 dark:bg-ds-card">
+      <div className="shrink-0 border-t border-ds-border-muted bg-ds-card px-4 pb-4 pt-3 dark:bg-ds-card">
         {quotedSelections.length > 0 ? (
           <div className="mb-3 flex flex-col gap-1.5">
             {quotedSelections.map((quote) => (

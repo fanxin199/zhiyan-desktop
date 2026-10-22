@@ -23,7 +23,7 @@ export function WriteWorkspaceEmptyState({
           {t('writeEmptySub')}
         </p>
         {error ? (
-          <p className="mt-3 rounded-lg border border-red-200/70 bg-red-50/80 px-3 py-2 text-caption leading-5 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p className="mt-3 rounded-lg border border-ds-danger/30 bg-ds-danger-soft px-3 py-2 text-caption leading-5 text-ds-danger">
             {error}
           </p>
         ) : null}

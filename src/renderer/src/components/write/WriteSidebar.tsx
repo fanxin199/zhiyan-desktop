@@ -266,7 +266,7 @@ export function WriteSidebar({
         />
 
         {settingsError ? (
-          <div className="mx-2 mt-1 rounded-lg border border-red-200/70 bg-red-50/80 px-2.5 py-2 text-caption leading-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+          <div className="mx-2 mt-1 rounded-lg border border-ds-danger/30 bg-ds-danger-soft px-2.5 py-2 text-caption leading-5 text-ds-danger">
             {settingsError}
           </div>
         ) : null}
@@ -451,7 +451,7 @@ function WriteEntryDialog({
   const deleting = dialog.kind === 'delete'
   return (
     <div
-      className="ds-no-drag fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/18 px-4 backdrop-blur-[2px] dark:bg-black/35"
+      className="ds-no-drag fixed inset-0 z-[80] flex items-center justify-center bg-ds-overlay px-4 backdrop-blur-[2px]"
       onMouseDown={onClose}
     >
       <form
@@ -484,7 +484,7 @@ function WriteEntryDialog({
           <button
             type="submit"
             className={`rounded-xl px-3 py-2 text-small font-semibold text-white transition hover:brightness-110 ${
-              deleting ? 'bg-red-500' : 'bg-accent'
+              deleting ? 'bg-ds-danger' : 'bg-accent'
             }`}
           >
             {entryDialogSubmitLabel(dialog, t)}

@@ -137,10 +137,10 @@ export function WriteWorkspaceDocumentPane({
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col">
       {renderSafety.notice !== 'none' ? (
-        <div className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-5 py-3 text-small leading-5 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/35 dark:text-amber-100 sm:px-6">
+        <div className="shrink-0 border-b border-ds-warning/30 bg-ds-warning-soft px-5 py-3 text-small leading-5 text-ds-warning sm:px-6">
           <div className="font-semibold">{fileGuardMessage}</div>
           {fileGuardDetail ? (
-            <div className="mt-1 text-amber-800/90 dark:text-amber-100/90">{fileGuardDetail}</div>
+            <div className="mt-1 text-ds-warning/90">{fileGuardDetail}</div>
           ) : null}
         </div>
       ) : null}

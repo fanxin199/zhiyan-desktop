@@ -61,7 +61,7 @@ export function WriteImagePreview({
     <div className="flex h-full min-h-0 flex-col bg-[radial-gradient(circle_at_top,rgba(0,136,255,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.82),rgba(247,250,255,0.68))] dark:bg-[radial-gradient(circle_at_top,rgba(96,165,250,0.13),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))]">
       <div className="flex min-h-[54px] shrink-0 items-center justify-between gap-3 border-b border-ds-border-muted px-4 py-2.5 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ds-success-soft text-ds-success">
             <ImageIcon className="h-[18px] w-[18px]" strokeWidth={1.9} />
           </span>
           <div className="min-w-0">
@@ -71,7 +71,7 @@ export function WriteImagePreview({
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1 rounded-xl border border-ds-border-muted bg-white/48 p-1 dark:bg-white/[0.035]">
+        <div className="flex shrink-0 items-center gap-1 rounded-xl border border-ds-border-muted bg-ds-card p-1">
           <button
             type="button"
             onClick={() => {
@@ -148,7 +148,7 @@ export function WriteImagePreview({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ds-border-muted bg-white/44 px-4 py-2 text-caption text-ds-faint dark:bg-white/[0.035] sm:px-5">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ds-border-muted bg-ds-card px-4 py-2 text-caption text-ds-faint sm:px-5">
         <span className="rounded-lg bg-ds-hover/70 px-2 py-1 font-mono">{mimeType}</span>
         <span className="rounded-lg bg-ds-hover/70 px-2 py-1 font-mono">{formatBytes(size)}</span>
         {dimensions ? (
