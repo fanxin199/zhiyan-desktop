@@ -488,15 +488,15 @@ export function FileManagerWorkspacePage({
       <header className="shrink-0 border-b border-ds-border-muted bg-ds-card px-6 py-4 sm:px-8">
         <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-[18px] font-semibold text-ds-text">
+            <div className="flex items-center gap-2 text-title font-semibold text-ds-text">
               <FolderOpen className="h-5 w-5 text-accent" strokeWidth={1.8} />
               文件管理
             </div>
-            <p className="mt-1 truncate text-[12px] text-ds-muted" title={workspaceRoot || undefined}>
+            <p className="mt-1 truncate text-caption text-ds-muted" title={workspaceRoot || undefined}>
               {workspaceRoot || '请选择需要管理的项目文件夹'}
             </p>
           </div>
-          <button type="button" onClick={() => void chooseWorkspace()} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[12.5px] font-semibold text-ds-text hover:bg-ds-hover">
+          <button type="button" onClick={() => void chooseWorkspace()} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover">
             <FolderOpen className="h-4 w-4" strokeWidth={1.8} />
             选择文件夹
           </button>
@@ -510,8 +510,8 @@ export function FileManagerWorkspacePage({
         <div className="flex min-h-0 flex-1 items-center justify-center px-6">
           <div className="max-w-sm text-center">
             <FolderOpen className="mx-auto h-10 w-10 text-ds-faint" strokeWidth={1.5} />
-            <h2 className="mt-4 text-[17px] font-semibold text-ds-text">选择项目文件夹</h2>
-            <button type="button" onClick={() => void chooseWorkspace()} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white">
+            <h2 className="mt-4 text-title font-semibold text-ds-text">选择项目文件夹</h2>
+            <button type="button" onClick={() => void chooseWorkspace()} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-small font-semibold text-white">
               <FolderOpen className="h-4 w-4" strokeWidth={1.8} />
               选择文件夹
             </button>
@@ -523,8 +523,8 @@ export function FileManagerWorkspacePage({
             <button type="button" onClick={() => parent && setDirectory(parent)} disabled={!parent} className="ds-sidebar-toggle-button disabled:opacity-35" title="返回上级目录" aria-label="返回上级目录">
               <ArrowUp className="h-4 w-4" strokeWidth={1.8} />
             </button>
-            <span className="min-w-0 flex-1 truncate text-[12px] text-ds-muted" title={directory}>{directory}</span>
-            <button type="button" onClick={() => setNewFolderOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[12px] font-semibold text-ds-text hover:bg-ds-hover">
+            <span className="min-w-0 flex-1 truncate text-caption text-ds-muted" title={directory}>{directory}</span>
+            <button type="button" onClick={() => setNewFolderOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover">
               <FolderPlus className="h-4 w-4" strokeWidth={1.8} />
               新建文件夹
             </button>
@@ -532,30 +532,30 @@ export function FileManagerWorkspacePage({
 
           {newFolderOpen ? (
             <div className="mb-3 flex items-center gap-2 border-y border-ds-border-muted py-2">
-              <input value={newFolderName} onChange={(event) => setNewFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void createFolder() }} autoFocus placeholder="文件夹名称" className="min-w-0 flex-1 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[12.5px] text-ds-text outline-none focus:border-accent" />
-              <button type="button" onClick={() => void createFolder()} disabled={!newFolderName.trim()} className="rounded-lg bg-accent px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-40">创建</button>
+              <input value={newFolderName} onChange={(event) => setNewFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void createFolder() }} autoFocus placeholder="文件夹名称" className="min-w-0 flex-1 rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small text-ds-text outline-none focus:border-accent" />
+              <button type="button" onClick={() => void createFolder()} disabled={!newFolderName.trim()} className="rounded-lg bg-accent px-3 py-2 text-caption font-semibold text-white disabled:opacity-40">创建</button>
               <button type="button" onClick={() => setNewFolderOpen(false)} className="ds-sidebar-toggle-button" title="取消" aria-label="取消"><X className="h-4 w-4" /></button>
             </div>
           ) : null}
 
-          {message ? <div className="mb-3 whitespace-pre-wrap border-l-2 border-red-500 bg-red-50 px-3 py-2 text-[12px] text-red-700 dark:bg-red-500/10 dark:text-red-200">{message}</div> : null}
+          {message ? <div className="mb-3 whitespace-pre-wrap border-l-2 border-red-500 bg-red-50 px-3 py-2 text-caption text-red-700 dark:bg-red-500/10 dark:text-red-200">{message}</div> : null}
 
           <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
             <section className="flex min-h-0 flex-col border border-ds-border-muted bg-ds-card">
               <div className="flex flex-wrap items-center gap-2 border-b border-ds-border-muted px-3 py-2">
                 {(['all', 'documents', 'data', 'images'] as FileCategory[]).map((item) => (
-                  <button key={item} type="button" onClick={() => setCategory(item)} className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${category === item ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}>
+                  <button key={item} type="button" onClick={() => setCategory(item)} className={`rounded-md px-2.5 py-1.5 text-caption font-medium ${category === item ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}>
                     {{ all: '全部', documents: '文档', data: '数据', images: '图片' }[item]}
                   </button>
                 ))}
                 <label className="ml-auto flex min-w-[180px] flex-1 items-center gap-2 rounded-md bg-ds-main px-2.5 py-1.5 text-ds-muted sm:max-w-xs">
                   <Search className="h-3.5 w-3.5" strokeWidth={1.8} />
-                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="筛选当前文件夹" className="min-w-0 flex-1 bg-transparent text-[12px] text-ds-text outline-none placeholder:text-ds-faint" />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="筛选当前文件夹" className="min-w-0 flex-1 bg-transparent text-caption text-ds-text outline-none placeholder:text-ds-faint" />
                 </label>
               </div>
 
               {selectedFiles.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-2 border-b border-accent/20 bg-accent/5 px-3 py-2 text-[12px] text-ds-text">
+                <div className="flex flex-wrap items-center gap-2 border-b border-accent/20 bg-accent/5 px-3 py-2 text-caption text-ds-text">
                   <span className="font-semibold">已选 {selectedFiles.length} 个文件</span>
                   <button type="button" onClick={sendSelectedToAi} className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-ds-card px-2.5 py-1.5 font-semibold text-accent hover:bg-accent/10"><Send className="h-3.5 w-3.5" />交给 AI 分析</button>
                   <button type="button" onClick={() => setDeletePending(true)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-semibold text-red-600 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" />删除</button>
@@ -563,7 +563,7 @@ export function FileManagerWorkspacePage({
               ) : null}
 
               {deletePending ? (
-                <div className="flex flex-wrap items-center gap-2 border-b border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-200">
+                <div className="flex flex-wrap items-center gap-2 border-b border-red-200 bg-red-50 px-3 py-2 text-caption text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-200">
                   <span className="font-semibold">将永久删除 {selectedFiles.length} 个文件。</span>
                   <button type="button" onClick={() => void deleteSelectedFiles()} className="rounded-md bg-red-600 px-2.5 py-1.5 font-semibold text-white">确认删除</button>
                   <button type="button" onClick={() => setDeletePending(false)} className="rounded-md px-2.5 py-1.5 font-semibold hover:bg-red-500/10">取消</button>
@@ -571,23 +571,23 @@ export function FileManagerWorkspacePage({
               ) : null}
 
               <div className="min-h-0 flex-1 overflow-auto">
-                <div className="grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] border-b border-ds-border-muted bg-ds-main px-3 py-2 text-[11px] font-semibold text-ds-faint">
+                <div className="grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] border-b border-ds-border-muted bg-ds-main px-3 py-2 text-caption font-semibold text-ds-faint">
                   <button type="button" onClick={toggleAllFiles} className="flex items-center justify-center" title="选择全部文件" aria-label="选择全部文件"><CheckSquare className={`h-4 w-4 ${allVisibleFilesSelected ? 'text-accent' : ''}`} /></button>
                   <span>名称</span><span>类型</span>
                 </div>
-                {loading ? <div className="flex items-center justify-center gap-2 py-12 text-[12.5px] text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在读取文件夹</div> : null}
-                {!loading && visibleEntries.length === 0 ? <div className="py-12 text-center text-[12.5px] text-ds-muted">当前文件夹没有符合条件的文件</div> : null}
+                {loading ? <div className="flex items-center justify-center gap-2 py-12 text-small text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在读取文件夹</div> : null}
+                {!loading && visibleEntries.length === 0 ? <div className="py-12 text-center text-small text-ds-muted">当前文件夹没有符合条件的文件</div> : null}
                 {!loading && visibleEntries.map((entry) => {
                   const fileSelected = entry.type === 'file' && selectedPaths.has(entry.path)
                   const active = selectedEntry?.path === entry.path
                   return <div
                     key={entry.path}
                     onContextMenu={(event) => openFileContextMenu(event, entry)}
-                    className={`grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] items-center border-b border-ds-border-muted/70 px-3 py-2 text-[12.5px] ${active ? 'bg-accent/10' : 'hover:bg-ds-hover'}`}
+                    className={`grid min-w-[560px] grid-cols-[42px_minmax(220px,1fr)_100px] items-center border-b border-ds-border-muted/70 px-3 py-2 text-small ${active ? 'bg-accent/10' : 'hover:bg-ds-hover'}`}
                   >
                     <div className="flex justify-center">{entry.type === 'file' ? <input type="checkbox" checked={fileSelected} onChange={() => toggleFile(entry.path)} aria-label={`选择 ${entry.name}`} /> : null}</div>
                     <button type="button" onClick={() => void selectEntry(entry)} className="flex min-w-0 items-center gap-2 text-left text-ds-text"><span className="shrink-0">{iconForEntry(entry)}</span><span className="truncate font-medium">{entry.name}</span></button>
-                    <span className="truncate text-[11.5px] text-ds-muted">{entry.type === 'directory' ? '文件夹' : (entry.ext || '文件').toUpperCase()}</span>
+                    <span className="truncate text-caption text-ds-muted">{entry.type === 'directory' ? '文件夹' : (entry.ext || '文件').toUpperCase()}</span>
                   </div>
                 })}
               </div>
@@ -598,46 +598,46 @@ export function FileManagerWorkspacePage({
                 <button
                   type="button"
                   onClick={() => setSidePanelMode('preview')}
-                  className={`rounded-md px-2.5 py-1.5 text-[12px] font-semibold ${sidePanelMode === 'preview' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                  className={`rounded-md px-2.5 py-1.5 text-caption font-semibold ${sidePanelMode === 'preview' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
                 >
                   预览
                 </button>
                 <button
                   type="button"
                   onClick={() => setSidePanelMode('ai')}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-semibold ${sidePanelMode === 'ai' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-caption font-semibold ${sidePanelMode === 'ai' ? 'bg-accent text-white' : 'text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
                 >
                   <Bot className="h-3.5 w-3.5" strokeWidth={1.8} />
                   AI 整理
                 </button>
                 {sidePanelMode === 'preview' && selectedEntry ? (
-                  <button type="button" onClick={openSelectedInSystem} className="ml-auto rounded-md border border-ds-border px-2 py-1 text-[11.5px] font-semibold text-ds-text hover:bg-ds-hover">系统打开</button>
+                  <button type="button" onClick={openSelectedInSystem} className="ml-auto rounded-md border border-ds-border px-2 py-1 text-caption font-semibold text-ds-text hover:bg-ds-hover">系统打开</button>
                 ) : null}
               </div>
               {sidePanelMode === 'preview' ? (
                 <>
                   <div className="border-b border-ds-border-muted px-4 py-2">
-                    <span className="block truncate text-[13px] font-semibold text-ds-text">{selectedEntry?.name ?? '文件预览'}</span>
+                    <span className="block truncate text-small font-semibold text-ds-text">{selectedEntry?.name ?? '文件预览'}</span>
                   </div>
                   <div className="min-h-0 flex-1 overflow-auto p-4">
-                    {preview.kind === 'empty' ? <div className="flex h-full min-h-48 items-center justify-center text-center text-[12.5px] text-ds-muted">选择一个文件查看内容，或切换到 AI 整理。</div> : null}
-                    {preview.kind === 'loading' ? <div className="flex h-full min-h-48 items-center justify-center gap-2 text-[12.5px] text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在加载预览</div> : null}
+                    {preview.kind === 'empty' ? <div className="flex h-full min-h-48 items-center justify-center text-center text-small text-ds-muted">选择一个文件查看内容，或切换到 AI 整理。</div> : null}
+                    {preview.kind === 'loading' ? <div className="flex h-full min-h-48 items-center justify-center gap-2 text-small text-ds-muted"><Loader2 className="h-4 w-4 animate-spin" />正在加载预览</div> : null}
                     {preview.kind === 'image' ? <img src={preview.dataUrl} alt={selectedEntry?.name ?? ''} className="max-h-full w-full object-contain" /> : null}
-                    {preview.kind === 'text' ? <><pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-5 text-ds-text">{preview.content}</pre>{preview.truncated ? <p className="mt-3 text-[11.5px] text-ds-muted">仅显示文件开头内容。</p> : null}</> : null}
-                    {preview.kind === 'pdf' ? <div className="space-y-3 text-[12.5px] text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-red-500" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-white" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
-                    {preview.kind === 'unsupported' ? <div className="space-y-2 text-[12.5px] text-ds-muted"><File className="h-8 w-8 text-ds-faint" /><p>此格式暂不支持内嵌预览。</p><p>{preview.message}</p></div> : null}
-                    {preview.kind === 'error' ? <div className="text-[12.5px] text-red-600">{preview.message}</div> : null}
+                    {preview.kind === 'text' ? <><pre className="whitespace-pre-wrap break-words font-mono text-caption leading-5 text-ds-text">{preview.content}</pre>{preview.truncated ? <p className="mt-3 text-caption text-ds-muted">仅显示文件开头内容。</p> : null}</> : null}
+                    {preview.kind === 'pdf' ? <div className="space-y-3 text-small text-ds-muted"><div className="flex items-center gap-2"><FileText className="h-6 w-6 text-red-500" /><span>{preview.pageCount} 页{preview.searchable ? '，可检索文本' : '，扫描版或不可检索文本'}</span></div>{preview.dataUrl ? <iframe src={preview.dataUrl} title={selectedEntry?.name ?? 'PDF 预览'} className="h-[480px] w-full border border-ds-border-muted bg-white" /> : <p>文件过大，无法内嵌预览。可使用“系统打开”查看全文。</p>}</div> : null}
+                    {preview.kind === 'unsupported' ? <div className="space-y-2 text-small text-ds-muted"><File className="h-8 w-8 text-ds-faint" /><p>此格式暂不支持内嵌预览。</p><p>{preview.message}</p></div> : null}
+                    {preview.kind === 'error' ? <div className="text-small text-red-600">{preview.message}</div> : null}
                   </div>
                 </>
               ) : (
                 <div className="flex min-h-0 flex-1 flex-col">
                   <div className="space-y-4 border-b border-ds-border-muted p-4">
                     <div>
-                      <div className="flex items-center gap-2 text-[13px] font-semibold text-ds-text">
+                      <div className="flex items-center gap-2 text-small font-semibold text-ds-text">
                         <Sparkles className="h-4 w-4 text-accent" strokeWidth={1.8} />
                         AI 文件整理
                       </div>
-                      <p className="mt-1 text-[12px] leading-5 text-ds-muted">
+                      <p className="mt-1 text-caption leading-5 text-ds-muted">
                         先让 AI 生成整理方案。移动、删除、重命名、覆盖和批量转换都需要你确认后才执行。
                       </p>
                     </div>
@@ -652,8 +652,8 @@ export function FileManagerWorkspacePage({
                           }}
                           className={`rounded-lg border px-3 py-2 text-left ${aiTaskId === task.id ? 'border-accent bg-accent/10 text-ds-text' : 'border-ds-border-muted text-ds-muted hover:bg-ds-hover hover:text-ds-text'}`}
                         >
-                          <span className="block text-[12.5px] font-semibold">{task.label}</span>
-                          <span className="mt-1 block text-[11px] leading-4 text-ds-faint">{task.description}</span>
+                          <span className="block text-small font-semibold">{task.label}</span>
+                          <span className="mt-1 block text-caption leading-4 text-ds-faint">{task.description}</span>
                         </button>
                       ))}
                     </div>
@@ -661,15 +661,15 @@ export function FileManagerWorkspacePage({
                       value={aiRequest}
                       onChange={(event) => setAiRequest(event.target.value)}
                       placeholder="例如：帮我把这个文件夹按教学、科研、行政分类，并给出需要新建的文件夹和建议命名。"
-                      className="min-h-28 w-full resize-y rounded-lg border border-ds-border bg-ds-main px-3 py-2 text-[12.5px] leading-5 text-ds-text outline-none placeholder:text-ds-faint focus:border-accent"
+                      className="min-h-28 w-full resize-y rounded-lg border border-ds-border bg-ds-main px-3 py-2 text-small leading-5 text-ds-text outline-none placeholder:text-ds-faint focus:border-accent"
                     />
-                    <div className="rounded-lg bg-ds-main px-3 py-2 text-[11.5px] leading-5 text-ds-muted">
+                    <div className="rounded-lg bg-ds-main px-3 py-2 text-caption leading-5 text-ds-muted">
                       当前范围：{selectedFiles.length > 0 ? `已选 ${selectedFiles.length} 个文件` : `当前文件夹 ${basename(directory) || directory}`}。
                     </div>
                     <button
                       type="button"
                       onClick={sendAiOrganizationPlan}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white hover:opacity-90"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-small font-semibold text-white hover:opacity-90"
                     >
                       <Send className="h-4 w-4" strokeWidth={1.8} />
                       生成整理方案
@@ -679,7 +679,7 @@ export function FileManagerWorkspacePage({
                     {showInlineConversation && inlineConversation ? (
                       inlineConversation
                     ) : (
-                      <div className="flex h-full min-h-48 items-center justify-center text-center text-[12.5px] leading-6 text-ds-muted">
+                      <div className="flex h-full min-h-48 items-center justify-center text-center text-small leading-6 text-ds-muted">
                         生成方案后，AI 的整理建议会显示在这里。
                       </div>
                     )}
@@ -694,13 +694,13 @@ export function FileManagerWorkspacePage({
         <div
           role="menu"
           aria-label="文件用途菜单"
-          className="fixed z-50 w-56 overflow-hidden rounded-xl border border-ds-border bg-ds-card py-1.5 text-ui-body-sm shadow-xl"
+          className="fixed z-50 w-56 overflow-hidden rounded-xl border border-ds-border bg-ds-card py-1.5 text-small shadow-xl"
           style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
           onClick={(event) => event.stopPropagation()}
         >
           <div className="border-b border-ds-border-muted px-3 py-2">
             <p className="truncate font-semibold text-ds-text">{fileContextMenu.entry.name}</p>
-            <p className="mt-0.5 truncate text-ui-caption text-ds-muted">选择这个文件的用途</p>
+            <p className="mt-0.5 truncate text-caption text-ds-muted">选择这个文件的用途</p>
           </div>
           <button
             type="button"

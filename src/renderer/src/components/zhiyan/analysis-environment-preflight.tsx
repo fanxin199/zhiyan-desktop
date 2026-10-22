@@ -265,8 +265,8 @@ export function AnalysisEnvironmentPreflight({
   if (deferred && !model.ready) {
     return (
       <div className="flex flex-col gap-2 rounded-xl border border-ds-border-muted bg-ds-main px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between" data-testid="analysis-environment-preflight">
-        <p className="text-ui-body-sm text-ds-muted">分析环境尚未准备好，已填写的任务内容会保留。</p>
-        <button type="button" onClick={onResume} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover">
+        <p className="text-small text-ds-muted">分析环境尚未准备好，已填写的任务内容会保留。</p>
+        <button type="button" onClick={onResume} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text transition hover:bg-ds-hover">
           <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.8} />
           重新检查
         </button>
@@ -294,17 +294,17 @@ export function AnalysisEnvironmentPreflight({
             ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" strokeWidth={1.8} />
             : <AlertCircle className={`mt-0.5 h-4 w-4 shrink-0 ${danger ? 'text-red-600' : 'text-amber-600'}`} strokeWidth={1.8} />}
         <div className="min-w-0 flex-1">
-          <p className="text-ui-body-sm font-semibold text-ds-text">{model.title}</p>
-          <p className="mt-1 text-ui-caption leading-relaxed text-ds-muted">{busy && busyLabel ? busyLabel : model.description}</p>
-          {errorMessage ? <p className="mt-2 text-ui-caption font-semibold text-red-600 dark:text-red-300">{errorMessage}</p> : null}
+          <p className="text-small font-semibold text-ds-text">{model.title}</p>
+          <p className="mt-1 text-caption leading-relaxed text-ds-muted">{busy && busyLabel ? busyLabel : model.description}</p>
+          {errorMessage ? <p className="mt-2 text-caption font-semibold text-red-600 dark:text-red-300">{errorMessage}</p> : null}
         </div>
       </div>
       {!model.ready && model.action !== 'none' ? (
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onDefer} disabled={busy} className="rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-ui-body-sm font-semibold text-ds-text transition hover:bg-ds-hover disabled:opacity-50">
+          <button type="button" onClick={onDefer} disabled={busy} className="rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small font-semibold text-ds-text transition hover:bg-ds-hover disabled:opacity-50">
             稍后安装
           </button>
-          <button type="button" onClick={onAction} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-ui-body-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-50">
+          <button type="button" onClick={onAction} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white transition hover:opacity-95 disabled:opacity-50">
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.8} /> : null}
             {busy ? '正在处理' : model.actionLabel}
           </button>

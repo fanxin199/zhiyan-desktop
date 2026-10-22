@@ -73,20 +73,20 @@ export function ModuleConversationPanel({
       <header className="flex shrink-0 items-center justify-between gap-3 border-b border-ds-border-muted px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           <MessageSquareText className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.9} />
-          <h2 className="truncate text-[14px] font-semibold text-ds-text">{title}</h2>
+          <h2 className="truncate text-body font-semibold text-ds-text">{title}</h2>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {onCreateWriteDraft && canCreateWriteDraft ? (
             <button
               type="button"
               onClick={onCreateWriteDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-[12px] font-semibold text-accent transition hover:bg-accent/20"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-caption font-semibold text-accent transition hover:bg-accent/20"
             >
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
               {writeDraftActionLabel}
             </button>
           ) : null}
-          <span className="inline-flex items-center gap-1.5 text-[12px] text-ds-muted">
+          <span className="inline-flex items-center gap-1.5 text-caption text-ds-muted">
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" strokeWidth={1.9} /> : null}
             {busy ? busyLabel : readyLabel}
           </span>

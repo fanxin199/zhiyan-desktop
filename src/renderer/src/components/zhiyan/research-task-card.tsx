@@ -360,10 +360,10 @@ export function ResearchTaskCardPanel({
     <section className="rounded-xl border border-ds-border bg-ds-card p-4" data-testid="research-task-card">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-ui-meta font-semibold text-ds-muted">最近科研任务</p>
-          <h3 className="mt-1 truncate text-ui-body font-bold text-ds-text">{task.taskLabel}</h3>
+          <p className="text-caption font-semibold text-ds-muted">最近科研任务</p>
+          <h3 className="mt-1 truncate text-body font-bold text-ds-text">{task.taskLabel}</h3>
         </div>
-        <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-ui-caption font-semibold ${status.className}`}>
+        <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-caption font-semibold ${status.className}`}>
           <StatusIcon className={`h-3.5 w-3.5 ${task.status === 'running' ? 'animate-pulse' : ''}`} strokeWidth={1.8} />
           任务状态：{status.label}
         </span>
@@ -371,20 +371,20 @@ export function ResearchTaskCardPanel({
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="rounded-lg bg-ds-main px-3 py-2.5">
-          <p className="text-ui-caption font-semibold text-ds-muted">分析目标</p>
-          <p className="mt-1 whitespace-pre-wrap text-ui-body-sm text-ds-text">{task.objective || '根据所选材料完成当前任务'}</p>
+          <p className="text-caption font-semibold text-ds-muted">分析目标</p>
+          <p className="mt-1 whitespace-pre-wrap text-small text-ds-text">{task.objective || '根据所选材料完成当前任务'}</p>
         </div>
         <div className="rounded-lg bg-ds-main px-3 py-2.5">
-          <p className="text-ui-caption font-semibold text-ds-muted">关联材料</p>
-          <p className="mt-1 text-ui-body-sm text-ds-text">{task.materials.length > 0 ? task.materials.map((item) => item.name).join('、') : '未关联本地材料'}</p>
+          <p className="text-caption font-semibold text-ds-muted">关联材料</p>
+          <p className="mt-1 text-small text-ds-text">{task.materials.length > 0 ? task.materials.map((item) => item.name).join('、') : '未关联本地材料'}</p>
         </div>
         <div className="rounded-lg bg-ds-main px-3 py-2.5">
-          <p className="flex items-center gap-1.5 text-ui-caption font-semibold text-ds-muted"><FileText className="h-3.5 w-3.5" />交付物</p>
-          <p className="mt-1 text-ui-body-sm text-ds-text">{task.deliverables.join('、')}</p>
+          <p className="flex items-center gap-1.5 text-caption font-semibold text-ds-muted"><FileText className="h-3.5 w-3.5" />交付物</p>
+          <p className="mt-1 text-small text-ds-text">{task.deliverables.join('、')}</p>
         </div>
         <div className="rounded-lg bg-ds-main px-3 py-2.5">
-          <p className="flex items-center gap-1.5 text-ui-caption font-semibold text-ds-muted"><FolderOpen className="h-3.5 w-3.5" />保存位置</p>
-          <p className="mt-1 break-all text-ui-body-sm text-ds-text">{task.saveLocation}</p>
+          <p className="flex items-center gap-1.5 text-caption font-semibold text-ds-muted"><FolderOpen className="h-3.5 w-3.5" />保存位置</p>
+          <p className="mt-1 break-all text-small text-ds-text">{task.saveLocation}</p>
         </div>
       </div>
 
@@ -393,14 +393,14 @@ export function ResearchTaskCardPanel({
       ) : null}
 
       {task.lastSuccessfulStep ? (
-        <p className="mt-3 rounded-lg border border-ds-border-muted px-3 py-2 text-ui-caption text-ds-muted">
+        <p className="mt-3 rounded-lg border border-ds-border-muted px-3 py-2 text-caption text-ds-muted">
           最近完成动作：<span className="font-semibold text-ds-text">{task.lastSuccessfulStep}</span>
         </p>
       ) : null}
-      {task.errorMessage ? <p className="mt-2 text-ui-caption text-red-600 dark:text-red-300">{task.errorMessage}</p> : null}
+      {task.errorMessage ? <p className="mt-2 text-caption text-red-600 dark:text-red-300">{task.errorMessage}</p> : null}
 
       <div className="mt-3 flex justify-end">
-        <button type="button" onClick={() => onContinue(task)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-ui-body-sm font-semibold text-accent transition hover:bg-accent/15">
+        <button type="button" onClick={() => onContinue(task)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-small font-semibold text-accent transition hover:bg-accent/15">
           <PencilLine className="h-3.5 w-3.5" strokeWidth={1.8} />
           {task.status === 'failed' || task.status === 'paused' ? '从上次进度继续' : '继续修改'}
         </button>

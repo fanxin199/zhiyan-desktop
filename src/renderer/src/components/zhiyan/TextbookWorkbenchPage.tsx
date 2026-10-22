@@ -53,8 +53,8 @@ type BusyAction =
   | null
 
 const fieldClass =
-  'w-full rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-[13px] text-ds-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/10'
-const labelClass = 'mb-1.5 block text-[12px] font-semibold text-ds-muted'
+  'w-full rounded-lg border border-ds-border bg-ds-card px-3 py-2 text-small text-ds-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/10'
+const labelClass = 'mb-1.5 block text-caption font-semibold text-ds-muted'
 
 const audienceOptions: Array<{ id: TextbookAudience; label: string }> = [
   { id: 'undergraduate', label: '本科教材' },
@@ -652,7 +652,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
         type="button"
         disabled={!enabled}
         onClick={() => setStep(id)}
-        className={`flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-[12.5px] font-semibold transition ${
+        className={`flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-small font-semibold transition ${
           active
             ? 'bg-accent text-white'
             : enabled
@@ -660,7 +660,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               : 'bg-ds-card text-ds-faint opacity-60'
         }`}
       >
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[11px]">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-caption">
           {index + 1}
         </span>
         <span className="truncate">{label}</span>
@@ -676,8 +676,8 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
             <BookOpen className="h-5 w-5" strokeWidth={1.9} />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-[20px] font-bold text-ds-text">教材编写工作台</h1>
-            <p className="truncate text-[12.5px] text-ds-muted">
+            <h1 className="truncate text-title font-bold text-ds-text">教材编写工作台</h1>
+            <p className="truncate text-small text-ds-muted">
               当前阶段：{progressLabel} · {completedCount}/{sectionCount} 节已有正文
             </p>
           </div>
@@ -686,7 +686,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
           <button
             type="button"
             onClick={() => void openProject()}
-            className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-[12.5px] font-semibold text-ds-text hover:bg-ds-hover"
+            className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover"
           >
             {busy === 'load' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
             打开项目
@@ -702,7 +702,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
       </div>
 
       {message ? (
-        <div className="mx-6 mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="mx-6 mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-small text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{message}</span>
         </div>
@@ -713,7 +713,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <section className="space-y-5">
               <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-4 flex items-center gap-2 text-[15px] font-bold text-ds-text">
+                <h2 className="mb-4 flex items-center gap-2 text-heading font-bold text-ds-text">
                   <FileText className="h-4 w-4 text-accent" />
                   基本信息
                 </h2>
@@ -766,7 +766,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                         key={option.id}
                         type="button"
                         onClick={() => setMetadata({ ...metadata, audience: option.id })}
-                        className={`rounded-lg border px-3 py-2 text-[12.5px] font-semibold ${
+                        className={`rounded-lg border px-3 py-2 text-small font-semibold ${
                           metadata.audience === option.id
                             ? 'border-accent bg-accent text-white'
                             : 'border-ds-border bg-ds-card text-ds-text hover:bg-ds-hover'
@@ -790,14 +790,14 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
 
               <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="flex items-center gap-2 text-[15px] font-bold text-ds-text">
+                  <h2 className="flex items-center gap-2 text-heading font-bold text-ds-text">
                     <Save className="h-4 w-4 text-accent" />
                     出版社要求
                   </h2>
                   <button
                     type="button"
                     onClick={() => void pickPublisherFile()}
-                    className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-[12px] font-semibold text-ds-text hover:bg-ds-hover"
+                    className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-caption font-semibold text-ds-text hover:bg-ds-hover"
                   >
                     <FolderOpen className="h-3.5 w-3.5" />
                     读取 txt/md
@@ -815,19 +815,19 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
 
             <aside className="space-y-5">
               <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-4 text-[15px] font-bold text-ds-text">可解析格式规则</h2>
+                <h2 className="mb-4 text-heading font-bold text-ds-text">可解析格式规则</h2>
                 <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 p-3">
                   <button
                     type="button"
                     data-testid="textbook-ai-parse-format-rules"
                     disabled={!publisherGuidelines.trim() || busy !== null}
                     onClick={() => void parseFormatRulesWithAi()}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
                   >
                     {busy === 'format' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     AI 解析出版社要求
                   </button>
-                  <p className="mt-2 text-[12px] leading-5 text-ds-muted">
+                  <p className="mt-2 text-caption leading-5 text-ds-muted">
                     粘贴或读取要求后会先自动抽取常见格式；复杂规则可由 AI 补全，老师只需校正。
                   </p>
                 </div>
@@ -969,7 +969,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               </div>
 
               <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 text-[15px] font-bold text-ds-text">大纲生成说明</h2>
+                <h2 className="mb-3 text-heading font-bold text-ds-text">大纲生成说明</h2>
                 <ResizableTextArea
                   value={teacherBrief}
                   onChange={(event) => setTeacherBrief(event.target.value)}
@@ -981,7 +981,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   type="button"
                   disabled={!canGenerateOutline || busy !== null}
                   onClick={() => void generateOutline()}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-[14px] font-semibold text-white disabled:opacity-50"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-body font-semibold text-white disabled:opacity-50"
                 >
                   {busy === 'outline' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   生成全书大纲
@@ -995,14 +995,14 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
           <div className="mx-auto max-w-6xl space-y-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-[18px] font-bold text-ds-text">{outline.title}</h2>
-                <p className="mt-1 text-[13px] leading-6 text-ds-muted">{outline.rationale}</p>
+                <h2 className="text-title font-bold text-ds-text">{outline.title}</h2>
+                <p className="mt-1 text-small leading-6 text-ds-muted">{outline.rationale}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={addChapter}
-                  className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-[12.5px] font-semibold text-ds-text hover:bg-ds-hover"
+                  className="inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text hover:bg-ds-hover"
                 >
                   <Plus className="h-4 w-4" />
                   增加章
@@ -1010,7 +1010,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                 <button
                   type="button"
                   onClick={() => setStep('writing')}
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-[12.5px] font-semibold text-white"
+                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-small font-semibold text-white"
                 >
                   <Check className="h-4 w-4" />
                   确认大纲并写作
@@ -1025,7 +1025,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     <input
                       value={chapter.title}
                       onChange={(event) => updateChapter(chapterIndex, { title: event.target.value })}
-                      className={`${fieldClass} text-[15px] font-bold`}
+                      className={`${fieldClass} text-heading font-bold`}
                     />
                     <input
                       value={chapter.writingGoal}
@@ -1097,7 +1097,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                           onClick={() => updateSection(chapterIndex, sectionIndex, {
                             confirmed: !section.confirmed
                           })}
-                          className={`rounded-lg px-2 py-1.5 text-[11.5px] font-semibold ${
+                          className={`rounded-lg px-2 py-1.5 text-caption font-semibold ${
                             section.confirmed ? 'bg-emerald-600 text-white' : 'border border-ds-border text-ds-muted'
                           }`}
                         >
@@ -1126,7 +1126,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                 <button
                   type="button"
                   onClick={() => addSection(chapterIndex)}
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-ds-border px-3 py-2 text-[12.5px] font-semibold text-ds-muted hover:border-accent hover:text-accent"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-ds-border px-3 py-2 text-small font-semibold text-ds-muted hover:border-accent hover:text-accent"
                 >
                   <Plus className="h-4 w-4" />
                   增加小节
@@ -1139,11 +1139,11 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
         {step === 'writing' && project && activeSection && (
           <div className="grid min-h-[calc(100vh-220px)] gap-4 xl:grid-cols-[270px_minmax(0,1fr)_360px]">
             <aside className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-3">
-              <h2 className="mb-3 px-1 text-[13px] font-bold text-ds-text">章节树</h2>
+              <h2 className="mb-3 px-1 text-small font-bold text-ds-text">章节树</h2>
               <div className="max-h-[calc(100vh-270px)] space-y-3 overflow-y-auto pr-1">
                 {project.outline?.chapters.map((chapter, chapterIndex) => (
                   <div key={chapter.id}>
-                    <p className="mb-1 px-2 text-[12px] font-semibold text-ds-muted">
+                    <p className="mb-1 px-2 text-caption font-semibold text-ds-muted">
                       第 {chapterIndex + 1} 章 {chapter.title}
                     </p>
                     <div className="space-y-1">
@@ -1159,10 +1159,10 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                               active ? 'bg-accent text-white' : 'text-ds-text hover:bg-ds-hover'
                             }`}
                           >
-                            <span className="block truncate text-[12.5px] font-semibold">
+                            <span className="block truncate text-small font-semibold">
                               {chapterIndex + 1}.{sectionIndex + 1} {outlineSection.title}
                             </span>
-                            <span className={`mt-1 block text-[11px] ${active ? 'text-white/70' : 'text-ds-faint'}`}>
+                            <span className={`mt-1 block text-caption ${active ? 'text-white/70' : 'text-ds-faint'}`}>
                               {statusLabel(section?.status ?? 'draft')}
                             </span>
                           </button>
@@ -1177,14 +1177,14 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
             <main className="min-h-0 rounded-xl border border-ds-border-muted bg-ds-card p-4">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="truncate text-[16px] font-bold text-ds-text">{activeSection.title}</h2>
-                  <p className="mt-1 text-[12px] text-ds-muted">{activeSection.path} · {statusLabel(activeSection.status)}</p>
+                  <h2 className="truncate text-heading font-bold text-ds-text">{activeSection.title}</h2>
+                  <p className="mt-1 text-caption text-ds-muted">{activeSection.path} · {statusLabel(activeSection.status)}</p>
                 </div>
                 <button
                   type="button"
                   disabled={busy !== null}
                   onClick={() => void generateActiveSection(sectionInstruction)}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-3 py-2 text-[12.5px] font-semibold text-white disabled:opacity-50"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
                 >
                   {busy === 'section' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   生成本节
@@ -1201,7 +1201,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
 
             <aside className="space-y-4">
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-3 text-[13px] font-bold text-ds-text">AI 写作助手</h2>
+                <h2 className="mb-3 text-small font-bold text-ds-text">AI 写作助手</h2>
                 <ResizableTextArea
                   value={sectionInstruction}
                   onChange={(event) => setSectionInstruction(event.target.value)}
@@ -1221,7 +1221,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                       type="button"
                       disabled={busy !== null}
                       onClick={() => void reviseActiveSection(instruction)}
-                      className="rounded-lg border border-ds-border px-2 py-2 text-[12px] font-semibold text-ds-text hover:bg-ds-hover disabled:opacity-50"
+                      className="rounded-lg border border-ds-border px-2 py-2 text-caption font-semibold text-ds-text hover:bg-ds-hover disabled:opacity-50"
                     >
                       {instruction}
                     </button>
@@ -1231,7 +1231,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                   type="button"
                   disabled={!sectionInstruction.trim() || busy !== null}
                   onClick={() => void reviseActiveSection(sectionInstruction)}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-[12.5px] font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
                 >
                   {busy === 'revise' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   按指令修订当前节
@@ -1239,7 +1239,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               </section>
 
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
+                <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
                   <Search className="h-4 w-4 text-accent" />
                   PubMed 文献
                 </h2>
@@ -1254,7 +1254,7 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                     type="button"
                     disabled={busy !== null}
                     onClick={() => void searchPubMed()}
-                    className="shrink-0 rounded-lg bg-accent px-3 text-[12px] font-semibold text-white disabled:opacity-50"
+                    className="shrink-0 rounded-lg bg-accent px-3 text-caption font-semibold text-white disabled:opacity-50"
                   >
                     {busy === 'pubmed' ? <Loader2 className="h-4 w-4 animate-spin" /> : '检索'}
                   </button>
@@ -1262,22 +1262,22 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                 <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
                   {pubmedRecords.map((reference) => (
                     <div key={reference.key} className="rounded-lg border border-ds-border-muted p-3">
-                      <p className="line-clamp-2 text-[12.5px] font-semibold text-ds-text">{reference.title}</p>
-                      <p className="mt-1 text-[11px] text-ds-muted">
+                      <p className="line-clamp-2 text-small font-semibold text-ds-text">{reference.title}</p>
+                      <p className="mt-1 text-caption text-ds-muted">
                         {reference.journal || 'PubMed'} {reference.year ? `· ${reference.year}` : ''} {reference.pmid ? `· PMID ${reference.pmid}` : ''}
                       </p>
                       <div className="mt-2 flex gap-2">
                         <button
                           type="button"
                           onClick={() => addReference(reference)}
-                          className="rounded-md border border-ds-border px-2 py-1 text-[11.5px] font-semibold text-ds-text"
+                          className="rounded-md border border-ds-border px-2 py-1 text-caption font-semibold text-ds-text"
                         >
                           {selectedReferenceKeys.has(reference.key) ? '已入库' : '加入库'}
                         </button>
                         <button
                           type="button"
                           onClick={() => insertReference(reference)}
-                          className="rounded-md bg-accent px-2 py-1 text-[11.5px] font-semibold text-white"
+                          className="rounded-md bg-accent px-2 py-1 text-caption font-semibold text-white"
                         >
                           插入引用
                         </button>
@@ -1288,12 +1288,12 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               </section>
 
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
-                <h2 className="mb-2 text-[13px] font-bold text-ds-text">项目参考文献库</h2>
+                <h2 className="mb-2 text-small font-bold text-ds-text">项目参考文献库</h2>
                 <div className="max-h-44 space-y-2 overflow-y-auto">
                   {project.references.length === 0 ? (
-                    <p className="text-[12px] text-ds-muted">尚未加入文献。</p>
+                    <p className="text-caption text-ds-muted">尚未加入文献。</p>
                   ) : project.references.map((reference) => (
-                    <p key={reference.key} className="rounded-lg bg-ds-subtle px-2 py-1.5 text-[11.5px] text-ds-muted">
+                    <p key={reference.key} className="rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">
                       [@{reference.key}] {reference.title}
                     </p>
                   ))}
@@ -1308,14 +1308,14 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
             <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-[16px] font-bold text-ds-text">一致性与规范检查</h2>
-                  <p className="mt-1 text-[12.5px] text-ds-muted">检查出版社格式、术语一致性、章节衔接、引用缺失和证据边界。</p>
+                  <h2 className="text-heading font-bold text-ds-text">一致性与规范检查</h2>
+                  <p className="mt-1 text-small text-ds-muted">检查出版社格式、术语一致性、章节衔接、引用缺失和证据边界。</p>
                 </div>
                 <button
                   type="button"
                   disabled={busy !== null}
                   onClick={() => void runProjectCheck()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-[12.5px] font-semibold text-white disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-small font-semibold text-white disabled:opacity-50"
                 >
                   {busy === 'check' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   开始检查
@@ -1323,13 +1323,13 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               </div>
               <div className="space-y-3">
                 {project.checks.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-ds-border px-4 py-10 text-center text-[13px] text-ds-muted">
+                  <div className="rounded-lg border border-dashed border-ds-border px-4 py-10 text-center text-small text-ds-muted">
                     尚未运行检查。
                   </div>
                 ) : project.checks.map((item: TextbookCheckItem) => (
                   <div key={item.id} className="rounded-lg border border-ds-border-muted p-4">
                     <div className="mb-1 flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                      <span className={`rounded-full px-2 py-0.5 text-caption font-bold ${
                         item.severity === 'error'
                           ? 'bg-red-100 text-red-700'
                           : item.severity === 'warning'
@@ -1338,10 +1338,10 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
                       }`}>
                         {item.severity}
                       </span>
-                      <span className="text-[12px] font-semibold text-ds-muted">{item.scope}</span>
+                      <span className="text-caption font-semibold text-ds-muted">{item.scope}</span>
                     </div>
-                    <p className="text-[13px] font-semibold text-ds-text">{item.message}</p>
-                    {item.suggestion ? <p className="mt-1 text-[12.5px] text-ds-muted">{item.suggestion}</p> : null}
+                    <p className="text-small font-semibold text-ds-text">{item.message}</p>
+                    {item.suggestion ? <p className="mt-1 text-small text-ds-muted">{item.suggestion}</p> : null}
                   </div>
                 ))}
               </div>
@@ -1349,35 +1349,35 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
 
             <aside className="space-y-4">
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-ds-text">
+                <h2 className="mb-3 flex items-center gap-2 text-heading font-bold text-ds-text">
                   <Download className="h-4 w-4 text-accent" />
                   导出教材项目
                 </h2>
-                <p className="mb-3 text-[12.5px] leading-6 text-ds-muted">
+                <p className="mb-3 text-small leading-6 text-ds-muted">
                   导出普通项目文件夹，包含出版社要求、大纲、参考文献、逐节 Markdown、合并 Markdown、DOCX 和项目文件。
                 </p>
                 <button
                   type="button"
                   onClick={() => void chooseOutputDirectory()}
-                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-[12.5px] font-semibold text-ds-text"
+                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-ds-border px-3 py-2 text-small font-semibold text-ds-text"
                 >
                   <FolderOpen className="h-4 w-4" />
                   {outputDirectory ? '更改导出文件夹' : '选择导出文件夹'}
                 </button>
                 {outputDirectory ? (
-                  <p className="mb-3 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-[11px] text-ds-muted">{outputDirectory}</p>
+                  <p className="mb-3 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">{outputDirectory}</p>
                 ) : null}
                 <button
                   type="button"
                   disabled={busy !== null}
                   onClick={() => void exportProject()}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-3 text-[13px] font-semibold text-white disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-3 text-small font-semibold text-white disabled:opacity-50"
                 >
                   {busy === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   导出 Markdown / DOCX / 项目包
                 </button>
                 {exportPaths.length > 0 ? (
-                  <div className="mt-3 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-[11px] text-emerald-800">
+                  <div className="mt-3 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-caption text-emerald-800">
                     {exportPaths.map((path) => (
                       <p key={path} className="break-all">{path}</p>
                     ))}
@@ -1386,8 +1386,8 @@ export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageP
               </section>
 
               <section className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                <h2 className="mb-3 text-[15px] font-bold text-ds-text">项目摘要</h2>
-                <div className="space-y-2 text-[12.5px] text-ds-muted">
+                <h2 className="mb-3 text-heading font-bold text-ds-text">项目摘要</h2>
+                <div className="space-y-2 text-small text-ds-muted">
                   <p>教材：{project.metadata.title}</p>
                   <p>章节：{project.outline?.chapters.length ?? 0} 章 / {project.sections.length} 节</p>
                   <p>已写：{completedCount} 节</p>

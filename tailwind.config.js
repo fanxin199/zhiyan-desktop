@@ -82,6 +82,10 @@ export default {
         heading: 'var(--ds-font-heading)',
         title: 'var(--ds-font-title)',
         display: 'var(--ds-font-display)',
+        // Slide thumbnails render a scaled-down slide, so their text sits below the UI scale.
+        'thumb-title': '10px',
+        'thumb-callout': '8px',
+        'thumb-body': '7px',
         'ui-caption': '11.5px',
         'ui-meta': '12px',
         'ui-body-sm': '12.5px',

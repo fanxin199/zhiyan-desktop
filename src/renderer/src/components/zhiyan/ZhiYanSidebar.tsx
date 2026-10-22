@@ -21,7 +21,7 @@ type ZhiYanSidebarProps = {
 
 function SectionLabel({ label }: { label: string }): ReactElement {
   return (
-    <div className="mb-1 mt-4 px-3 text-[11px] font-semibold uppercase tracking-wider text-ds-faint first:mt-1">
+    <div className="mb-1 mt-4 px-3 text-caption font-semibold uppercase tracking-wider text-ds-faint first:mt-1">
       {label}
     </div>
   )

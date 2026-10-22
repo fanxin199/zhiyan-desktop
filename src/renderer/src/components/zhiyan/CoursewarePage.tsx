@@ -131,8 +131,8 @@ const AUDIENCE_PRESETS: Array<{
 ]
 
 const fieldClass =
-  'w-full rounded-xl border border-ds-border bg-ds-card px-3.5 py-2.5 text-[13px] text-ds-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/10'
-const labelClass = 'mb-1.5 block text-[12px] font-semibold text-ds-muted'
+  'w-full rounded-xl border border-ds-border bg-ds-card px-3.5 py-2.5 text-small text-ds-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/10'
+const labelClass = 'mb-1.5 block text-caption font-semibold text-ds-muted'
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
@@ -156,16 +156,16 @@ function SlidePreview({ slide, selected }: { slide: SlideSpec; selected: boolean
       selected ? 'border-accent ring-2 ring-accent/20' : 'border-slate-200'
     }`}>
       <div className="mb-2 h-1 rounded-full bg-teal-600" />
-      <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-800">{slide.title}</p>
+      <p className="line-clamp-2 text-thumb-title font-bold leading-tight text-slate-800">{slide.title}</p>
       {slide.kind === 'interaction' ? (
-        <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 p-2 text-center text-[8px] font-semibold">
+        <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 p-2 text-center text-thumb-callout font-semibold">
           {slide.interaction?.prompt ?? slide.bullets[0]}
         </div>
       ) : slide.visual?.type === 'flow' && slide.visual.nodes?.length ? (
         <div className="mt-3 flex items-center gap-1">
           {slide.visual.nodes.slice(0, 4).map((node, index) => (
             <div key={`${node}-${index}`} className="flex min-w-0 flex-1 items-center gap-1">
-              <span className="line-clamp-2 flex-1 rounded bg-teal-50 px-1 py-2 text-center text-[7px]">
+              <span className="line-clamp-2 flex-1 rounded bg-teal-50 px-1 py-2 text-center text-thumb-body">
                 {node}
               </span>
               {index < Math.min(3, (slide.visual?.nodes?.length ?? 1) - 1) && (
@@ -175,7 +175,7 @@ function SlidePreview({ slide, selected }: { slide: SlideSpec; selected: boolean
           ))}
         </div>
       ) : (
-        <ul className="mt-2 space-y-1 text-[7px] leading-tight">
+        <ul className="mt-2 space-y-1 text-thumb-body leading-tight">
           {slide.bullets.slice(0, 4).map((bullet, index) => (
             <li key={`${bullet}-${index}`} className="line-clamp-2">• {bullet}</li>
           ))}
@@ -695,21 +695,21 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
       <div className="mx-auto w-full max-w-6xl px-5 py-7 sm:px-8">
         <header className="mb-5 flex flex-col gap-4 border-b border-ds-border-muted pb-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
+            <div className="mb-2 flex items-center gap-2 text-caption font-semibold uppercase tracking-[0.16em] text-accent">
               <Presentation className="h-4 w-4" />
               教学课件包
             </div>
-            <h1 className="text-[26px] font-bold tracking-tight text-ds-text">
+            <h1 className="text-display font-bold tracking-tight text-ds-text">
               从教材章节到可直接授课的课件
             </h1>
-            <p className="mt-1.5 text-[13px] text-ds-muted">
+            <p className="mt-1.5 text-small text-ds-muted">
               先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿。
             </p>
             <button
               type="button"
               disabled={busy !== null}
               onClick={() => void openProject()}
-              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-[11px] font-semibold text-ds-text hover:border-accent"
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-ds-border px-3 py-1.5 text-caption font-semibold text-ds-text hover:border-accent"
             >
               <FileText className="h-3.5 w-3.5" />
               打开已有课件项目
@@ -738,18 +738,18 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ui-meta font-bold ${
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-caption font-bold ${
                       completed || active ? 'bg-accent text-white' : 'bg-ds-card text-ds-faint'
                     }`}>
                       {completed ? <Check className="h-4 w-4" /> : item.marker}
                     </span>
                     <span className="min-w-0">
-                      <span className={`block text-ui-body-sm font-semibold ${
+                      <span className={`block text-small font-semibold ${
                         completed || active ? 'text-ds-text' : 'text-ds-muted'
                       }`}>
                         {item.label}
                       </span>
-                      <span className="mt-0.5 block truncate text-ui-caption text-ds-faint">
+                      <span className="mt-0.5 block truncate text-caption text-ds-faint">
                         {item.description}
                       </span>
                     </span>
@@ -761,7 +761,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         </nav>
 
         {(message || warning) && (
-          <div className={`mb-5 rounded-xl border px-4 py-3 text-[13px] ${
+          <div className={`mb-5 rounded-xl border px-4 py-3 text-small ${
             message
               ? 'border-red-300/60 bg-red-50 text-red-800'
               : 'border-amber-300/60 bg-amber-50 text-amber-800'
@@ -773,7 +773,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         {step === 'request' && (
           <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
             <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
-              <h2 className="mb-5 flex items-center gap-2 text-[16px] font-bold text-ds-text">
+              <h2 className="mb-5 flex items-center gap-2 text-heading font-bold text-ds-text">
                 <BookOpen className="h-5 w-5 text-accent" />
                 教材与授课任务
               </h2>
@@ -788,12 +788,12 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   >
                     <Upload className="h-5 w-5 shrink-0 text-accent" />
                     <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold text-ds-text">
+                      <span className="block text-small font-semibold text-ds-text">
                         {busy === 'source'
                           ? '正在分析教材文字与图片…'
                           : request.sourcePath ? '已选择教材' : '选择 PDF 或 PPTX 教材'}
                       </span>
-                      <span className="block truncate text-[11px] text-ds-muted">
+                      <span className="block truncate text-caption text-ds-muted">
                         {request.sourcePath
                           ? `${request.sourcePath} · 共 ${pageCount || request.pageEnd} 页`
                           : '将自动提取文字，并识别可用于新课件的原图'}
@@ -848,7 +848,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
             <aside className="space-y-5">
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
-                <h2 className="mb-3 text-[14px] font-bold text-ds-text">授课对象</h2>
+                <h2 className="mb-3 text-body font-bold text-ds-text">授课对象</h2>
                 <div className="space-y-2">
                   {AUDIENCE_PRESETS.map((preset) => (
                     <button
@@ -861,8 +861,8 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                           : 'border-ds-border-muted hover:border-accent/40'
                       }`}
                     >
-                      <span className="block text-[13px] font-semibold text-ds-text">{preset.label}</span>
-                      <span className="mt-0.5 block text-[11px] leading-relaxed text-ds-muted">
+                      <span className="block text-small font-semibold text-ds-text">{preset.label}</span>
+                      <span className="mt-0.5 block text-caption leading-relaxed text-ds-muted">
                         {preset.description}
                       </span>
                     </button>
@@ -881,8 +881,8 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                     className="mt-0.5 h-4 w-4 accent-[var(--ds-accent)]"
                   />
                   <span>
-                    <span className="block text-[13px] font-semibold text-ds-text">补充最近 5 年进展</span>
-                    <span className="mt-0.5 block text-[11px] leading-relaxed text-ds-muted">
+                    <span className="block text-small font-semibold text-ds-text">补充最近 5 年进展</span>
+                    <span className="mt-0.5 block text-caption leading-relaxed text-ds-muted">
                       从 PubMed 获取真实题录和摘要，并在课件中标注 PMID/DOI 与证据范围。
                     </span>
                   </span>
@@ -905,12 +905,12 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm lg:col-span-2">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <h2 className="text-[14px] font-bold text-ds-text">教材图片审核</h2>
-                    <p className="mt-1 text-[11px] text-ds-muted">
+                    <h2 className="text-body font-bold text-ds-text">教材图片审核</h2>
+                    <p className="mt-1 text-caption text-ds-muted">
                       已自动排除重复徽标和小装饰图。仅“保留”的图片会进入新课件。
                     </p>
                   </div>
-                  <span className="rounded-full bg-ds-subtle px-3 py-1 text-[10px] text-ds-muted">
+                  <span className="rounded-full bg-ds-subtle px-3 py-1 text-caption text-ds-muted">
                     保留 {sourceVisuals.filter((asset) => asset.status === 'approved').length} /
                     共 {sourceVisuals.length} 张
                   </span>
@@ -933,10 +933,10 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                         />
                       )}
                       <div className="p-3">
-                        <p className="line-clamp-2 text-[11px] font-semibold text-ds-text">
+                        <p className="line-clamp-2 text-caption font-semibold text-ds-text">
                           {asset.caption || asset.sourceName || '未命名教材图片'}
                         </p>
-                        <p className="mt-1 text-[9px] text-ds-muted">
+                        <p className="mt-1 text-caption text-ds-muted">
                           {asset.sourceKind === 'pptx' ? '原PPT' : 'PDF'} 第 {asset.sourceIndex} 页
                           {asset.occurrences.length > 1 ? ` · 出现 ${asset.occurrences.length} 次` : ''}
                         </p>
@@ -951,7 +951,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                                 }
                               : item
                           ))}
-                          className="mt-2 w-full rounded-lg border border-ds-border px-2 py-1.5 text-[10px] font-semibold text-ds-text"
+                          className="mt-2 w-full rounded-lg border border-ds-border px-2 py-1.5 text-caption font-semibold text-ds-text"
                         >
                           {asset.status === 'approved' ? '排除这张图' : '保留这张图'}
                         </button>
@@ -966,7 +966,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               type="button"
               disabled={!canGenerateBlueprint || busy !== null}
               onClick={() => void createBlueprint()}
-              className="flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:col-span-2"
+              className="flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-body font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:col-span-2"
             >
               {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               生成课件蓝图
@@ -979,23 +979,23 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold text-accent">{audienceLabel} · {request.durationMinutes} 分钟</p>
+                  <p className="text-caption font-semibold text-accent">{audienceLabel} · {request.durationMinutes} 分钟</p>
                   <input
                     value={blueprint.title}
                     onChange={(event) => setBlueprint({ ...blueprint, title: event.target.value })}
-                    className="mt-1 w-full border-0 bg-transparent p-0 text-[22px] font-bold text-ds-text outline-none"
+                    className="mt-1 w-full border-0 bg-transparent p-0 text-display font-bold text-ds-text outline-none"
                   />
                   <ResizableTextArea
                     value={blueprint.teachingGoal}
                     onChange={(event) => setBlueprint({ ...blueprint, teachingGoal: event.target.value })}
                     rows={3}
                     aria-label="教学目标"
-                    className="mt-2 min-h-[86px] border border-ds-border-muted bg-ds-subtle px-3.5 py-2.5 text-[13px] leading-relaxed text-ds-muted outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
+                    className="mt-2 min-h-[86px] border border-ds-border-muted bg-ds-subtle px-3.5 py-2.5 text-small leading-relaxed text-ds-muted outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
                   />
                 </div>
                 <div className="rounded-xl bg-ds-subtle px-4 py-2 text-center">
-                  <strong className="block text-[20px] text-ds-text">{totalSlides}</strong>
-                  <span className="text-[10px] text-ds-muted">预计页数 · 最多 35 页</span>
+                  <strong className="block text-title text-ds-text">{totalSlides}</strong>
+                  <span className="text-caption text-ds-muted">预计页数 · 最多 35 页</span>
                 </div>
               </div>
             </section>
@@ -1004,7 +1004,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               {blueprint.sections.map((section, index) => (
                 <section key={section.id} className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
                   <div className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-[12px] font-bold text-accent">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-caption font-bold text-accent">
                       {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1012,9 +1012,9 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                         <input
                           value={section.title}
                           onChange={(event) => updateBlueprintSection(index, { title: event.target.value })}
-                          className="border-0 bg-transparent p-0 text-[15px] font-bold text-ds-text outline-none"
+                          className="border-0 bg-transparent p-0 text-heading font-bold text-ds-text outline-none"
                         />
-                        <label className="flex items-center gap-2 text-[11px] text-ds-muted">
+                        <label className="flex items-center gap-2 text-caption text-ds-muted">
                           页数
                           <input
                             type="number"
@@ -1028,7 +1028,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                           />
                         </label>
                       </div>
-                      <p className="mt-2 text-[10px] text-ds-faint">
+                      <p className="mt-2 text-caption text-ds-faint">
                         长内容会自动展开；拖动文本框右下角标记可继续调整高度。
                       </p>
                       <div className="mt-3 grid items-start gap-3 md:grid-cols-2">
@@ -1118,7 +1118,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               type="button"
               disabled={totalSlides >= MAX_COURSEWARE_SLIDES}
               onClick={addBlueprintSection}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ds-border py-3 text-[13px] font-semibold text-ds-muted transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ds-border py-3 text-small font-semibold text-ds-muted transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="h-4 w-4" />
               增加教学环节
@@ -1137,7 +1137,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   type="button"
                   disabled={!blueprintInstruction.trim() || busy !== null}
                   onClick={() => void createBlueprint(blueprintInstruction)}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-[13px] font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
                 >
                   {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   应用整体调整
@@ -1149,7 +1149,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               <button
                 type="button"
                 onClick={() => setStep('request')}
-                className="flex items-center justify-center gap-2 rounded-xl border border-ds-border px-5 py-3 text-[13px] font-semibold text-ds-text"
+                className="flex items-center justify-center gap-2 rounded-xl border border-ds-border px-5 py-3 text-small font-semibold text-ds-text"
               >
                 <ArrowLeft className="h-4 w-4" />
                 返回修改教学任务
@@ -1158,7 +1158,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                 type="button"
                 disabled={blueprint.sections.length === 0 || busy !== null}
                 onClick={() => void generateSlides()}
-                className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-[14px] font-semibold text-white disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-body font-semibold text-white disabled:opacity-50"
               >
                 {busy === 'slides' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                 确认蓝图并生成 {totalSlides} 页课件
@@ -1170,7 +1170,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
         {step === 'slides' && blueprint && activeSlide && (
           <div className="grid gap-5 xl:grid-cols-[230px_minmax(0,1fr)_320px]">
             {busy === 'slides' && slideGenerationProgress && (
-              <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-[13px] text-ds-text xl:col-span-3">
+              <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-small text-ds-text xl:col-span-3">
                 AI 正在逐批生成可直接授课的页面内容。当前显示的是进度占位稿，完成前请勿导出：
                 {slideGenerationProgress.completedBatches}/{slideGenerationProgress.totalBatches} 批完成
                 {slideGenerationProgress.degradedBatches > 0
@@ -1180,8 +1180,8 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             )}
             <aside className="rounded-2xl border border-ds-border-muted bg-ds-card p-3 shadow-sm">
               <div className="mb-3 flex items-center justify-between px-1">
-                <h2 className="text-[13px] font-bold text-ds-text">页面列表</h2>
-                <span className="text-[11px] text-ds-muted">{slides.length} 页</span>
+                <h2 className="text-small font-bold text-ds-text">页面列表</h2>
+                <span className="text-caption text-ds-muted">{slides.length} 页</span>
               </div>
               <div className="max-h-[calc(100vh-235px)] space-y-3 overflow-y-auto pr-1">
                 {slides.map((slide, index) => (
@@ -1191,7 +1191,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                     onClick={() => setActiveSlideIndex(index)}
                     className="block w-full text-left"
                   >
-                    <span className="mb-1 block text-[10px] text-ds-faint">第 {index + 1} 页</span>
+                    <span className="mb-1 block text-caption text-ds-faint">第 {index + 1} 页</span>
                     <SlidePreview slide={slide} selected={index === activeSlideIndex} />
                   </button>
                 ))}
@@ -1202,10 +1202,10 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-accent">
+                    <p className="text-caption font-semibold uppercase tracking-wider text-accent">
                       第 {activeSlideIndex + 1} 页 · {activeSlide.kind}
                     </p>
-                    <h2 className="text-[15px] font-bold text-ds-text">逐页内容与讲稿</h2>
+                    <h2 className="text-heading font-bold text-ds-text">逐页内容与讲稿</h2>
                   </div>
                   <Presentation className="h-5 w-5 text-ds-faint" />
                 </div>
@@ -1284,7 +1284,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                     type="button"
                     disabled={!slideInstruction.trim() || busy !== null}
                     onClick={() => void regenerateActiveSlide()}
-                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-[13px] font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
                   >
                     {busy === 'regenerate' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     重新生成本页
@@ -1296,7 +1296,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
             <aside className="space-y-4">
               {sourceVisuals.some((asset) => asset.status === 'approved' && asset.imageDataUrl) && (
                 <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
-                  <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
+                  <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
                     <ImagePlus className="h-4 w-4 text-accent" />
                     已保留的教材图片
                   </h2>
@@ -1325,7 +1325,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                             alt={asset.caption || '教材图片'}
                             className="h-20 w-full bg-white object-contain"
                           />
-                          <span className="line-clamp-2 block px-2 py-1.5 text-[9px] text-ds-text">
+                          <span className="line-clamp-2 block px-2 py-1.5 text-caption text-ds-text">
                             {asset.caption || `${asset.sourceIndex} 页图片`}
                           </span>
                         </button>
@@ -1336,7 +1336,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
 
               {sourceDocument?.kind === 'pdf' && (
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
-                <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
+                <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
                   <ImagePlus className="h-4 w-4 text-accent" />
                   教材配图
                 </h2>
@@ -1353,14 +1353,14 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                     type="button"
                     disabled={busy !== null}
                     onClick={() => void loadFigurePage()}
-                    className="shrink-0 rounded-xl border border-ds-border px-3 text-[12px] font-semibold text-ds-text"
+                    className="shrink-0 rounded-xl border border-ds-border px-3 text-caption font-semibold text-ds-text"
                   >
                     {busy === 'figure' ? <Loader2 className="h-4 w-4 animate-spin" /> : '预览此页'}
                   </button>
                 </div>
                 {pagePreview ? (
                   <>
-                    <p className="mt-2 text-[10px] text-ds-muted">在页面上拖动鼠标框选需要的教材图。</p>
+                    <p className="mt-2 text-caption text-ds-muted">在页面上拖动鼠标框选需要的教材图。</p>
                     <div
                       ref={previewRef}
                       onPointerDown={handleCropStart}
@@ -1392,14 +1392,14 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                       type="button"
                       disabled={busy !== null}
                       onClick={() => void attachFigure()}
-                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-[12px] font-semibold text-white disabled:opacity-50"
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-caption font-semibold text-white disabled:opacity-50"
                     >
                       <ImagePlus className="h-4 w-4" />
                       裁剪并用于当前页
                     </button>
                   </>
                 ) : (
-                  <div className="mt-3 rounded-xl bg-ds-subtle px-3 py-5 text-center text-[11px] leading-relaxed text-ds-muted">
+                  <div className="mt-3 rounded-xl bg-ds-subtle px-3 py-5 text-center text-caption leading-relaxed text-ds-muted">
                     输入教材页码后预览。已使用的图片会记录页码和裁剪区域。
                   </div>
                 )}
@@ -1407,23 +1407,23 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               )}
 
               <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
-                <h2 className="mb-3 flex items-center gap-2 text-[13px] font-bold text-ds-text">
+                <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
                   <Save className="h-4 w-4 text-accent" />
                   导出教学课件包
                 </h2>
-                <p className="mb-3 text-[11px] leading-relaxed text-ds-muted">
+                <p className="mb-3 text-caption leading-relaxed text-ds-muted">
                   包含可编辑 PPTX、逐页讲稿 DOCX 和可继续修改的 `.zhiyan-courseware` 项目包。默认保存到教材所在文件夹。
                 </p>
                 <button
                   type="button"
                   onClick={() => void chooseOutputDirectory()}
-                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-ds-border px-3 py-2 text-[12px] font-semibold text-ds-text"
+                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-ds-border px-3 py-2 text-caption font-semibold text-ds-text"
                 >
                   <FileText className="h-4 w-4" />
                   {outputDirectory ? '更改保存位置' : '选择其他保存位置'}
                 </button>
                 {outputDirectory && (
-                  <p className="mb-2 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-[10px] text-ds-muted">
+                  <p className="mb-2 break-all rounded-lg bg-ds-subtle px-2 py-1.5 text-caption text-ds-muted">
                     {outputDirectory}
                   </p>
                 )}
@@ -1431,16 +1431,16 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
                   type="button"
                   disabled={busy !== null}
                   onClick={() => void exportPackage()}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-3 text-[13px] font-semibold text-white disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-3 text-small font-semibold text-white disabled:opacity-50"
                 >
                   {busy === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   导出完整课件包
                 </button>
                 {exportPaths.length > 0 && (
                   <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-3">
-                    <p className="mb-1 text-[11px] font-bold text-green-800">导出完成</p>
+                    <p className="mb-1 text-caption font-bold text-green-800">导出完成</p>
                     {exportPaths.map((path) => (
-                      <p key={path} className="break-all text-[9px] leading-relaxed text-green-700">{path}</p>
+                      <p key={path} className="break-all text-caption leading-relaxed text-green-700">{path}</p>
                     ))}
                   </div>
                 )}
@@ -1449,7 +1449,7 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
               <button
                 type="button"
                 onClick={() => setStep('blueprint')}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-ds-border px-4 py-2.5 text-[12px] font-semibold text-ds-muted"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-ds-border px-4 py-2.5 text-caption font-semibold text-ds-muted"
               >
                 <ArrowLeft className="h-4 w-4" />
                 返回蓝图

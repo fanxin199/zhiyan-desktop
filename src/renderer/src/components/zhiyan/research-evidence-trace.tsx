@@ -325,9 +325,9 @@ export function ResearchEvidenceTracePanel({
   const missingCount = trace.records.filter((record) => record.verification === 'missing_identifier').length
   return (
     <details className="mt-3 rounded-lg border border-ds-border-muted bg-ds-main/55" data-testid="research-evidence-trace">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-ui-body-sm font-semibold text-ds-text">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-small font-semibold text-ds-text">
         <span className="inline-flex items-center gap-2"><BookOpenCheck className="h-4 w-4 text-accent" />科研证据追溯 · {trace.records.length} 条</span>
-        <span className="text-ui-caption font-normal text-ds-muted">可核验 {verifiableCount}{missingCount > 0 ? ` · 待核验 ${missingCount}` : ''}</span>
+        <span className="text-caption font-normal text-ds-muted">可核验 {verifiableCount}{missingCount > 0 ? ` · 待核验 ${missingCount}` : ''}</span>
       </summary>
       <div className="space-y-2 border-t border-ds-border-muted px-3 py-3">
         {trace.records.map((record) => {
@@ -337,16 +337,16 @@ export function ResearchEvidenceTracePanel({
           return (
             <article key={record.id} className="rounded-lg bg-ds-card px-3 py-2.5">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-ui-caption font-semibold ${view.className}`}>{view.label}</span>
+                <span className={`rounded-full px-2 py-0.5 text-caption font-semibold ${view.className}`}>{view.label}</span>
                 {identifier}
               </div>
-              <p className="mt-2 text-ui-body-sm font-medium text-ds-text">{record.claim}</p>
-              <p className="mt-1 break-all text-ui-caption text-ds-muted">{metadata}</p>
-              {record.locator ? <p className="mt-1 text-ui-caption text-ds-muted">证据位置：{record.locator}</p> : null}
+              <p className="mt-2 text-small font-medium text-ds-text">{record.claim}</p>
+              <p className="mt-1 break-all text-caption text-ds-muted">{metadata}</p>
+              {record.locator ? <p className="mt-1 text-caption text-ds-muted">证据位置：{record.locator}</p> : null}
               {record.verification === 'missing_identifier' ? (
-                <p className="mt-1 inline-flex items-center gap-1 text-ui-caption text-amber-700 dark:text-amber-300"><AlertTriangle className="h-3.5 w-3.5" />缺少 DOI/PMID，请核验后引用</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-caption text-amber-700 dark:text-amber-300"><AlertTriangle className="h-3.5 w-3.5" />缺少 DOI/PMID，请核验后引用</p>
               ) : null}
-              {record.note ? <p className="mt-1 text-ui-caption text-ds-muted">限制：{record.note}</p> : null}
+              {record.note ? <p className="mt-1 text-caption text-ds-muted">限制：{record.note}</p> : null}
             </article>
           )
         })}
