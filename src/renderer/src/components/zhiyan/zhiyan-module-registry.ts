@@ -30,7 +30,6 @@ export type ZhiYanCapabilityDependency =
 
 type ZhiYanDashboardDefinition = {
   title: string
-  gradient: string
 }
 
 type ZhiYanModuleDefinition = {
@@ -75,7 +74,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['教案', '教学设计', '课程', '授课', '章节', 'Word', 'DOCX'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
     showInSidebar: true,
-    dashboard: { title: '智能教案', gradient: 'bg-gradient-to-br from-blue-600 to-blue-800' }
+    dashboard: { title: '智能教案' }
   },
   {
     id: 'ppt-gen',
@@ -86,7 +85,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['课件', 'PPT', '幻灯片', '教材', 'PDF', '讲稿', '教学'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-pptx-export'],
     showInSidebar: true,
-    dashboard: { title: '制作课件 PPT', gradient: 'bg-gradient-to-br from-purple-600 to-purple-800' }
+    dashboard: { title: '制作课件 PPT' }
   },
   {
     id: 'textbook',
@@ -97,7 +96,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['教材', '章节', '编写', '讲义', '课程建设', '教学材料'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
     showInSidebar: true,
-    dashboard: { title: '教材编写', gradient: 'bg-gradient-to-br from-teal-600 to-teal-800' }
+    dashboard: { title: '教材编写' }
   },
   {
     id: 'paper-polish',
@@ -108,7 +107,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['论文', '基金', '写作', '润色', '文本', '英文', '中文', 'Discussion', 'Results', '蓝图'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'write-workspace'],
     showInSidebar: true,
-    dashboard: { title: '文本写作', gradient: 'bg-gradient-to-br from-rose-600 to-rose-800' }
+    dashboard: { title: '文本写作' }
   },
   {
     id: 'literature',
@@ -119,7 +118,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['文献', 'PDF', '论文', '精读', '阅读', '图表', '组会', 'Journal Club', 'PMID', 'DOI'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research'],
     showInSidebar: true,
-    dashboard: { title: '文献阅读', gradient: 'bg-gradient-to-br from-amber-600 to-amber-800' }
+    dashboard: { title: '文献阅读' }
   },
   {
     id: 'review-writing',
@@ -130,7 +129,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['综述', '文献', '框架', '证据矩阵', '章节', '初稿', 'review'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research', 'write-workspace'],
     showInSidebar: true,
-    dashboard: { title: '综述撰写', gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800' }
+    dashboard: { title: '综述撰写' }
   },
   {
     id: 'grant-writing',
@@ -141,7 +140,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['自然基金', '基金', '国自然', 'NSFC', '立项依据', '技术路线', '研究内容'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research', 'write-workspace'],
     showInSidebar: true,
-    dashboard: { title: '自然基金撰写', gradient: 'bg-gradient-to-br from-orange-600 to-orange-800' }
+    dashboard: { title: '自然基金撰写' }
   },
   {
     id: 'bioinformatics',
@@ -152,7 +151,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
     requiredCapabilities: ['ai', 'workspace-files', 'python-base', 'python-bioinformatics'],
     showInSidebar: true,
-    dashboard: { title: '科研数据分析', gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800' }
+    dashboard: { title: '科研数据分析' }
   },
   {
     id: 'write',
@@ -163,7 +162,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['自由写作台', '写作工作台', 'Markdown', 'DOCX', 'PDF', '导出', '编辑器', '长文档', '草稿'],
     requiredCapabilities: ['workspace-files', 'write-workspace', 'native-docx-export'],
     showInSidebar: true,
-    dashboard: { title: '自由写作台', gradient: 'bg-gradient-to-br from-indigo-600 to-indigo-800' }
+    dashboard: { title: '自由写作台' }
   },
   {
     id: 'chat',
@@ -174,7 +173,7 @@ export const ZHIYAN_MODULE_REGISTRY = [
     keywords: ['对话', '聊天', 'AI', '助手', '问答', '任务'],
     requiredCapabilities: ['ai'],
     showInSidebar: true,
-    dashboard: { title: 'AI 对话', gradient: 'bg-gradient-to-br from-slate-600 to-slate-800' }
+    dashboard: { title: 'AI 对话' }
   },
   {
     id: 'file-manager',

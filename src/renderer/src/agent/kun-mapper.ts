@@ -34,6 +34,7 @@ import type {
   CoreUsageSnapshotJson
 } from './kun-contract'
 import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH } from '@shared/prompt-boundary'
+import { teacherLabel } from '../lib/teacher-label'
 
 export type ZhiYanManagedPromptContext = {
   teacherProfile?: TeacherProfileSettingsV1
@@ -53,12 +54,6 @@ const MODULE_LABELS_BY_ID: Record<string, string> = {
 
 function nonEmpty(value: string | undefined): string {
   return value?.trim() ?? ''
-}
-
-function teacherLabel(profile: TeacherProfileSettingsV1 | undefined): string {
-  const name = nonEmpty(profile?.name)
-  if (!name) return '老师'
-  return /(老师|教授|博士|医生|主任)$/u.test(name) ? name : `${name}老师`
 }
 
 function moduleLabelFromProject(project: TeacherProjectSettingsV1 | undefined): string {

@@ -1,5 +1,6 @@
-import { useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
+import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { TeacherProfileSettingsV1 } from '@shared/app-settings'
 import {
   ArrowRight,
   Clock3,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
+import { teacherLabel } from '../../lib/teacher-label'
 import {
   ZHIYAN_MODULE_SECTIONS,
   getZhiYanDashboardModules,
@@ -22,8 +24,14 @@ type QuickActionCardProps = {
   icon: LucideIcon
   title: string
   description: string
-  gradient: string
+  tone: ZhiYanModuleSectionId
   onClick: () => void
+}
+
+const ICON_TONE_CLASSES: Record<ZhiYanModuleSectionId, string> = {
+  teaching: 'bg-ds-domain-teaching-soft text-ds-domain-teaching',
+  research: 'bg-ds-domain-research-soft text-ds-domain-research',
+  capabilities: 'bg-ds-subtle text-ds-muted'
 }
 
 type DashboardActionCard = QuickActionCardProps & {
@@ -175,7 +183,7 @@ function dashboardActionCards(
     title: module.dashboard.title,
     description: module.taskDescription,
     keywords: module.keywords,
-    gradient: module.dashboard.gradient,
+    tone: section,
     onClick: () => onOpenModule(module.id)
   }))
 }
@@ -184,21 +192,21 @@ function QuickActionCard({
   icon: Icon,
   title,
   description,
-  gradient,
+  tone,
   onClick
 }: QuickActionCardProps): ReactElement {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex flex-col items-start gap-3 rounded-2xl border border-white/10 p-5 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] ${gradient}`}
+      className="flex flex-col items-start gap-3 rounded-xl border border-ds-border-muted bg-ds-card p-5 text-left transition-colors duration-150 hover:border-ds-border hover:bg-ds-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 shadow-sm backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-        <Icon className="h-5.5 w-5.5 text-white" strokeWidth={1.8} />
+      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${ICON_TONE_CLASSES[tone]}`}>
+        <Icon className="h-5.5 w-5.5" strokeWidth={1.8} />
       </div>
       <div>
-        <h3 className="text-body leading-5 font-semibold text-white">{title}</h3>
-        <p className="mt-1 text-small leading-relaxed text-white/70">{description}</p>
+        <h3 className="text-body leading-5 font-semibold text-ds-ink">{title}</h3>
+        <p className="mt-1 text-small leading-relaxed text-ds-muted">{description}</p>
       </div>
     </button>
   )
@@ -294,16 +302,32 @@ export function ZhiYanDashboard({
 }: ZhiYanDashboardProps): ReactElement {
   const { i18n } = useTranslation('common')
   const [searchQuery, setSearchQuery] = useState('')
+  const [teacherProfile, setTeacherProfile] = useState<TeacherProfileSettingsV1 | undefined>()
   const visibleRecentThreads = getRecentDashboardThreads(recentThreads)
   const taskRecommendations = getDashboardTaskRecommendations(recentThreads)
 
+  useEffect(() => {
+    const getSettings = typeof window === 'undefined' ? undefined : window.dsGui?.getSettings
+    if (!getSettings) return
+    let active = true
+    void getSettings()
+      .then((settings) => {
+        if (active) setTeacherProfile(settings.teacherProfile)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [])
+
   const getGreeting = (): string => {
     const hour = new Date().getHours()
-    if (hour < 6) return '夜深了，老师辛苦了！'
-    if (hour < 12) return '早上好，老师！'
-    if (hour < 14) return '中午好，老师！'
-    if (hour < 18) return '下午好，老师！'
-    return '晚上好，老师！'
+    const teacher = teacherLabel(teacherProfile)
+    if (hour < 6) return `夜深了，${teacher}辛苦了！`
+    if (hour < 12) return `早上好，${teacher}！`
+    if (hour < 14) return `中午好，${teacher}！`
+    if (hour < 18) return `下午好，${teacher}！`
+    return `晚上好，${teacher}！`
   }
 
   const teachingCards = dashboardActionCards('teaching', onOpenModule)
