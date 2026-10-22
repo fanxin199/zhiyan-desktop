@@ -1,10 +1,19 @@
 import { mkdir, mkdtemp, readFile, readdir, stat, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_GUI_APPROVAL_POLICY } from '../shared/app-settings'
 import { DEFAULT_GUI_UPDATE_CHANNEL } from '../shared/gui-update'
 import { JsonSettingsStore } from './settings-store'
+
+// Keep default ~/.zhiyan workspaces out of the real user profile.
+vi.mock('node:os', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:os')>()
+  const { mkdtempSync } = await import('node:fs')
+  const { join: joinPath } = await import('node:path')
+  const fakeHome = mkdtempSync(joinPath(actual.tmpdir(), 'zhiyan-home-'))
+  return { ...actual, homedir: () => fakeHome }
+})
 
 vi.mock('electron', () => ({
   safeStorage: {
@@ -36,7 +45,8 @@ describe('JsonSettingsStore', () => {
     const store = new JsonSettingsStore(userDataDir)
     const loaded = await store.load()
 
-    expect(loaded.write.defaultWorkspaceRoot).toContain('.zhiyan')
+    expect(loaded.write.defaultWorkspaceRoot).toBe(join(homedir(), '.zhiyan', 'write_workspace'))
+    expect(homedir().startsWith(tmpdir())).toBe(true)
     expect(loaded.write.workspaces).toContain(loaded.write.defaultWorkspaceRoot)
     expect(loaded.write.inlineCompletion.enabled).toBe(true)
     expect(loaded.write.inlineCompletion.retrievalEnabled).toBe(true)
