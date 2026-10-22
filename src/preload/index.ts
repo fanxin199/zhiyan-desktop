@@ -56,6 +56,12 @@ const api = {
     ipcRenderer.invoke('artifact:get', { id }),
   listArtifacts: (filter) =>
     ipcRenderer.invoke('artifact:list', filter ?? {}),
+  createArtifactVersion: (input) =>
+    ipcRenderer.invoke('artifact:create-version', input),
+  listArtifactVersions: (id) =>
+    ipcRenderer.invoke('artifact:list-versions', { id }),
+  restoreArtifactVersion: (id, version) =>
+    ipcRenderer.invoke('artifact:restore-version', { id, version }),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

@@ -90,6 +90,18 @@ export const artifactIdInputSchema = z.object({
   id: trimmed(MAX_ID_LENGTH)
 }).strict()
 
+export const artifactCreateVersionInputSchema = z.object({
+  id: trimmed(MAX_ID_LENGTH),
+  source: artifactVersionSourceSchema.exclude(['restore']),
+  summary: z.string().trim().max(500),
+  instruction: z.string().trim().max(4_000).optional()
+}).strict()
+
+export const artifactRestoreVersionInputSchema = z.object({
+  id: trimmed(MAX_ID_LENGTH),
+  version: z.number().int().min(1)
+}).strict()
+
 export type ArtifactKind = z.infer<typeof artifactKindSchema>
 export type ArtifactVersionSource = z.infer<typeof artifactVersionSourceSchema>
 export type ArtifactStorage = z.infer<typeof artifactStorageSchema>
@@ -98,6 +110,8 @@ export type ArtifactVersion = z.infer<typeof artifactVersionSchema>
 export type ArtifactRegisterInput = z.infer<typeof artifactRegisterInputSchema>
 export type ArtifactUpdateInput = z.infer<typeof artifactUpdateInputSchema>
 export type ArtifactListInput = z.infer<typeof artifactListInputSchema>
+export type ArtifactCreateVersionInput = z.infer<typeof artifactCreateVersionInputSchema>
+export type ArtifactRestoreVersionInput = z.infer<typeof artifactRestoreVersionInputSchema>
 
 /** A registry entry as the renderer sees it: `available` is false when its file has been moved or deleted. */
 export type ArtifactListItem = ArtifactRecord & { available: boolean }

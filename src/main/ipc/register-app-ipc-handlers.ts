@@ -49,7 +49,9 @@ import {
   textbookExportPayloadSchema,
   textbookFormatRulesParsePayloadSchema,
   textbookLoadProjectPayloadSchema,
+  artifactCreateVersionPayloadSchema,
   artifactIdPayloadSchema,
+  artifactRestoreVersionPayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -109,6 +111,7 @@ import {
 import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
 import type { ArtifactRegistry } from '../services/artifact-service'
+import type { ArtifactVersionStore } from '../services/artifact-version-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -144,6 +147,7 @@ type WorkspaceFileWatchRecord = {
 type RegisterAppIpcHandlersOptions = {
   store: JsonSettingsStore
   artifactRegistry: Pick<ArtifactRegistry, 'register' | 'update' | 'get' | 'list'>
+  artifactVersions: Pick<ArtifactVersionStore, 'createVersion' | 'listVersions' | 'restoreVersion'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -249,6 +253,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   const {
     store,
     artifactRegistry,
+    artifactVersions,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -699,6 +704,26 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
   ipcMain.handle('artifact:list', async (_, payload: unknown) =>
     artifactRegistry.list(parseIpcPayload('artifact:list', artifactListPayloadSchema, payload ?? {}))
   )
+
+  // Saving and restoring versions write files, so the artifact's workspace must still be authorized.
+  const requireArtifactWorkspace = async (id: string): Promise<void> => {
+    const artifact = await artifactRegistry.get(id)
+    if (!artifact) throw new Error('找不到这个成果，可能已被移除。')
+    await requireAuthorizedWorkspaceRoot(artifact.workspaceRoot)
+  }
+  ipcMain.handle('artifact:create-version', async (_, payload: unknown) => {
+    const request = parseIpcPayload('artifact:create-version', artifactCreateVersionPayloadSchema, payload)
+    await requireArtifactWorkspace(request.id)
+    return artifactVersions.createVersion(request)
+  })
+  ipcMain.handle('artifact:list-versions', async (_, payload: unknown) =>
+    artifactVersions.listVersions(parseIpcPayload('artifact:list-versions', artifactIdPayloadSchema, payload).id)
+  )
+  ipcMain.handle('artifact:restore-version', async (_, payload: unknown) => {
+    const request = parseIpcPayload('artifact:restore-version', artifactRestoreVersionPayloadSchema, payload)
+    await requireArtifactWorkspace(request.id)
+    return artifactVersions.restoreVersion(request)
+  })
 
   ipcMain.handle(
     'skill:save-file',

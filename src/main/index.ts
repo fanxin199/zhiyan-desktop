@@ -38,6 +38,7 @@ import { configureLogger, logError, logWarn, pruneOnStartup } from './logger'
 import { resolveKunMcpJsonPath } from './kun-config-path'
 import { registerAppIpcHandlers } from './ipc/register-app-ipc-handlers'
 import { ArtifactRegistry } from './services/artifact-service'
+import { ArtifactVersionStore } from './services/artifact-version-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -761,9 +762,11 @@ app.whenReady().then(async () => {
     return fetchUpstreamModelIds(settings, key)
   }
 
+  const artifactRegistry = new ArtifactRegistry({ dataDirectory: app.getPath('userData') })
   registerAppIpcHandlers({
     store,
-    artifactRegistry: new ArtifactRegistry({ dataDirectory: app.getPath('userData') }),
+    artifactRegistry,
+    artifactVersions: new ArtifactVersionStore({ registry: artifactRegistry }),
     getMainWindow: () => mainWindow,
     applySettingsPatch,
     runtimeRequest: async (path, method, body) => {

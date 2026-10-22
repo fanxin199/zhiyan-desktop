@@ -13,6 +13,7 @@ import {
 } from '../../shared/app-settings'
 import { registerAppIpcHandlers } from './register-app-ipc-handlers'
 import { ArtifactRegistry } from '../services/artifact-service'
+import { ArtifactVersionStore } from '../services/artifact-version-service'
 import { emptyPythonRuntimeStatus } from '../../shared/python-runtime'
 
 const handlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>()
@@ -73,6 +74,11 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
       update: vi.fn(),
       get: vi.fn(),
       list: vi.fn(async () => [])
+    } as never,
+    artifactVersions: {
+      createVersion: vi.fn(),
+      listVersions: vi.fn(async () => []),
+      restoreVersion: vi.fn()
     } as never,
     getMainWindow: () => null,
     applySettingsPatch,
@@ -360,6 +366,41 @@ describe('registerAppIpcHandlers', () => {
       await expect(handlers.get('artifact:list')?.({}, { toolId: 'syllabus' })).resolves.toMatchObject([
         { title: '第八章教案', available: true }
       ])
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('saves and restores versions only while the artifact workspace is authorized', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-artifact-version-ipc-'))
+    try {
+      const workspace = join(dir, 'workspace')
+      await mkdir(workspace)
+      const path = join(workspace, '教案.md')
+      await writeFile(path, '# 初稿', 'utf8')
+      const artifactRegistry = new ArtifactRegistry({ dataDirectory: join(dir, 'data') })
+      const artifact = await artifactRegistry.register({
+        kind: 'lesson-plan', title: '教案', toolId: 'syllabus', workspaceRoot: workspace, storage: { type: 'file', path }
+      })
+      const artifactVersions = new ArtifactVersionStore({ registry: artifactRegistry })
+      let configuredRoot = workspace
+      registerAppIpcHandlers(registerOptions({
+        artifactRegistry,
+        artifactVersions,
+        store: { load: vi.fn(async () => ({ ...settings(), workspaceRoot: configuredRoot })) } as never
+      }))
+
+      await expect(handlers.get('artifact:create-version')?.({}, {
+        id: artifact.id, source: 'ai-generate', summary: '生成初稿'
+      })).resolves.toMatchObject({ version: 1 })
+      await expect(handlers.get('artifact:create-version')?.({}, {
+        id: artifact.id, source: 'restore', summary: '伪造恢复'
+      })).rejects.toThrow()
+      await expect(handlers.get('artifact:list-versions')?.({}, { id: artifact.id })).resolves.toHaveLength(1)
+
+      configuredRoot = join(dir, 'elsewhere')
+      await expect(handlers.get('artifact:restore-version')?.({}, { id: artifact.id, version: 1 }))
+        .rejects.toThrow(/workspace must be selected or configured/iu)
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

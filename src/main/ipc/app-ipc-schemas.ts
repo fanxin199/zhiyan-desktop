@@ -43,7 +43,9 @@ import {
   evidenceRefSchema
 } from '../../shared/courseware'
 import {
+  artifactCreateVersionInputSchema,
   artifactIdInputSchema,
+  artifactRestoreVersionInputSchema,
   artifactListInputSchema,
   artifactRegisterInputSchema,
   artifactUpdateInputSchema
@@ -884,6 +886,8 @@ export const artifactRegisterPayloadSchema = artifactRegisterInputSchema
 export const artifactUpdatePayloadSchema = artifactUpdateInputSchema
 export const artifactListPayloadSchema = artifactListInputSchema
 export const artifactIdPayloadSchema = artifactIdInputSchema
+export const artifactCreateVersionPayloadSchema = artifactCreateVersionInputSchema
+export const artifactRestoreVersionPayloadSchema = artifactRestoreVersionInputSchema
 
 export const logErrorPayloadSchema = z
   .object({

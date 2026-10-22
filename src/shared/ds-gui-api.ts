@@ -52,11 +52,13 @@ import type {
   WriteRichClipboardResult
 } from './write-export'
 import type {
+  ArtifactCreateVersionInput,
   ArtifactListInput,
   ArtifactListItem,
   ArtifactRecord,
   ArtifactRegisterInput,
-  ArtifactUpdateInput
+  ArtifactUpdateInput,
+  ArtifactVersion
 } from './artifact'
 import type {
   CoursewareBlueprintGenerationInput,
@@ -209,6 +211,12 @@ export type DsGuiApi = {
   updateArtifact: (input: ArtifactUpdateInput) => Promise<ArtifactRecord>
   getArtifact: (id: string) => Promise<ArtifactListItem | null>
   listArtifacts: (filter?: ArtifactListInput) => Promise<ArtifactListItem[]>
+  /** Saves the artifact's current content as a version; returns the latest version when nothing changed. */
+  createArtifactVersion: (input: ArtifactCreateVersionInput) => Promise<ArtifactVersion>
+  /** Latest first. */
+  listArtifactVersions: (id: string) => Promise<ArtifactVersion[]>
+  /** Writes an earlier version back and saves it as a new version. */
+  restoreArtifactVersion: (id: string, version: number) => Promise<ArtifactVersion>
   extractPdfRange: (
     path: string,
     pageStart: number,
