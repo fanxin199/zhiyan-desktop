@@ -38,7 +38,7 @@
 1. 首页 11 张不同色相的饱和渐变卡片，带 hover 放大，主次不清。
 2. **未定义的颜色类**：`text-ds-text` 在 10 个文件中出现 128 次，但 `tailwind.config.js` 没有 `ds.text` 键，也没有对应 CSS，这些元素只能继承父元素颜色；`*-ds-card-muted`（3 处）、`*-ds-surface-subtle`（1 处）、`ring-offset-ds-bg`（4 处）同样未定义。另外，主题色都以 `var(...)` 定义，Tailwind v3 不为其生成 `/N` 透明度类，`bg-accent/10` 这类写法有 338 处从未生效。（已在 Task 0.1.1 修复）
 3. **字号**：601 处 `text-[Npx]` 硬编码，其中 443 处 ≤ 13px（默认 1.1 倍界面缩放后约 ≤ 14px）；只有 5 个字号令牌。（已在 Task 0.1.3 迁移）
-4. **颜色**：655 处直接使用 Tailwind 原色类、65 处十六进制颜色；主色 `#0088ff` 上的白字对比度约 3.5:1，低于 WCAG AA 正文要求的 4.5:1；`--ds-text-faint`（`#8a93a4`，对白底约 3.1:1）在 169 处用于文字。
+4. **颜色**：655 处直接使用 Tailwind 原色类、65 处十六进制颜色；主色 `#0088ff` 上的白字对比度约 3.5:1，低于 WCAG AA 正文要求的 4.5:1；`--ds-text-faint`（`#8a93a4`，对白底约 3.1:1）在 169 处用于文字。（原色类与十六进制颜色已在 Task 0.1.4 迁移）
 5. 主按钮不可用时只显示浅蓝色，不说明缺什么。
 6. **顶部内容被装饰光晕盖住**：`.ds-stage-surface::before` 是绝对定位的装饰层，按 CSS 绘制顺序画在页面内容之上，左上角的白色光晕把各页顶部的标题和图标洗成灰色。这才是标题发灰的直接原因。（已在 Task 0.1.1a 修复）
 
@@ -188,13 +188,21 @@ AI 助手
 | 弱化文字 | `--ds-text-faint` | `#8a93a4`（对白约 3.1:1） | 仅限占位符、禁用态和 ≥ 18px 的非关键文字 |
 | 主色（文字与线条） | `--ds-accent` | `#0088ff` → `#1769E0`（对页面底色约 4.7:1）；深色 `#339cff` | 链接、蓝色标题、图标、边框、焦点环（`text-accent`、`border-accent`、`ring-accent`） |
 | 主色（实心填充） | `--ds-accent-fill`（新增） | `#1769E0`，深色同值（白字约 5.1:1） | 承载白字的主按钮和选中态；`bg-accent` 自动使用 |
-| 成功文字 | `--ds-success` | `#128a4a` → `#0e7a42`（对页面底色约 5.0:1）；深色 `#40c977` | 成功状态文字 |
+| 主色（浅底文字） | `--ds-accent-strong`（新增） | `#1556b8`；深色 `#339cff` | 放在主色浅底上的蓝色文字（`text-accent-strong`） |
+| 成功文字 | `--ds-success` | `#128a4a` → `#0b6b3a`（对页面底色约 6:1，对成功浅底约 5.4:1）；深色 `#40c977` | 成功状态文字，可放在 `bg-ds-success-soft` 上 |
+| 危险文字 | `--ds-danger` | `#c92a2a` → `#b42318`（对危险浅底约 5.3:1）；深色 `#fa423e` → `#ff6b66` | 错误状态文字，可放在 `bg-ds-danger-soft` 上 |
+| 成功、危险填充 | `--ds-success-fill`、`--ds-danger-fill`（新增） | `#15803d`、`#c92a2a`，深色同值（白字 ≥ 5:1） | 承载白字的实心底；`bg-ds-success`、`bg-ds-danger` 自动使用 |
+| AI 技能色 | `--ds-skill` | `#7c3aed` → `#6d28d9`（对技能浅底约 5.6:1）；深色 `#ad7bf9` | 技能、机制假设等标签 |
+| 遮罩 | `--ds-overlay`（新增） | `rgba(15, 23, 42, 0.4)`；深色 `rgba(0, 0, 0, 0.6)` | 对话框背后的遮罩（`bg-ds-overlay`） |
+| 标记高亮 | `--ds-highlight`（新增） | `rgba(247, 209, 84, 0.48)`；深色透明度 0.3 | 文稿中的 `==标记==` 高亮 |
+| 图表 | Tailwind `ds-chart`（取 `--ds-accent`） | 同主色文字 | 热力图、模型用量等单色系图表，用透明度区分层级 |
+| 幻灯片内容色 | Tailwind `slide-*`（固定值） | 与导出课件主题一致：纸 `#ffffff`、墨 `#172b35`、强调 `#d97706` 等 | 只用于幻灯片缩略图和图片、PDF 预览底，两套主题不变 |
 | 教学领域色 | `--ds-domain-teaching`、`-soft` | 字 `#0F6E56` / 底 `#E1F5EE`（约 5.5:1）；深色字 `#9FE1CB` / 底 `#085041`（约 6.3:1） | 仅用于图标底色和标签 |
 | 科研领域色 | `--ds-domain-research`、`-soft` | 字 `#3C3489` / 底 `#EEEDFE`（约 8.9:1）；深色字 `#CECBF6` / 底 `#3C3489`（约 6.6:1） | 仅用于图标底色和标签 |
 | 警示文字 | `--ds-warning`（新增） | `#8A5A00`（对白约 5.9:1）；深色 `#EF9F27` | 与现有 `--ds-warning-soft` 配对 |
 | AI 修改高亮 | 复用 `--ds-success-soft`、`--ds-danger` | — | 新增内容浅绿底；删除内容红色删除线 |
 
-规则：所有新令牌必须同时定义深色值（`[data-theme="dark"]`）并单独检查对比度，由 `src/main/renderer-theme-contrast.test.ts` 按亮、暗两套主题自动检查；组件中禁止新增 Tailwind 原色类和十六进制颜色；删除注册表中的 `dashboard.gradient` 字段。已知差距留给 Task 4.3.1：主色文字放在主色浅底上约 3.9–4.1:1，成功、危险文字放在各自浅底上约 4.4:1。
+规则：所有新令牌必须同时定义深色值（`[data-theme="dark"]`）并单独检查对比度，由 `src/main/renderer-theme-contrast.test.ts` 按亮、暗两套主题自动检查；组件中禁止新增 Tailwind 原色类和十六进制颜色（由 `src/main/renderer-raw-colors.test.ts` 检查；白色只允许用于实心底上的文字、图标和开关圆钮；代码高亮主题 `code-highlighting.ts` 例外）。已知差距留给 Task 4.3.1：现有 `text-accent` 放在主色浅底上的地方约 3.9–4.1:1，应改用 `text-accent-strong`。
 
 ### 5.3 间距、圆角、边框、动效
 
@@ -385,7 +393,7 @@ type TeacherPreference = {
 - [x] **0.1.1a** 页面顶部的装饰光晕由覆盖层改为 `.ds-stage-surface` 的背景层，不再盖住标题和图标；新增 `src/main/renderer-stage-surface.test.ts` 防止回退。（实施 0.1.1 时发现）
 - [x] **0.1.2** 按 §5.1–§5.3 建立令牌：`--ds-font-*` 字号变量与 `text-caption` ~ `text-display`、`leading-prose`；主色改为 `#1769E0`，新增 `--ds-accent-fill` 供 `bg-accent` 使用（深色模式按钮白字由 2.9:1 提高到 5.1:1）；成功文字改为 `#0e7a42`，新增 `--ds-warning` 和教学、科研领域色（均含深色值）；圆角 `xl` 改为 12px，`2xl` 恢复为 16px。新增 `src/main/renderer-theme-contrast.test.ts`，按亮、暗两套主题检查 56 组文字与底色组合，均 ≥ 4.5:1。
 - [x] **0.1.3** 按 §5.1 映射表分四批迁移（`components/zhiyan/` → `components/write/` → `components/chat/` → 其余）：749 处字号写法（603 处 `text-[Npx]`、1 处 `clamp()`、123 处 `ui-*`、26 处 Tailwind 默认字号，幻灯片缩略图 4 处另行处理）改为 `text-caption` ~ `text-display`；24 处原本依赖默认字号行高的地方补上等值 `leading-*`；删除 `ui-*` 字号令牌。新增 `src/main/renderer-font-sizes.test.ts`，禁止新增像素字号、Tailwind 默认字号和 `ui-*` 字号，并限定 `text-thumb-*` 只在缩略图中使用。
-- [ ] **0.1.4** 将 655 处 Tailwind 原色类和 65 处十六进制颜色替换为令牌，同样分批进行，完成后禁止新增。其中 36 处原色透明度不在 5 的倍数档位上（如 `bg-white/8`），Tailwind 不会生成，替换时一并处理。另有 CSS 中 17 处、组件中 5 处旧主色字面量 `rgba(0, 136, 255, …)`（光晕、阴影、动画），一并改为基于主色令牌。
+- [x] **0.1.4** 将 Tailwind 原色类、十六进制颜色和半透明黑白色按语义改为令牌，分四批完成（`components/zhiyan/` → `components/write/` → `components/chat/` → 其余）：红/橙黄/绿/蓝/紫分别对应危险、警示、成功、主色、技能色，灰色按深浅对应主文字、次要文字、弱化文字、边框和底色，`dark:` 配对随令牌自动切换后删除；补充状态色填充、`accent-strong`、遮罩、标记高亮、图表色和幻灯片内容色（见 §5.2），状态文字放在各自浅底上也 ≥ 4.5:1。特殊处理：模块页头图标改用教学/科研领域色块，教案提交按钮和首次配置对话框的渐变改为实心主色，侧栏十六进制灰改为中性文字令牌，热力图和模型用量图改为单色系图表，代码改动里的文件类型标签改为中性标签，CSS 与组件中 22 处旧主色字面量改为由主色令牌派生。新增 `src/main/renderer-raw-colors.test.ts`，禁止新增原色类、十六进制颜色、半透明黑白色和旧主色字面量。
 
 #### Task 0.2 · 统一页头与图标
 
@@ -400,7 +408,7 @@ type TeacherPreference = {
 
 #### Task 0.4 · 首页去噪
 
-- [ ] **0.4.1** 去掉渐变卡和 hover 放大（`ZhiYanDashboard.tsx` 与注册表 `dashboard.gradient`），改为中性卡片 + 领域色图标；问候语显示教师姓名（来自教师信息，缺省为“老师”）。
+- [x] **0.4.1** 去掉渐变卡和 hover 放大（`ZhiYanDashboard.tsx` 与注册表 `dashboard.gradient`），改为中性卡片 + 领域色图标；问候语显示教师姓名（来自教师信息，缺省为“老师”）。（颜色迁移需要同时去掉渐变，已随 Task 0.1.4 提前完成）
 - [ ] **0.4.2** “最近使用”显示可读名称：会话自动以任务摘要命名，显示所属功能，隐藏空会话（成果化在 Task 1.6 完成）。
 
 #### Task 0.5 · 术语与缺陷
@@ -528,7 +536,7 @@ type TeacherPreference = {
 
 #### Task 4.3 · 无障碍与深色模式
 
-- [ ] **4.3.1** 键盘可达（Tab 顺序、焦点环、Esc 关闭浮层）、读屏标签、所有文字对比度 ≥ 4.5:1；深色模式逐页检查。已知差距见 §5.2：需要为主色、成功、危险增加深一级的“浅底文字”色。
+- [ ] **4.3.1** 键盘可达（Tab 顺序、焦点环、Esc 关闭浮层）、读屏标签、所有文字对比度 ≥ 4.5:1；深色模式逐页检查。已知差距见 §5.2：成功、危险文字已在 Task 0.1.4 调整到浅底上也达标；剩余工作是把放在主色浅底上的 `text-accent` 改为 `text-accent-strong`。
 
 #### Task 4.4 · 语音输入
 
@@ -589,4 +597,4 @@ npx electron-vite dev --remoteDebuggingPort 9222
 
 ## 十一、当前执行位置
 
-当前执行任务：**Task 0.1.3 已完成。下一项为 Task 0.1.4（把 Tailwind 原色类和十六进制颜色替换为令牌）。**
+当前执行任务：**Task 0.1.4 已完成，Task 0.4.1 随之提前完成。下一项为 Task 0.2.1（统一页头组件 `PageHeader`）。**
