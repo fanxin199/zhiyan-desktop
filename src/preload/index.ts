@@ -48,6 +48,14 @@ const api = {
     ipcRenderer.invoke('courseware:analyze-source', { path }),
   loadCoursewareProject: (path) =>
     ipcRenderer.invoke('courseware:load-project', { path }),
+  registerArtifact: (input) =>
+    ipcRenderer.invoke('artifact:register', input),
+  updateArtifact: (input) =>
+    ipcRenderer.invoke('artifact:update', input),
+  getArtifact: (id) =>
+    ipcRenderer.invoke('artifact:get', { id }),
+  listArtifacts: (filter) =>
+    ipcRenderer.invoke('artifact:list', filter ?? {}),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

@@ -49,6 +49,10 @@ import {
   textbookExportPayloadSchema,
   textbookFormatRulesParsePayloadSchema,
   textbookLoadProjectPayloadSchema,
+  artifactIdPayloadSchema,
+  artifactListPayloadSchema,
+  artifactRegisterPayloadSchema,
+  artifactUpdatePayloadSchema,
   textbookOutlineGenerationPayloadSchema,
   textbookSectionGenerationPayloadSchema,
   textbookSectionRevisionPayloadSchema,
@@ -104,6 +108,7 @@ import {
 } from '../services/courseware-generation-service'
 import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
+import type { ArtifactRegistry } from '../services/artifact-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -138,6 +143,7 @@ type WorkspaceFileWatchRecord = {
 
 type RegisterAppIpcHandlersOptions = {
   store: JsonSettingsStore
+  artifactRegistry: Pick<ArtifactRegistry, 'register' | 'update' | 'get' | 'list'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -242,6 +248,7 @@ function runDesktopCommand(
 export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): void {
   const {
     store,
+    artifactRegistry,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -677,6 +684,21 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     await requireAuthorizedFileReadPath(request.path)
     return loadTextbookProject(request.path)
   })
+
+  ipcMain.handle('artifact:register', async (_, payload: unknown) => {
+    const request = parseIpcPayload('artifact:register', artifactRegisterPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return artifactRegistry.register(request)
+  })
+  ipcMain.handle('artifact:update', async (_, payload: unknown) =>
+    artifactRegistry.update(parseIpcPayload('artifact:update', artifactUpdatePayloadSchema, payload))
+  )
+  ipcMain.handle('artifact:get', async (_, payload: unknown) =>
+    artifactRegistry.get(parseIpcPayload('artifact:get', artifactIdPayloadSchema, payload).id)
+  )
+  ipcMain.handle('artifact:list', async (_, payload: unknown) =>
+    artifactRegistry.list(parseIpcPayload('artifact:list', artifactListPayloadSchema, payload ?? {}))
+  )
 
   ipcMain.handle(
     'skill:save-file',

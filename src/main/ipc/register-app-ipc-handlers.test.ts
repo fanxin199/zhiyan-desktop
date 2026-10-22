@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { dialog } from 'electron'
@@ -12,6 +12,7 @@ import {
   type AppSettingsV1
 } from '../../shared/app-settings'
 import { registerAppIpcHandlers } from './register-app-ipc-handlers'
+import { ArtifactRegistry } from '../services/artifact-service'
 import { emptyPythonRuntimeStatus } from '../../shared/python-runtime'
 
 const handlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>()
@@ -67,6 +68,12 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
   const applySettingsPatch = vi.fn(async () => settings())
   return {
     store: { load: vi.fn(async () => settings()) } as never,
+    artifactRegistry: {
+      register: vi.fn(),
+      update: vi.fn(),
+      get: vi.fn(),
+      list: vi.fn(async () => [])
+    } as never,
     getMainWindow: () => null,
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,
@@ -318,6 +325,41 @@ describe('registerAppIpcHandlers', () => {
       await expect(handlers.get('file:list-workspace-directory')?.({}, {
         workspaceRoot: dir
       })).resolves.toMatchObject({ ok: true, root: canonicalDir })
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('registers artifacts only inside a configured or selected workspace', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-artifact-ipc-'))
+    try {
+      const workspace = join(dir, 'workspace')
+      const other = join(dir, 'other')
+      await Promise.all([mkdir(workspace), mkdir(other)])
+      await writeFile(join(workspace, '教案.md'), '# 教案', 'utf8')
+      await writeFile(join(other, '教案.md'), '# 教案', 'utf8')
+      const artifactRegistry = new ArtifactRegistry({ dataDirectory: join(dir, 'data') })
+      registerAppIpcHandlers(registerOptions({
+        artifactRegistry,
+        store: { load: vi.fn(async () => ({ ...settings(), workspaceRoot: workspace })) } as never
+      }))
+      const input = (root: string) => ({
+        kind: 'lesson-plan',
+        title: '第八章教案',
+        toolId: 'syllabus',
+        workspaceRoot: root,
+        storage: { type: 'file', path: join(root, '教案.md') }
+      })
+
+      await expect(handlers.get('artifact:register')?.({}, input(workspace))).resolves.toMatchObject({
+        title: '第八章教案',
+        currentVersion: 0
+      })
+      await expect(handlers.get('artifact:register')?.({}, input(other))).rejects.toThrow(/workspace must be selected or configured/iu)
+      await expect(handlers.get('artifact:register')?.({}, { ...input(workspace), kind: 'spreadsheet' })).rejects.toThrow()
+      await expect(handlers.get('artifact:list')?.({}, { toolId: 'syllabus' })).resolves.toMatchObject([
+        { title: '第八章教案', available: true }
+      ])
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

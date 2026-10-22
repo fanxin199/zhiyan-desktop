@@ -52,6 +52,13 @@ import type {
   WriteRichClipboardResult
 } from './write-export'
 import type {
+  ArtifactListInput,
+  ArtifactListItem,
+  ArtifactRecord,
+  ArtifactRegisterInput,
+  ArtifactUpdateInput
+} from './artifact'
+import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
   CoursewareExportResult,
@@ -197,6 +204,11 @@ export type DsGuiApi = {
   inspectPdf: (path: string) => Promise<PdfInspectResult>
   analyzeCoursewareSource: (path: string) => Promise<CoursewareSourceAnalysisResult>
   loadCoursewareProject: (path: string) => Promise<CoursewareProject>
+  /** Records a saved deliverable in the artifact registry; the file must be inside an authorized workspace. */
+  registerArtifact: (input: ArtifactRegisterInput) => Promise<ArtifactRecord>
+  updateArtifact: (input: ArtifactUpdateInput) => Promise<ArtifactRecord>
+  getArtifact: (id: string) => Promise<ArtifactListItem | null>
+  listArtifacts: (filter?: ArtifactListInput) => Promise<ArtifactListItem[]>
   extractPdfRange: (
     path: string,
     pageStart: number,

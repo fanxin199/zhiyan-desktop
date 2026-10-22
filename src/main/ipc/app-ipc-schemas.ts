@@ -43,6 +43,12 @@ import {
   evidenceRefSchema
 } from '../../shared/courseware'
 import {
+  artifactIdInputSchema,
+  artifactListInputSchema,
+  artifactRegisterInputSchema,
+  artifactUpdateInputSchema
+} from '../../shared/artifact'
+import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
   textbookFormatRulesParseInputSchema,
@@ -873,6 +879,11 @@ export const textbookSectionRevisionPayloadSchema = textbookSectionRevisionInput
 export const textbookCheckPayloadSchema = textbookCheckInputSchema
 export const textbookExportPayloadSchema = textbookExportInputSchema
 export const textbookLoadProjectPayloadSchema = textbookLoadProjectInputSchema
+
+export const artifactRegisterPayloadSchema = artifactRegisterInputSchema
+export const artifactUpdatePayloadSchema = artifactUpdateInputSchema
+export const artifactListPayloadSchema = artifactListInputSchema
+export const artifactIdPayloadSchema = artifactIdInputSchema
 
 export const logErrorPayloadSchema = z
   .object({
