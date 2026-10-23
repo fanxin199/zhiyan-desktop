@@ -45,12 +45,24 @@ import {
   type NormalizedCrop
 } from '../../lib/pdf-page-image'
 import { loadCoursewareContextDefaults } from '../../lib/module-context'
-import {
-  focusFirstMissingRequirement,
-  MissingRequirementsHint,
-  type MissingRequirement
-} from './missing-requirements'
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
+import { requestIntentBrief } from '../../lib/intent-context'
+import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
+import { rendererRuntimeClient } from '../../agent/runtime-client'
+import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
+import { startWorkflowRun, type WorkflowMode, type WorkflowRunState } from '@shared/workflow'
+import { AiWorkExamples } from '../ai-work/AiWorkPage'
+import { IntentBriefChips } from '../ai-work/IntentBriefChips'
+import { IntentComposer } from '../ai-work/IntentComposer'
+import { WorkflowProgress } from '../ai-work/WorkflowProgress'
+import {
+  LONG_DECK_SLIDES,
+  coursewareRequestFromBrief,
+  speakerNotesChanged,
+  visualReviewMessage,
+  visualReviewSummary,
+  withRegeneratedNotes
+} from './courseware-flow'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
@@ -61,63 +73,24 @@ type CoursewarePageProps = {
   prefill?: ToolPrefill
 }
 
-type Step = 'request' | 'blueprint' | 'slides'
+type Step = 'start' | 'blueprint' | 'slides'
 type BusyAction = 'source' | 'blueprint' | 'slides' | 'regenerate' | 'figure' | 'export' | null
-type CoursewareWorkflowStepId = 'upload' | 'analysis' | 'visual-review' | 'generation'
+type ReviseScope = 'slide' | 'deck'
 
-type CoursewareWorkflowState = {
-  step: Step
-  busy: BusyAction
-  hasSource: boolean
-  hasBlueprint: boolean
-  hasSlides: boolean
-  hasVisuals: boolean
-}
-
-const COURSEWARE_WORKFLOW_STEPS: Array<{
-  id: CoursewareWorkflowStepId
-  marker: string
+/** The last AI change to the slides, kept until the teacher keeps or undoes it (Tasks 2.3.3–2.3.4). */
+type DeckChange = {
+  before: SlideSpec[]
   label: string
-  description: string
-}> = [
-  {
-    id: 'upload',
-    marker: '1',
-    label: '上传教材',
-    description: '选择 PDF 或 PPTX'
-  },
-  {
-    id: 'analysis',
-    marker: '2',
-    label: 'AI 分析',
-    description: '提取文字并生成蓝图'
-  },
-  {
-    id: 'visual-review',
-    marker: '3',
-    label: '图片审核',
-    description: '保留可用于课件的原图'
-  },
-  {
-    id: 'generation',
-    marker: '4',
-    label: '生成课件',
-    description: '逐页复核并导出'
-  }
-]
-
-export function getCoursewareWorkflowStepIndex(state: CoursewareWorkflowState): number {
-  if (state.busy === 'slides' || state.busy === 'export' || state.step === 'slides' || state.hasSlides) {
-    return 3
-  }
-  if (state.hasSource && state.hasVisuals && !state.hasBlueprint && state.busy !== 'blueprint') {
-    return 2
-  }
-  if (state.busy === 'source' || state.busy === 'blueprint' || state.step === 'blueprint' || state.hasBlueprint || state.hasSource) {
-    return 1
-  }
-  return 0
+  changed: number
+  notesUpdated: number
+  failed: number[]
 }
+
+export const COURSEWARE_EXAMPLES = [
+  '根据这本教材第八章做一套 90 分钟的呼吸系统课件，给临床医学本科生',
+  '做一套 T 细胞活化的课件，研究生，多放机制图',
+  '用这份 PPT 改成 45 分钟的复习课，突出考点'
+]
 
 const AUDIENCE_PRESETS: Array<{
   id: CoursewareAudience
@@ -197,7 +170,7 @@ function SlidePreview({ slide, selected }: { slide: SlideSpec; selected: boolean
 }
 
 export function CoursewarePage({ className = '', prefill }: CoursewarePageProps): ReactElement {
-  const [step, setStep] = useState<Step>('request')
+  const [step, setStep] = useState<Step>('start')
   const [busy, setBusy] = useState<BusyAction>(null)
   const [message, setMessage] = useState('')
   const [warning, setWarning] = useState('')
@@ -229,9 +202,22 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     literatureQuery: '',
     maxLiteratureResults: 6
   })
-  // A request from the AI assistant goes into the teaching focus; topic and textbook are still chosen here.
+  const [input, setInput] = useState(prefill?.text ?? '')
+  const [brief, setBrief] = useState<IntentBrief | null>(null)
+  const [run, setRun] = useState<WorkflowRunState | null>(null)
+  const [mode, setMode] = useState<WorkflowMode>('auto')
+  const [reviewIds, setReviewIds] = useState<string[]>([])
+  const [reviseScope, setReviseScope] = useState<ReviseScope>('slide')
+  const [reviseProgress, setReviseProgress] = useState<{ done: number; total: number } | null>(null)
+  const [deckChange, setDeckChange] = useState<DeckChange | null>(null)
+  // Slides edited by hand since their notes were written.
+  const [staleNotes, setStaleNotes] = useState<Set<string>>(new Set())
+  const runner = useRef<WorkflowRunner | null>(null)
+  const briefRef = useRef<IntentBrief | null>(null)
+  const sentenceRef = useRef('')
+  // A request from the AI assistant fills the input box once per request.
   useEffect(() => {
-    if (prefill) setRequest((current) => ({ ...current, focus: prefill.text }))
+    if (prefill) setInput(prefill.text)
   }, [prefill])
 
   const [figurePage, setFigurePage] = useState(1)
@@ -245,22 +231,24 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
 
   const activeSlide = slides[activeSlideIndex] ?? null
   const totalSlides = sectionSlideTotal(blueprint)
-  const workflowStepIndex = getCoursewareWorkflowStepIndex({
-    step,
-    busy,
-    hasSource: Boolean(sourceDocument || request.sourcePath),
-    hasBlueprint: Boolean(blueprint),
-    hasSlides: slides.length > 0,
-    hasVisuals: sourceVisuals.length > 0
-  })
-  const canGenerateBlueprint = Boolean(
-    request.sourcePath && request.topic.trim() && request.pageEnd >= request.pageStart
-  )
-  const blueprintMissing: MissingRequirement[] = [
-    ...(!request.sourcePath ? [{ label: '选择教材', targetId: 'courseware-source' }] : []),
-    ...(!request.topic.trim() ? [{ label: '填写授课主题', targetId: 'courseware-topic' }] : [])
-  ]
-  const [showBlueprintMissing, setShowBlueprintMissing] = useState(false)
+  // The flow's stages run before React re-renders, so they read the latest values from refs; these
+  // follow every render and are also set directly when a stage produces a new value.
+  const requestRef = useRef(request)
+  const sourceTextRef = useRef(sourceText)
+  const evidenceRef = useRef(evidence)
+  const blueprintRef = useRef(blueprint)
+  const visualsRef = useRef(sourceVisuals)
+  requestRef.current = request
+  sourceTextRef.current = sourceText
+  evidenceRef.current = evidence
+  blueprintRef.current = blueprint
+  visualsRef.current = sourceVisuals
+
+  useEffect(() => {
+    void rendererRuntimeClient.getSettings()
+      .then((settings) => setMode(settings.workflowMode === 'step' ? 'step' : 'auto'))
+      .catch(() => undefined)
+  }, [])
 
   const audienceLabel = useMemo(
     () => AUDIENCE_PRESETS.find((preset) => preset.id === request.audience)?.label ?? '',
@@ -385,70 +373,76 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     }
   }
 
-  async function createBlueprint(extraInstruction = ''): Promise<void> {
-    if (!canGenerateBlueprint) {
-      setMessage('请选择 PDF 或 PPTX 教材，并填写授课主题。')
-      return
+  /** Returns the failure message, or null when the outline was made. */
+  async function createBlueprint(extraInstruction = ''): Promise<string | null> {
+    const current = requestRef.current
+    if (!(current.sourcePath && current.topic.trim() && current.pageEnd >= current.pageStart)) {
+      const failure = '请选择 PDF 或 PPTX 教材，并说明授课主题。'
+      setMessage(failure)
+      return failure
     }
     setBusy('blueprint')
     setMessage('')
     setWarning('')
     try {
-      if (!sourceText.trim()) {
-        setMessage('教材中没有可用于生成课件的文字，请更换可搜索文件或先完成 OCR。')
-        return
+      if (!sourceTextRef.current.trim()) {
+        const failure = '教材中没有可用于生成课件的文字，请更换可搜索文件或先完成 OCR。'
+        setMessage(failure)
+        return failure
       }
-      setFigurePage(request.pageStart)
+      setFigurePage(current.pageStart)
 
-      let records: EvidenceRef[] = evidence
-      if (request.includeRecentLiterature) {
+      let records: EvidenceRef[] = []
+      if (current.includeRecentLiterature) {
         const literature = await window.dsGui.searchPubMed({
-          query: request.literatureQuery?.trim() || request.topic,
-          maxResults: request.maxLiteratureResults,
+          query: current.literatureQuery?.trim() || current.topic,
+          maxResults: current.maxLiteratureResults,
           minYear: new Date().getFullYear() - 5
         })
         if (literature.ok) {
           records = literature.records
-          setEvidence(records)
           if (records.length === 0) setWarning('PubMed 未检索到匹配记录，已按教材内容继续生成。')
         } else {
-          records = []
-          setEvidence([])
           setWarning(`PubMed 暂时不可用，已按教材内容继续生成：${literature.message}`)
         }
-      } else {
-        records = []
-        setEvidence([])
       }
+      evidenceRef.current = records
+      setEvidence(records)
 
       const adjustedRequest = extraInstruction.trim()
         ? {
-            ...request,
-            focus: [request.focus, `教师本次调整要求：${extraInstruction}`].filter(Boolean).join('\n')
+            ...current,
+            focus: [current.focus, `教师本次调整要求：${extraInstruction}`].filter(Boolean).join('\n')
           }
-        : request
+        : current
       const result = await window.dsGui.generateCoursewareBlueprint({
         request: adjustedRequest,
-        sourceText,
+        sourceText: sourceTextRef.current,
         evidence: records
       })
       if (!result.ok) {
         setMessage(result.message)
-        return
+        return result.message
       }
+      blueprintRef.current = result.blueprint
       setBlueprint(result.blueprint)
       setStep('blueprint')
       setBlueprintInstruction('')
-      if (result.repaired) setWarning('模型输出已自动修复并通过结构校验，请复核蓝图。')
+      if (result.repaired) setWarning('模型输出已自动修复并通过结构校验，请复核课件框架。')
+      return null
     } catch (error) {
-      setMessage(errorMessage(error))
+      const failure = errorMessage(error)
+      setMessage(failure)
+      return failure
     } finally {
       setBusy(null)
     }
   }
 
-  async function generateSlides(): Promise<void> {
-    if (!blueprint || !sourceText) return
+  /** Returns the failure message, or null when the slides were written. */
+  async function generateSlides(): Promise<string | null> {
+    const currentBlueprint = blueprintRef.current
+    if (!currentBlueprint || !sourceTextRef.current) return '还没有课件框架。'
     const generationId = crypto.randomUUID()
     slideGenerationId.current = generationId
     setSlideGenerationProgress(null)
@@ -456,10 +450,10 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     setMessage('')
     try {
       const result = await window.dsGui.generateCoursewareSlides({
-        request,
-        blueprint,
-        sourceText,
-        evidence,
+        request: requestRef.current,
+        blueprint: currentBlueprint,
+        sourceText: sourceTextRef.current,
+        evidence: evidenceRef.current,
         generationId
       })
       if (!result.ok) {
@@ -467,11 +461,13 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
         setSlideGenerationProgress(null)
         setStep('blueprint')
         setMessage(result.message)
-        return
+        return result.message
       }
-      const assigned = assignApprovedVisualsToSlides(result.value, sourceVisuals)
+      const assigned = assignApprovedVisualsToSlides(result.value, visualsRef.current)
       setSlides(assigned.slides)
       setActiveSlideIndex(0)
+      setStaleNotes(new Set())
+      setDeckChange(null)
       setStep('slides')
       if (assigned.unmatchedAssetIds.length > 0) {
         setWarning(`有 ${assigned.unmatchedAssetIds.length} 张已保留图片尚未匹配页面，可在逐页复核时手工指定。`)
@@ -483,16 +479,148 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
       } else if (result.repaired) {
         setWarning('部分逐页内容已自动修复格式，请重点复核讲稿和引用。')
       }
+      return null
     } catch (error) {
-      setMessage(errorMessage(error))
+      const failure = errorMessage(error)
+      setMessage(failure)
+      return failure
     } finally {
       slideGenerationId.current = null
       setBusy(null)
     }
   }
 
-  async function regenerateActiveSlide(): Promise<void> {
-    if (!activeSlide || !blueprint || !slideInstruction.trim()) return
+  const showBrief = (next: IntentBrief): void => {
+    briefRef.current = next
+    setBrief(next)
+  }
+
+  /** One sentence and a textbook: read the key points, check images, outline, write slides (Task 2.3.2). */
+  async function startFlow(): Promise<void> {
+    const sentence = input.trim()
+    if (!requestRef.current.sourcePath || !sourceTextRef.current.trim()) {
+      setMessage('请先选择教材 PDF 或 PPTX，课件内容以教材为依据。')
+      return
+    }
+    sentenceRef.current = sentence
+    setMessage('')
+    setWarning('')
+    const sourceName = requestRef.current.sourcePath.split(/[\\/]/).pop() ?? '教材'
+    const flow = createWorkflowRunner({
+      initial: startWorkflowRun(`ppt-gen-${Date.now()}`, 'ppt-gen', mode, new Date().toISOString()),
+      onChange: setRun,
+      handlers: {
+        read: async () => {
+          const outcome = await requestIntentBrief('ppt-gen', sentence, [{ name: sourceName, text: sourceTextRef.current }])
+          if (!outcome.ok) throw new Error(outcome.message)
+          showBrief(outcome.brief)
+          const next = coursewareRequestFromBrief(requestRef.current, outcome.brief, sentence)
+          requestRef.current = next
+          setRequest(next)
+          if (outcome.brief.missing.length > 0) {
+            return { checkpoint: { kind: 'missing-required', message: outcome.brief.question ?? '还缺少必要的要点，请在上方补充。' } }
+          }
+        },
+        images: async () => {
+          const review = visualReviewSummary(visualsRef.current)
+          setReviewIds(review.uncertainIds)
+          if (review.uncertainIds.length > 0) {
+            return { checkpoint: { kind: 'uncertain-image', message: visualReviewMessage(review) } }
+          }
+        },
+        outline: async () => {
+          const failure = await createBlueprint()
+          if (failure) throw new Error(failure)
+          return {
+            checkpoint: { kind: 'outline', message: '课件框架已生成，可以调整各环节和页数后继续。' },
+            longContent: sectionSlideTotal(blueprintRef.current) > LONG_DECK_SLIDES
+          }
+        },
+        slides: async () => {
+          const failure = await generateSlides()
+          if (failure) throw new Error(failure)
+        },
+        ready: async () => {
+          setStep('slides')
+        }
+      }
+    })
+    runner.current = flow
+    await flow.run()
+  }
+
+  function continueFlow(): void {
+    const flow = runner.current
+    if (!flow) return
+    if (briefRef.current && briefRef.current.missing.length > 0) {
+      setMessage('请先在要点里补充标为“待补充”的内容。')
+      return
+    }
+    setMessage('')
+    void flow.run()
+  }
+
+  function restartFlow(): void {
+    runner.current?.stop()
+    runner.current = null
+    setRun(null)
+    setBrief(null)
+    briefRef.current = null
+    setReviewIds([])
+    setStep('start')
+  }
+
+  /** Applies one sentence to the current slide or to every slide, as one change to keep or undo. */
+  async function reviseSlides(instruction: string): Promise<void> {
+    if (!blueprint || !instruction.trim() || slides.length === 0) return
+    const targets = reviseScope === 'deck' ? slides.map((_, index) => index) : [activeSlideIndex]
+    const before = slides
+    let next = slides
+    let notesUpdated = 0
+    let changed = 0
+    const failed: number[] = []
+    setBusy('regenerate')
+    setMessage('')
+    try {
+      for (const [done, index] of targets.entries()) {
+        setReviseProgress({ done, total: targets.length })
+        const result = await window.dsGui.regenerateCoursewareSlide({
+          request,
+          blueprint,
+          sourceText,
+          evidence,
+          slide: next[index],
+          instruction
+        })
+        if (!result.ok) {
+          failed.push(index + 1)
+          continue
+        }
+        if (speakerNotesChanged(next[index], result.value)) notesUpdated += 1
+        changed += 1
+        next = next.map((slide, slideIndex) => slideIndex === index ? result.value : slide)
+        setSlides(next)
+      }
+      const updatedIds = new Set(targets.filter((index) => !failed.includes(index + 1)).map((index) => next[index].id))
+      setStaleNotes((current) => new Set([...current].filter((id) => !updatedIds.has(id))))
+      setDeckChange({
+        before,
+        label: reviseScope === 'deck' ? '整套课件' : `第 ${activeSlideIndex + 1} 页`,
+        changed,
+        notesUpdated,
+        failed
+      })
+    } catch (error) {
+      setMessage(errorMessage(error))
+    } finally {
+      setReviseProgress(null)
+      setBusy(null)
+    }
+  }
+
+  /** Rewrites the current slide's notes from its content after the teacher edited it by hand. */
+  async function refreshActiveNotes(): Promise<void> {
+    if (!activeSlide || !blueprint) return
     setBusy('regenerate')
     setMessage('')
     try {
@@ -502,16 +630,18 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
         sourceText,
         evidence,
         slide: activeSlide,
-        instruction: slideInstruction
+        instruction: '页面标题、正文和配图保持不变，只根据当前正文重写本页讲稿。'
       })
       if (!result.ok) {
         setMessage(result.message)
         return
       }
+      const before = slides
       setSlides((current) => current.map((slide, index) =>
-        index === activeSlideIndex ? result.value : slide
+        index === activeSlideIndex ? withRegeneratedNotes(slide, result.value) : slide
       ))
-      setSlideInstruction('')
+      setStaleNotes((current) => new Set([...current].filter((id) => id !== activeSlide.id)))
+      setDeckChange({ before, label: `第 ${activeSlideIndex + 1} 页的讲稿`, changed: 1, notesUpdated: 1, failed: [] })
     } catch (error) {
       setMessage(errorMessage(error))
     } finally {
@@ -629,6 +759,10 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     setSlides((current) => current.map((slide, index) =>
       index === activeSlideIndex ? { ...slide, ...patch } : slide
     ))
+    // Hand edits to the content leave the notes behind until they are rewritten.
+    if (activeSlide && (patch.title !== undefined || patch.bullets !== undefined)) {
+      setStaleNotes((current) => new Set(current).add(activeSlide.id))
+    }
   }
 
   async function loadFigurePage(): Promise<void> {
@@ -724,11 +858,12 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
 
   return (
     <div className={`h-full overflow-y-auto bg-ds-main ${className}`}>
-      <PageColumn width="work" className="py-8">
+      {/* The start state is a start page (§5.3); outline and slides need the work width. */}
+      <PageColumn width={step === 'start' ? 'start' : 'work'} className="py-8">
         <PageHeader
           module="ppt-gen"
-          title="课件 PPT 生成"
-          description="先确认教学蓝图，再生成可编辑 PPT、逐页备注和 Word 讲稿"
+          title="课件"
+          description="说一句要讲什么，选好教材；AI 读出要点后自动生成框架、逐页内容和讲稿，之后可以逐页或整套修改。"
           actions={
             <button
               type="button"
@@ -742,48 +877,26 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
           }
         />
 
-        <nav
-          aria-label="课件生成流程"
-          className="mb-6 rounded-2xl border border-ds-border-muted bg-ds-card px-3 py-3 shadow-sm sm:px-4"
-        >
-          <ol className="grid gap-2 md:grid-cols-4">
-            {COURSEWARE_WORKFLOW_STEPS.map((item, index) => {
-              const completed = index < workflowStepIndex
-              const active = index === workflowStepIndex
-              return (
-                <li
-                  key={item.id}
-                  aria-current={active ? 'step' : undefined}
-                  className={`rounded-xl border px-3 py-2.5 transition ${
-                    active
-                      ? 'border-accent/50 bg-accent/10 shadow-sm ring-1 ring-accent/20'
-                      : completed
-                        ? 'border-accent/20 bg-accent/5'
-                        : 'border-transparent bg-ds-subtle/70'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-caption font-bold ${
-                      completed || active ? 'bg-accent text-white' : 'bg-ds-card text-ds-faint'
-                    }`}>
-                      {completed ? <Check className="h-4 w-4" /> : item.marker}
-                    </span>
-                    <span className="min-w-0">
-                      <span className={`block text-small font-semibold ${
-                        completed || active ? 'text-ds-text' : 'text-ds-muted'
-                      }`}>
-                        {item.label}
-                      </span>
-                      <span className="mt-0.5 block truncate text-caption text-ds-faint">
-                        {item.description}
-                      </span>
-                    </span>
-                  </div>
-                </li>
-              )
-            })}
-          </ol>
-        </nav>
+        {run ? (
+          <div className="mb-5 space-y-3">
+            {brief ? (
+              <IntentBriefChips
+                brief={brief}
+                onChange={(key, value) => {
+                  const next = updateIntentField(briefRef.current ?? brief, key, value)
+                  showBrief(next)
+                  setRequest((current) => coursewareRequestFromBrief(current, next, sentenceRef.current))
+                }}
+              />
+            ) : null}
+            <WorkflowProgress state={run} onStop={() => runner.current?.stop()} onContinue={continueFlow} />
+            {run.status === 'stopped' || run.status === 'failed' ? (
+              <button type="button" onClick={restartFlow} className="text-small text-ds-muted underline-offset-2 hover:text-ds-ink hover:underline">
+                重新开始
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {(message || warning) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-small ${
@@ -795,220 +908,107 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
           </div>
         )}
 
-        {step === 'request' && (
-          <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-            <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
-              <h2 className="mb-5 flex items-center gap-2 text-heading font-bold text-ds-text">
-                <BookOpen className="h-5 w-5 text-accent" />
-                教材与授课任务
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <span className={labelClass}>教材 PDF / PPTX</span>
-                  <button
-                    id="courseware-source"
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => void chooseSource()}
-                    className="flex w-full items-center gap-3 rounded-xl border border-dashed border-ds-border bg-ds-subtle px-4 py-4 text-left transition hover:border-accent"
-                  >
-                    <Upload className="h-5 w-5 shrink-0 text-accent" />
-                    <span className="min-w-0">
-                      <span className="block text-small font-semibold text-ds-text">
-                        {busy === 'source'
-                          ? '正在分析教材文字与图片…'
-                          : request.sourcePath ? '已选择教材' : '选择 PDF 或 PPTX 教材'}
-                      </span>
-                      <span className="block truncate text-caption text-ds-muted">
-                        {request.sourcePath
-                          ? `${request.sourcePath} · 共 ${pageCount || request.pageEnd} 页`
-                          : '将自动提取文字，并识别可用于新课件的原图'}
-                      </span>
-                    </span>
-                  </button>
-                </div>
-                <div>
-                  <label>
-                    <span className={labelClass}>授课主题</span>
-                    <input
-                      id="courseware-topic"
-                      value={request.topic}
-                      onChange={(event) => setRequest((current) => ({
-                        ...current,
-                        topic: event.target.value
-                      }))}
-                      placeholder="例如：T 细胞活化与效应分化"
-                      className={fieldClass}
-                    />
-                  </label>
-                </div>
-                <div className="grid gap-3 md:grid-cols-[160px_1fr]">
-                  <label>
-                    <span className={labelClass}>课时（分钟）</span>
-                    <input
-                      type="number"
-                      min={20}
-                      max={600}
-                      value={request.durationMinutes}
-                      onChange={(event) => setRequest((current) => ({
-                        ...current,
-                        durationMinutes: Number(event.target.value)
-                      }))}
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label>
-                    <span className={labelClass}>本次教学重点</span>
-                    <input
-                      value={request.focus}
-                      onChange={(event) => setRequest((current) => ({
-                        ...current,
-                        focus: event.target.value
-                      }))}
-                      placeholder="例如：突出血压调节的机制链，并加入高血压临床案例"
-                      className={fieldClass}
-                    />
-                  </label>
-                </div>
-              </div>
-            </section>
-
-            <aside className="space-y-5">
-              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
-                <h2 className="mb-3 text-body font-bold text-ds-text">授课对象</h2>
-                <div className="space-y-2">
-                  {AUDIENCE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => setRequest((current) => ({ ...current, audience: preset.id }))}
-                      className={`w-full rounded-xl border px-3.5 py-3 text-left transition ${
-                        request.audience === preset.id
-                          ? 'border-accent bg-accent/5'
-                          : 'border-ds-border-muted hover:border-accent/40'
-                      }`}
-                    >
-                      <span className="block text-small font-semibold text-ds-text">{preset.label}</span>
-                      <span className="mt-0.5 block text-caption leading-relaxed text-ds-muted">
-                        {preset.description}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
-                <label className="flex cursor-pointer items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={request.includeRecentLiterature}
-                    onChange={(event) => setRequest((current) => ({
-                      ...current,
-                      includeRecentLiterature: event.target.checked
-                    }))}
-                    className="mt-0.5 h-4 w-4 accent-[var(--ds-accent)]"
-                  />
-                  <span>
-                    <span className="block text-small font-semibold text-ds-text">补充最近 5 年进展</span>
-                    <span className="mt-0.5 block text-caption leading-relaxed text-ds-muted">
-                      从 PubMed 获取真实题录和摘要，并在课件中标注 PMID/DOI 与证据范围。
-                    </span>
-                  </span>
-                </label>
-                {request.includeRecentLiterature && (
-                  <input
-                    value={request.literatureQuery ?? ''}
-                    onChange={(event) => setRequest((current) => ({
-                      ...current,
-                      literatureQuery: event.target.value
-                    }))}
-                    placeholder={`检索词，留空则使用“${request.topic || '授课主题'}”`}
-                    className={`${fieldClass} mt-3`}
-                  />
-                )}
-              </section>
-            </aside>
-
-            {sourceVisuals.length > 0 && (
-              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm lg:col-span-2">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-body font-bold text-ds-text">教材图片审核</h2>
-                    <p className="mt-1 text-caption text-ds-muted">
-                      已自动排除重复徽标和小装饰图。仅“保留”的图片会进入新课件。
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-ds-subtle px-3 py-1 text-caption text-ds-muted">
-                    保留 {sourceVisuals.filter((asset) => asset.status === 'approved').length} /
-                    共 {sourceVisuals.length} 张
-                  </span>
-                </div>
-                <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {sourceVisuals.map((asset) => (
-                    <article
-                      key={asset.id}
-                      className={`overflow-hidden rounded-xl border ${
-                        asset.status === 'approved'
-                          ? 'border-accent/50 bg-accent/5'
-                          : 'border-ds-border-muted bg-ds-subtle opacity-70'
-                      }`}
-                    >
-                      {asset.imageDataUrl && (
-                        <img
-                          src={asset.imageDataUrl}
-                          alt={asset.caption || asset.sourceName || '教材图片'}
-                          className="h-32 w-full bg-slide-paper object-contain"
-                        />
-                      )}
-                      <div className="p-3">
-                        <p className="line-clamp-2 text-caption font-semibold text-ds-text">
-                          {asset.caption || asset.sourceName || '未命名教材图片'}
-                        </p>
-                        <p className="mt-1 text-caption text-ds-muted">
-                          {asset.sourceKind === 'pptx' ? '原PPT' : 'PDF'} 第 {asset.sourceIndex} 页
-                          {asset.occurrences.length > 1 ? ` · 出现 ${asset.occurrences.length} 次` : ''}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setSourceVisuals((current) => current.map((item) =>
-                            item.id === asset.id
-                              ? {
-                                  ...item,
-                                  status: item.status === 'approved' ? 'rejected' : 'approved',
-                                  role: item.role === 'decorative' ? 'figure' : item.role
-                                }
-                              : item
-                          ))}
-                          className="mt-2 w-full rounded-lg border border-ds-border px-2 py-1.5 text-caption font-semibold text-ds-text"
-                        >
-                          {asset.status === 'approved' ? '排除这张图' : '保留这张图'}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-
+        {step === 'start' && !run && (
+          <div className="space-y-4">
+            <IntentComposer
+              value={input}
+              onChange={setInput}
+              onSubmit={() => void startFlow()}
+              placeholder="例如：根据这本教材第八章做一套 90 分钟的课件，给临床医学本科生"
+              busy={busy === 'source'}
+              allowEmpty
+              autoFocus
+            />
             <button
               type="button"
               disabled={busy !== null}
-              onClick={() => {
-                if (blueprintMissing.length > 0) {
-                  setShowBlueprintMissing(true)
-                  focusFirstMissingRequirement(blueprintMissing)
-                  return
-                }
-                void createBlueprint()
-              }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-body font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:col-span-2"
+              onClick={() => void chooseSource()}
+              className="flex w-full items-center gap-3 rounded-xl border border-dashed border-ds-border bg-ds-subtle px-4 py-3 text-left transition hover:border-accent"
             >
-              {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {busy === 'blueprint' ? '正在生成课件蓝图…' : '生成课件蓝图'}
+              <Upload className="h-5 w-5 shrink-0 text-accent" />
+              <span className="min-w-0">
+                <span className="block text-small font-semibold text-ds-text">
+                  {busy === 'source'
+                    ? '正在读取教材文字与图片…'
+                    : request.sourcePath ? `教材：${request.sourcePath.split(/[\\/]/).pop()}` : '选择教材 PDF 或 PPTX'}
+                </span>
+                <span className="block truncate text-caption text-ds-muted">
+                  {request.sourcePath
+                    ? `共 ${pageCount || request.pageEnd} 页 · 点击可更换`
+                    : '课件内容以教材为依据，并会识别可用的原图'}
+                </span>
+              </span>
             </button>
-            {showBlueprintMissing ? (
-              <MissingRequirementsHint missing={blueprintMissing} className="text-center lg:col-span-2" />
-            ) : null}
+            <label className="flex cursor-pointer items-start gap-3 text-small text-ds-text">
+              <input
+                type="checkbox"
+                checked={request.includeRecentLiterature}
+                onChange={(event) => setRequest((current) => ({
+                  ...current,
+                  includeRecentLiterature: event.target.checked
+                }))}
+                className="mt-0.5 h-4 w-4 accent-[var(--ds-accent)]"
+              />
+              <span>
+                补充最近 5 年进展
+                <span className="block text-caption text-ds-muted">从 PubMed 获取真实题录，并在课件中标注 PMID/DOI。</span>
+              </span>
+            </label>
+            <AiWorkExamples examples={COURSEWARE_EXAMPLES} onSelect={setInput} />
           </div>
+        )}
+
+        {step === 'start' && run?.checkpoint?.kind === 'uncertain-image' && (
+          <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-5 shadow-sm">
+            <p className="mb-3 text-caption text-ds-muted">
+              以下图片 AI 不确定是否适合放进课件（可能是装饰图、版权不明或与内容匹配度低）。保留或排除后点“继续”。
+            </p>
+            <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+              {sourceVisuals.filter((asset) => reviewIds.includes(asset.id)).map((asset) => (
+                <article
+                  key={asset.id}
+                  className={`overflow-hidden rounded-xl border ${
+                    asset.status === 'approved'
+                      ? 'border-accent/50 bg-accent/5'
+                      : 'border-ds-border-muted bg-ds-subtle opacity-70'
+                  }`}
+                >
+                  {asset.imageDataUrl && (
+                    <img
+                      src={asset.imageDataUrl}
+                      alt={asset.caption || asset.sourceName || '教材图片'}
+                      className="h-32 w-full bg-slide-paper object-contain"
+                    />
+                  )}
+                  <div className="p-3">
+                    <p className="line-clamp-2 text-caption font-semibold text-ds-text">
+                      {asset.caption || asset.sourceName || '未命名教材图片'}
+                    </p>
+                    <p className="mt-1 text-caption text-ds-muted">
+                      {asset.sourceKind === 'pptx' ? '原PPT' : 'PDF'} 第 {asset.sourceIndex} 页
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSourceVisuals((current) => current.map((item) =>
+                        item.id === asset.id
+                          ? {
+                              ...item,
+                              status: item.status === 'approved' ? 'rejected' : 'approved',
+                              // A decision by the teacher is certain.
+                              confidence: 1,
+                              role: item.role === 'decorative' ? 'figure' : item.role
+                            }
+                          : item
+                      ))}
+                      className="mt-2 w-full rounded-lg border border-ds-border px-2 py-1.5 text-caption font-semibold text-ds-text"
+                    >
+                      {asset.status === 'approved' ? '排除这张图' : '保留这张图'}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
 
         {step === 'blueprint' && blueprint && (
@@ -1162,7 +1162,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
             </button>
 
             <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
-              <span className={labelClass}>用一句话调整整个蓝图</span>
+              <span className={labelClass}>用一句话调整整个框架</span>
               <div className="flex flex-col gap-2 md:flex-row">
                 <input
                   value={blueprintInstruction}
@@ -1185,16 +1185,17 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
               <button
                 type="button"
-                onClick={() => setStep('request')}
+                onClick={restartFlow}
                 className="flex items-center justify-center gap-2 rounded-xl border border-ds-border px-5 py-3 text-small font-semibold text-ds-text"
               >
                 <ArrowLeft className="h-4 w-4" />
-                返回修改教学任务
+                重新开始
               </button>
               <button
                 type="button"
                 disabled={blueprint.sections.length === 0 || busy !== null}
-                onClick={() => void generateSlides()}
+                // At the outline checkpoint the flow goes on from here; otherwise the slides are written now.
+                onClick={() => (run?.status === 'waiting' ? continueFlow() : void generateSlides())}
                 className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-body font-semibold text-white disabled:opacity-50"
               >
                 {busy === 'slides' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
@@ -1266,7 +1267,22 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                   />
                 </label>
                 <label className="mt-3 block">
-                  <span className={labelClass}>逐页讲稿 / PowerPoint 备注</span>
+                  <span className={`${labelClass} flex items-center gap-2`}>
+                    逐页讲稿 / PowerPoint 备注
+                    {staleNotes.has(activeSlide.id) ? (
+                      <button
+                        type="button"
+                        disabled={busy !== null}
+                        onClick={(event) => {
+                          event.preventDefault()
+                          void refreshActiveNotes()
+                        }}
+                        className="rounded-md border border-accent px-1.5 py-0.5 font-medium text-accent hover:bg-accent-soft disabled:opacity-50"
+                      >
+                        正文改过了，按正文更新讲稿
+                      </button>
+                    ) : null}
+                  </span>
                   <ResizableTextArea
                     value={activeSlide.speakerNotes}
                     onChange={(event) => updateActiveSlide({ speakerNotes: event.target.value })}
@@ -1308,25 +1324,66 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                 )}
               </section>
 
-              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
-                <span className={labelClass}>只重做当前页</span>
-                <div className="flex flex-col gap-2 md:flex-row">
-                  <input
-                    value={slideInstruction}
-                    onChange={(event) => setSlideInstruction(event.target.value)}
-                    placeholder="例如：改成三列机制图，减少文字，并补充一个 CTLA-4 相关临床提示"
-                    className={fieldClass}
-                  />
-                  <button
-                    type="button"
-                    disabled={!slideInstruction.trim() || busy !== null}
-                    onClick={() => void regenerateActiveSlide()}
-                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
-                  >
-                    {busy === 'regenerate' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                    重新生成本页
-                  </button>
+              <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm" aria-label="说一句就改">
+                <div className="mb-2 flex items-center gap-2 text-caption text-ds-muted">
+                  <span className="shrink-0">修改范围</span>
+                  {(['slide', 'deck'] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={reviseScope === value}
+                      onClick={() => setReviseScope(value)}
+                      className={`rounded-md border px-2 py-0.5 ${reviseScope === value ? 'border-accent bg-accent-soft text-accent-strong' : 'border-ds-border text-ds-text'}`}
+                    >
+                      {value === 'slide' ? `第 ${activeSlideIndex + 1} 页` : `整套课件（${slides.length} 页）`}
+                    </button>
+                  ))}
                 </div>
+                <IntentComposer
+                  variant="panel"
+                  value={slideInstruction}
+                  onChange={setSlideInstruction}
+                  onSubmit={() => {
+                    const instruction = slideInstruction.trim()
+                    if (!instruction) return
+                    setSlideInstruction('')
+                    void reviseSlides(instruction)
+                  }}
+                  placeholder={reviseScope === 'deck' ? '例如：每页文字不超过 5 行' : '例如：改成三列机制图，减少文字'}
+                  busy={busy === 'regenerate'}
+                />
+                {reviseProgress ? (
+                  <p role="status" className="mt-2 flex items-center gap-2 text-small text-ds-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    正在修改第 {reviseProgress.done + 1} / {reviseProgress.total} 页……
+                  </p>
+                ) : null}
+                {deckChange && !reviseProgress ? (
+                  <div className="mt-3 rounded-xl border border-ds-border-muted bg-ds-subtle px-3 py-2 text-small text-ds-text">
+                    <p className="font-semibold">
+                      已修改{deckChange.label}：{deckChange.changed} 页
+                      {deckChange.notesUpdated > 0 ? `，讲稿同步更新 ${deckChange.notesUpdated} 页` : ''}
+                    </p>
+                    {deckChange.failed.length > 0 ? (
+                      <p className="mt-0.5 text-caption text-ds-danger">第 {deckChange.failed.join('、')} 页没有改成，保持原样。</p>
+                    ) : null}
+                    <div className="mt-2 flex gap-2">
+                      <button type="button" onClick={() => setDeckChange(null)} className="rounded-lg bg-accent px-3 py-1 text-caption font-semibold text-white">
+                        保留
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSlides(deckChange.before)
+                          setDeckChange(null)
+                        }}
+                        className="rounded-lg border border-ds-border px-3 py-1 text-caption font-semibold text-ds-text"
+                      >
+                        撤销
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </section>
             </main>
 
@@ -1489,7 +1546,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-ds-border px-4 py-2.5 text-caption font-semibold text-ds-muted"
               >
                 <ArrowLeft className="h-4 w-4" />
-                返回蓝图
+                返回框架
               </button>
             </aside>
           </div>
