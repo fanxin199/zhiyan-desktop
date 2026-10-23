@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Settings, Sparkles } from 'lucide-react'
+import { ListTodo, Settings, Sparkles } from 'lucide-react'
 import type { SettingsRouteSection } from '../../store/chat-store'
 import {
   SidebarCommandRow,
@@ -20,6 +20,10 @@ type ZhiYanSidebarProps = {
   /** Opens or closes the AI assistant, which works over any page. */
   onOpenAssistant?: () => void
   assistantOpen?: boolean
+  /** 任务中心 for “一句话做整套” (Task 3.5.2). */
+  onOpenTasks?: () => void
+  tasksOpen?: boolean
+  activeTaskCount?: number
 }
 
 function SectionLabel({ label }: { label: string }): ReactElement {
@@ -31,7 +35,10 @@ function SectionLabel({ label }: { label: string }): ReactElement {
 }
 
 export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
-  const { activeRoute, onOpenModule, onOpenSettings, onToggleSidebar, onOpenAssistant, assistantOpen = false } = props
+  const {
+    activeRoute, onOpenModule, onOpenSettings, onToggleSidebar, onOpenAssistant, assistantOpen = false,
+    onOpenTasks, tasksOpen = false, activeTaskCount = 0
+  } = props
   const { t } = useTranslation('common')
   const sectionLabels = Object.fromEntries(
     ZHIYAN_MODULE_SECTIONS.map((section) => [section.id, section.label])
@@ -51,6 +58,15 @@ export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
               label="AI 助手"
               onClick={onOpenAssistant}
               active={assistantOpen}
+              variant="footer"
+            />
+          ) : null}
+          {onOpenTasks ? (
+            <SidebarCommandRow
+              icon={<ListTodo className="h-4 w-4" strokeWidth={1.75} />}
+              label={activeTaskCount > 0 ? `任务中心（${activeTaskCount}）` : '任务中心'}
+              onClick={onOpenTasks}
+              active={tasksOpen}
               variant="footer"
             />
           ) : null}

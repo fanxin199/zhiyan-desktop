@@ -64,12 +64,14 @@ function contextWithoutProject(
 export async function requestIntentBrief(
   toolId: IntentToolId,
   text: string,
-  materials: Array<{ name: string; text: string }> = []
+  materials: Array<{ name: string; text: string }> = [],
+  /** The project to read from; the active one when not given (background tasks pass their own). */
+  projectId: string | null = useActiveProjectStore.getState().projectId
 ): ReturnType<Window['dsGui']['extractIntentBrief']> {
   let context: ContextLayers = {}
   try {
     const settings = await rendererRuntimeClient.getSettings({ forceRefresh: true })
-    const project = findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId)
+    const project = findTeacherProject(settings.teacherProjects, projectId)
     context = intentContextFromSettings(toolId, settings, project)
   } catch {
     // Fall through with no pre-filled values.

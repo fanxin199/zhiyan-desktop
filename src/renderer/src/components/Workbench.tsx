@@ -26,6 +26,8 @@ import { buildAssistantPrompt, describeAssistantContext, type AssistantPageConte
 import { useActiveProjectStore } from '../lib/active-project'
 import { useAssistantStore } from '../lib/assistant-store'
 import { useToolOpenerStore, type ArtifactNextStep, type ToolMaterial } from '../lib/next-steps'
+import { processQueue, useTaskQueueStore } from '../lib/task-queue'
+import { splitWorkRequest } from '../lib/work-request'
 import { openDocumentArtifact, resumeTargetFor, usePendingArtifactStore } from '../lib/resume-artifact'
 import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
 import { AssistantDrawer } from './assistant/AssistantDrawer'
@@ -47,6 +49,7 @@ import { LiteratureReportPage } from './literature/LiteratureReportPage'
 import { DataAnalysisPage } from './analysis/DataAnalysisPage'
 import { ProjectsPage } from './projects/ProjectsPage'
 import { QuizPage } from './quiz/QuizPage'
+import { TaskCenterDrawer } from './tasks/TaskCenterDrawer'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -652,6 +655,12 @@ export function Workbench(): ReactElement {
     })()
   }
   const pageContext = assistantPageContext(route, activeWriteFilePath)
+  const tasksOpen = useTaskQueueStore((state) => state.open)
+  const activeTaskCount = useTaskQueueStore((state) => state.tasks.filter((task) => task.status === 'queued' || task.status === 'running').length)
+  // The queue continues after a restart, and whenever the workbench comes back.
+  useEffect(() => {
+    void processQueue()
+  }, [])
   // Next steps on any page open their tool through this (Task 3.4.1).
   useEffect(() => {
     useToolOpenerStore.getState().setOpen((request, text, materials) => openToolWithRequest(request, text, 'page', materials))
@@ -686,6 +695,17 @@ export function Workbench(): ReactElement {
     void showAssistantThread()
   }
   const sendAssistantMessage = (text: string, options?: { answerInChat?: boolean }): ToolRequest | null => {
+    // Several deliverables in one sentence become a queue in the task center (Task 3.5.1).
+    const works = options?.answerInChat ? [] : splitWorkRequest(text)
+    if (works.length >= 2) {
+      useTaskQueueStore.getState().enqueue(works, {
+        projectId: useActiveProjectStore.getState().projectId,
+        workspaceRoot: useWriteWorkspaceStore.getState().workspaceRoot
+      })
+      setAssistantOpen(false)
+      useTaskQueueStore.getState().setOpen(true)
+      return { moduleId: works[0].moduleId, label: `任务中心（${works.length} 项）` }
+    }
     const request = options?.answerInChat ? null : detectToolRequest(text)
     if (request) {
       openToolWithRequest(request, text)
@@ -865,14 +885,36 @@ export function Workbench(): ReactElement {
             onOpenModule={openRegisteredModule}
             onOpenSettings={(section) => openSettings(route === 'write' ? 'write' : section)}
             onToggleSidebar={() => setLeftSidebarCollapsed(true)}
-            onOpenAssistant={() => (assistantOpen ? setAssistantOpen(false) : openAssistant())}
+            onOpenAssistant={() => {
+              useTaskQueueStore.getState().setOpen(false)
+              if (assistantOpen) setAssistantOpen(false)
+              else openAssistant()
+            }}
             assistantOpen={assistantOpen}
+            onOpenTasks={() => {
+              setAssistantOpen(false)
+              useTaskQueueStore.getState().setOpen(!useTaskQueueStore.getState().open)
+            }}
+            tasksOpen={tasksOpen}
+            activeTaskCount={activeTaskCount}
           />
 
         </div>
       ) : null}
 
       <main className="ds-stage-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <TaskCenterDrawer
+          onOpenResult={(artifactId) => void window.dsGui.getArtifact(artifactId).then((artifact) => {
+            if (!artifact) return
+            useTaskQueueStore.getState().setOpen(false)
+            openArtifact(artifact)
+          })}
+          onContinueInTool={(task) => {
+            useTaskQueueStore.getState().setOpen(false)
+            useActiveProjectStore.getState().setProjectId(task.projectId)
+            openToolWithRequest({ moduleId: task.moduleId, label: task.label, ...(task.template ? { template: task.template } : {}) }, task.text, 'page')
+          }}
+        />
         <AssistantDrawer
           open={assistantOpen}
           onClose={() => setAssistantOpen(false)}
