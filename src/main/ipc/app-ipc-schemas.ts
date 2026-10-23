@@ -859,6 +859,11 @@ export const pubMedSearchPayloadSchema = z.object({
   minYear: z.number().int().min(1900).max(2200).optional()
 }).strict()
 
+export const pubMedIdentifierPayloadSchema = z.object({
+  pmid: z.string().trim().regex(/^\d{1,10}$/u).optional(),
+  doi: z.string().trim().regex(/^10\.\d{4,9}\/\S{1,240}$/u).optional()
+}).strict().refine((value) => Boolean(value.pmid || value.doi), { message: 'pmid or doi is required' })
+
 const coursewareGenerationBaseSchema = z.object({
   request: coursewareRequestSchema,
   sourceText: z.string().trim().min(1).max(500_000),

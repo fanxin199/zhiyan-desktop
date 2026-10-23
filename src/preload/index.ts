@@ -86,6 +86,8 @@ const api = {
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>
     ipcRenderer.invoke('literature:search-pubmed', request),
+  lookupPubMedIdentifier: (identifier) =>
+    ipcRenderer.invoke('literature:lookup-identifier', identifier),
   generateCoursewareBlueprint: (input) =>
     ipcRenderer.invoke('courseware:generate-blueprint', input),
   generateCoursewareSlides: (input) =>

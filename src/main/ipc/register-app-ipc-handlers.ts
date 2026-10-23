@@ -37,6 +37,7 @@ import {
   legacyWordTextExtractPayloadSchema,
   notificationPayloadSchema,
   openEditorPathPayloadSchema,
+  pubMedIdentifierPayloadSchema,
   pubMedSearchPayloadSchema,
   rootPathSchema,
   runtimeRequestPayloadSchema,
@@ -111,7 +112,7 @@ import { copyWriteDocumentAsRichText, exportWriteDocument } from '../services/wr
 import { listGuiSkills } from '../services/skill-service'
 import { syncBuiltinSkills } from '../services/builtin-skill-service'
 import { extractPdfRange, inspectPdf } from '../services/courseware-pdf-service'
-import { searchPubMed } from '../services/pubmed-service'
+import { lookupPubMedIdentifier, searchPubMed } from '../services/pubmed-service'
 import {
   generateCoursewareBlueprint,
   generateCoursewareSlides,
@@ -633,6 +634,10 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     searchPubMed(
       parseIpcPayload('literature:search-pubmed', pubMedSearchPayloadSchema, payload)
     )
+  )
+  // Citation checks (Task 4.1.2): the record a PMID or DOI names, or null.
+  ipcMain.handle('literature:lookup-identifier', async (_, payload: unknown) =>
+    lookupPubMedIdentifier(parseIpcPayload('literature:lookup-identifier', pubMedIdentifierPayloadSchema, payload))
   )
 
   ipcMain.handle('courseware:generate-blueprint', async (_, payload: unknown) =>

@@ -149,3 +149,25 @@ export async function searchPubMed(
     }
   }
 }
+
+export type PubMedIdentifierLookup =
+  | { ok: true; record: EvidenceRef | null }
+  | { ok: false; message: string }
+
+/**
+ * The PubMed record a PMID or DOI names (Task 4.1.2), or null when PubMed has none, so a citation
+ * can be marked 待核实. The record must carry the same identifier, not merely match the search.
+ */
+export async function lookupPubMedIdentifier(
+  identifier: { pmid?: string; doi?: string },
+  fetcher: typeof fetch = fetch
+): Promise<PubMedIdentifierLookup> {
+  const pmid = identifier.pmid?.trim()
+  const doi = identifier.doi?.trim()
+  if (!pmid && !doi) return { ok: false, message: '没有可核验的 PMID 或 DOI。' }
+  const result = await searchPubMed({ query: pmid ? `${pmid}[pmid]` : `"${doi}"[doi]`, maxResults: 1 }, fetcher)
+  if (!result.ok) return result
+  const record = result.records.find((item) =>
+    pmid ? item.pmid === pmid : item.doi?.toLowerCase() === doi!.toLowerCase())
+  return { ok: true, record: record ?? null }
+}

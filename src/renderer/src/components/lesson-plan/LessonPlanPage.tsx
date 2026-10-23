@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
-import { AlertTriangle } from 'lucide-react'
 import type { ArtifactListItem } from '@shared/artifact'
 import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
-import { adjustLessonTiming, checkLessonTiming, lessonPlanHours } from '@shared/lesson-plan'
+import { checkLessonTiming, lessonPlanHours } from '@shared/lesson-plan'
 import {
   startWorkflowRun,
   type WorkflowMode,
@@ -75,7 +74,6 @@ export function LessonPlanPage({
   const [plan, setPlan] = useState<OpenPlan | null>(null)
   const [error, setError] = useState('')
   // Segments changed by the timing adjustment, marked until the next change.
-  const [timingChanges, setTimingChanges] = useState<Set<string>>(new Set())
   const runner = useRef<WorkflowRunner | null>(null)
   const briefRef = useRef<IntentBrief | null>(null)
   const request = useRef({ text: '', materials: [] as LoadedMaterial[] })
@@ -107,7 +105,6 @@ export function LessonPlanPage({
       return
     }
     setPlan({ artifactId: artifact.id, path: artifact.storage.path, workspaceRoot: artifact.workspaceRoot, title: artifact.title, markdown: read.content })
-    setTimingChanges(new Set())
   }
 
   useEffect(() => {
@@ -224,19 +221,6 @@ export function LessonPlanPage({
 
   const timing = plan ? checkLessonTiming(plan.markdown, lessonPlanHours(plan.markdown)) : null
 
-  const fixTiming = async (): Promise<void> => {
-    if (!plan || timing?.status !== 'mismatch') return
-    const adjusted = adjustLessonTiming(plan.markdown, timing.planned)
-    const written = await window.dsGui.writeWorkspaceFile({ path: plan.path, workspaceRoot: plan.workspaceRoot, content: adjusted })
-    if (!written.ok) {
-      setError(written.message)
-      return
-    }
-    await window.dsGui.createArtifactVersion({ id: plan.artifactId, source: 'teacher-edit', summary: '按计划学时调整各环节时长' })
-    setTimingChanges(changedDocumentBlocks(plan.markdown, adjusted))
-    setPlan({ ...plan, markdown: adjusted })
-  }
-
   if (!workspaceRoot && !plan) return <WriteWorkspaceEmptyState error={error} onPickWorkspace={() => void pickWorkspace()} />
 
   if (plan && (!run || run.status === 'done')) {
@@ -245,26 +229,9 @@ export function LessonPlanPage({
         module="syllabus"
         toolTitle="教案"
         document={plan}
-        onDocumentChange={(next) => {
-          setTimingChanges(new Set())
-          setPlan(next)
-        }}
+        onDocumentChange={setPlan}
         stage={timing?.status === 'mismatch' ? '时长待调整' : '初稿'}
-        changedBlocks={timingChanges}
-        banner={(
-          <>
-            {error ? <p role="alert" className="text-small text-ds-danger">{error}</p> : null}
-            {timing?.status === 'mismatch' ? (
-              <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl border border-ds-warning bg-ds-warning-soft px-4 py-3 text-small text-ds-warning">
-                <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={1.8} />
-                <span className="min-w-0 flex-1">各环节合计 {timing.total} 分钟，计划学时为 {timing.planned} 分钟。</span>
-                <button type="button" onClick={() => void fixTiming()} className="shrink-0 rounded-lg border border-ds-warning px-2.5 py-1 font-semibold hover:bg-ds-hover">
-                  一键调整为 {timing.planned} 分钟
-                </button>
-              </div>
-            ) : null}
-          </>
-        )}
+        banner={error ? <p role="alert" className="text-small text-ds-danger">{error}</p> : null}
         artifactKind="lesson-plan"
         newLabel="新教案"
         onNew={backToStart}

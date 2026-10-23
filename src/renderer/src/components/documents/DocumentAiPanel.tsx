@@ -6,6 +6,7 @@ import {
   type RevisionResult,
   type RevisionScope
 } from '@shared/artifact-revision'
+import { fixedText, type SelfCheckSuggestion } from '@shared/self-check'
 import { aiChangeRanges } from '../../write/ai-change-highlight'
 import type { WriteEditorSelectionState } from '../write/WriteMarkdownEditor'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
@@ -13,6 +14,8 @@ import { AiSidePanel } from '../ai-work/AiSidePanel'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { RevisionResultCard } from '../ai-work/RevisionResultCard'
 import { useHabitOffer } from '../ai-work/RememberHabitOffer'
+import { SelfCheckPanel } from '../ai-work/SelfCheckPanel'
+import { useSelfCheck } from '../../lib/self-check'
 import { artifactNextSteps, useToolOpenerStore } from '../../lib/next-steps'
 
 type Exchange = {
@@ -131,6 +134,30 @@ export function DocumentAiPanel(): ReactElement {
     }
   }
 
+  const selfCheck = useSelfCheck('document', fileContent, activeFilePath ? documentTitle(activeFilePath) : '')
+
+  /** An accepted self-check suggestion: fixed in the file and saved as a version, or asked of the AI. */
+  const acceptSuggestion = async (suggestion: SelfCheckSuggestion): Promise<void> => {
+    const fix = suggestion.fix
+    if (fix?.type === 'revise') {
+      const section = sections.find((candidate) => candidate.title === fix.sectionTitle)
+      await revise(fix.instruction, section ? { type: 'section', sectionId: section.id, title: section.title } : { type: 'whole' }, section ? `“${section.title}”这一节` : '全文')
+      return
+    }
+    const store = useWriteWorkspaceStore.getState()
+    const artifact = store.activeArtifact
+    if (!artifact || !workspaceRoot || !store.activeFilePath) return
+    await store.flushSave(workspaceRoot)
+    const next = fixedText(useWriteWorkspaceStore.getState().fileContent, suggestion)
+    if (next === null) return
+    const written = await window.dsGui.writeWorkspaceFile({ path: store.activeFilePath, workspaceRoot, content: next })
+    if (!written.ok) throw new Error(written.message)
+    const version = await window.dsGui.createArtifactVersion({ id: artifact.id, source: 'teacher-edit', summary: `采纳自查建议：${suggestion.title}`.slice(0, 500) })
+    const latest = useWriteWorkspaceStore.getState()
+    await latest.syncActiveFileFromDisk(workspaceRoot, { force: true, animate: false })
+    latest.setActiveArtifact({ id: artifact.id, currentVersion: version.version })
+  }
+
   // The selection toolbar sends its sentence here.
   useEffect(() => {
     if (!revisionRequest) return
@@ -152,6 +179,7 @@ export function DocumentAiPanel(): ReactElement {
       onOpenChange={setOpen}
       width={width}
       onWidthChange={setWidth}
+      checks={activeArtifact && fileContent.trim() ? <SelfCheckPanel key={activeFilePath} state={selfCheck} onAccept={acceptSuggestion} busy={busy} /> : undefined}
       nextSteps={activeArtifact && activeFilePath
         ? artifactNextSteps({ kind: 'document', title: documentTitle(activeFilePath), markdown: fileContent }).map((step) => ({
             id: step.id,

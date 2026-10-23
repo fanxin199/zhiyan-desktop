@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  pubMedIdentifierPayloadSchema,
   filePickPayloadSchema,
   isSafeOpenExternalUrl,
   runtimeRequestPayloadSchema,
@@ -498,5 +499,15 @@ describe('app-ipc-schemas', () => {
 
     expect(payload.path).toBe('/tmp/workspace/draft.md')
     expect(payload.content).toBe('# Draft')
+  })
+})
+
+describe('pubMedIdentifierPayloadSchema', () => {
+  it('takes a PMID or a DOI and nothing else', () => {
+    expect(pubMedIdentifierPayloadSchema.safeParse({ pmid: '40123456' }).success).toBe(true)
+    expect(pubMedIdentifierPayloadSchema.safeParse({ doi: '10.1016/j.immuni.2025.01.001' }).success).toBe(true)
+    expect(pubMedIdentifierPayloadSchema.safeParse({}).success).toBe(false)
+    expect(pubMedIdentifierPayloadSchema.safeParse({ pmid: '40123456 OR cancer' }).success).toBe(false)
+    expect(pubMedIdentifierPayloadSchema.safeParse({ doi: 'not-a-doi' }).success).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parsePubMedXml } from './pubmed-service'
+import { lookupPubMedIdentifier, parsePubMedXml } from './pubmed-service'
 
 describe('parsePubMedXml', () => {
   it('normalizes PMID, DOI and abstract evidence from PubMed XML', () => {
@@ -43,5 +43,27 @@ describe('parsePubMedXml', () => {
       authors: ['Wang Li'],
       abstract: 'BACKGROUND: Background text.\nRESULTS: Result text.'
     }])
+  })
+})
+
+describe('lookupPubMedIdentifier', () => {
+  const articleXml = `<PubmedArticleSet><PubmedArticle><MedlineCitation><PMID>40123456</PMID><Article>
+    <ArticleTitle>B cells</ArticleTitle><Journal><Title>Immunity</Title></Journal></Article></MedlineCitation>
+    <PubmedData><ArticleIdList><ArticleId IdType="doi">10.1016/j.immuni.2025.01.001</ArticleId></ArticleIdList></PubmedData>
+    </PubmedArticle></PubmedArticleSet>`
+  const fetcher = (ids: string[]) => (async (url: URL | RequestInfo) => {
+    const text = String(url)
+    if (text.includes('esearch')) return new Response(JSON.stringify({ esearchresult: { idlist: ids } }))
+    return new Response(articleXml)
+  }) as typeof fetch
+
+  it('finds the record a PMID or DOI names', async () => {
+    expect(await lookupPubMedIdentifier({ pmid: '40123456' }, fetcher(['40123456']))).toMatchObject({ ok: true, record: { pmid: '40123456' } })
+    expect(await lookupPubMedIdentifier({ doi: '10.1016/J.IMMUNI.2025.01.001' }, fetcher(['40123456']))).toMatchObject({ ok: true, record: { pmid: '40123456' } })
+  })
+
+  it('returns no record when PubMed knows none or a different one', async () => {
+    expect(await lookupPubMedIdentifier({ pmid: '99999999' }, fetcher([]))).toEqual({ ok: true, record: null })
+    expect(await lookupPubMedIdentifier({ pmid: '11111111' }, fetcher(['40123456']))).toEqual({ ok: true, record: null })
   })
 })

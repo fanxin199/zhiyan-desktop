@@ -79,6 +79,7 @@ import type {
   CoursewareSlideRegenerationInput,
   PdfInspectResult,
   PdfRangeExtractResult,
+  EvidenceRef,
   PubMedSearchRequest,
   PubMedSearchResult,
   SlideSpec,
@@ -264,6 +265,11 @@ export type DsGuiApi = {
     pageEnd: number
   ) => Promise<PdfRangeExtractResult>
   searchPubMed: (request: PubMedSearchRequest) => Promise<PubMedSearchResult>
+  /** The PubMed record a PMID or DOI names, or null when none does (Task 4.1.2). */
+  lookupPubMedIdentifier: (identifier: { pmid?: string; doi?: string }) => Promise<
+    | { ok: true; record: EvidenceRef | null }
+    | { ok: false; message: string }
+  >
   generateCoursewareBlueprint: (
     input: CoursewareBlueprintGenerationInput
   ) => Promise<

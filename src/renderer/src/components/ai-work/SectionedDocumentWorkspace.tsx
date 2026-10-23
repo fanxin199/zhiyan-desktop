@@ -3,8 +3,10 @@ import { Download, FilePenLine, Loader2, Plus, Sparkles } from 'lucide-react'
 import type { ArtifactKind } from '@shared/artifact'
 import type { RevisionOutcome, RevisionResult, RevisionScope } from '@shared/artifact-revision'
 import { markdownBlocks, type MarkdownBlock } from '@shared/document-blocks'
+import { fixedText, type SelfCheckSuggestion } from '@shared/self-check'
 import { artifactNextSteps, useToolOpenerStore } from '../../lib/next-steps'
 import { openDocumentArtifact } from '../../lib/resume-artifact'
+import { useSelfCheck } from '../../lib/self-check'
 import { useChatStore } from '../../store/chat-store'
 import { getZhiYanModule, type ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
 import { WriteMarkdownPreview } from '../write/WriteMarkdownPreview'
@@ -14,6 +16,7 @@ import { ArtifactTopBar } from './ArtifactTopBar'
 import { IntentComposer } from './IntentComposer'
 import { RevisionResultCard } from './RevisionResultCard'
 import { useHabitOffer } from './RememberHabitOffer'
+import { SelfCheckPanel } from './SelfCheckPanel'
 
 /** A Markdown artifact open in a tool's work state. */
 export type OpenSectionedDocument = {
@@ -176,18 +179,18 @@ export function SectionedDocumentWorkspace({
     setExchanges((current) => current.map((exchange) => exchange.id === id ? { ...exchange, ...change } : exchange))
   }
 
-  const revise = async (instruction: string): Promise<void> => {
+  const revise = async (instruction: string, target = { scope, label: scopeLabel }): Promise<void> => {
     if (revising) return
     const id = nextExchange.current++
-    setExchanges((current) => [...current, { id, instruction, scopeLabel, status: 'working' }])
+    setExchanges((current) => [...current, { id, instruction, scopeLabel: target.label, status: 'working' }])
     try {
       let outcome: RevisionOutcome
       if (reviseWith) {
-        outcome = await reviseWith(instruction, scope, scopeLabel)
+        outcome = await reviseWith(instruction, target.scope, target.label)
       } else {
         const artifact = await window.dsGui.getArtifact(document.artifactId)
         if (!artifact) throw new Error('找不到这份成果的登记记录。')
-        outcome = await window.dsGui.reviseArtifact({ artifactId: document.artifactId, baseVersion: artifact.currentVersion, scope, instruction })
+        outcome = await window.dsGui.reviseArtifact({ artifactId: document.artifactId, baseVersion: artifact.currentVersion, scope: target.scope, instruction })
       }
       if (!outcome.ok) {
         updateExchange(id, { status: 'error', error: outcome.message })
@@ -201,6 +204,27 @@ export function SectionedDocumentWorkspace({
     } catch (reviseError) {
       updateExchange(id, { status: 'error', error: reviseError instanceof Error ? reviseError.message : '修改没有完成，请稍后再试。' })
     }
+  }
+
+  const selfCheck = useSelfCheck(artifactKind ?? 'document', document.markdown, document.title)
+
+  /** An accepted self-check suggestion: fixed in place and saved as a version, or asked of the AI. */
+  const acceptSuggestion = async (suggestion: SelfCheckSuggestion): Promise<void> => {
+    const fix = suggestion.fix
+    if (fix?.type === 'revise') {
+      const block = blocks.blocks.find((candidate) => candidate.title === fix.sectionTitle)
+      await revise(fix.instruction, block
+        ? { scope: { type: 'section', sectionId: block.sectionId, title: block.title }, label: `“${block.title}”` }
+        : { scope: { type: 'whole' }, label: wholeLabel })
+      return
+    }
+    const next = fixedText(document.markdown, suggestion)
+    if (next === null) return
+    const written = await window.dsGui.writeWorkspaceFile({ path: document.path, workspaceRoot: document.workspaceRoot, content: next })
+    if (!written.ok) throw new Error(written.message)
+    await window.dsGui.createArtifactVersion({ id: document.artifactId, source: 'teacher-edit', summary: `采纳自查建议：${suggestion.title}`.slice(0, 500) })
+    setChanged(changedDocumentBlocks(document.markdown, next))
+    onDocumentChange({ ...document, markdown: next })
   }
 
   const undo = async (exchange: Exchange): Promise<void> => {
@@ -294,6 +318,7 @@ export function SectionedDocumentWorkspace({
           width={panelWidth}
           onWidthChange={setPanelWidth}
           nextSteps={suggestedSteps}
+          checks={<SelfCheckPanel state={selfCheck} onAccept={acceptSuggestion} busy={revising} />}
           composer={(
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-caption text-ds-muted">

@@ -48,10 +48,12 @@ import { activeProjectBlock, loadActiveProject } from '../../lib/project-context
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
 import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
+import { slideLengthSuggestions } from '@shared/self-check'
 import { startWorkflowRun, type WorkflowMode, type WorkflowRunState } from '@shared/workflow'
 import { AiWorkExamples } from '../ai-work/AiWorkPage'
 import { IntentBriefChips } from '../ai-work/IntentBriefChips'
 import { IntentComposer } from '../ai-work/IntentComposer'
+import { SelfCheckPanel } from '../ai-work/SelfCheckPanel'
 import { WorkflowProgress } from '../ai-work/WorkflowProgress'
 import { ActiveProjectNote } from '../projects/ActiveProjectNote'
 import { useHabitOffer } from '../ai-work/RememberHabitOffer'
@@ -585,9 +587,9 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
   }
 
   /** Applies one sentence to the current slide or to every slide, as one change to keep or undo. */
-  async function reviseSlides(instruction: string): Promise<void> {
+  async function reviseSlides(instruction: string, chosen?: number[]): Promise<void> {
     if (!blueprint || !instruction.trim() || slides.length === 0) return
-    const targets = reviseScope === 'deck' ? slides.map((_, index) => index) : [activeSlideIndex]
+    const targets = chosen ?? (reviseScope === 'deck' ? slides.map((_, index) => index) : [activeSlideIndex])
     const before = slides
     let next = slides
     let notesUpdated = 0
@@ -619,7 +621,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
       setStaleNotes((current) => new Set([...current].filter((id) => !updatedIds.has(id))))
       setDeckChange({
         before,
-        label: reviseScope === 'deck' ? '整套课件' : `第 ${activeSlideIndex + 1} 页`,
+        label: chosen ? `第 ${chosen.map((index) => index + 1).join('、')} 页` : reviseScope === 'deck' ? '整套课件' : `第 ${activeSlideIndex + 1} 页`,
         changed,
         notesUpdated,
         failed
@@ -1415,6 +1417,16 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
             </main>
 
             <aside className="space-y-4">
+              <SelfCheckPanel
+                state={{ suggestions: slideLengthSuggestions(slides), checking: false, unchecked: 0 }}
+                busy={busy !== null}
+                onAccept={async (suggestion) => {
+                  if (suggestion.fix?.type !== 'revise-slides') return
+                  const ids = new Set(suggestion.fix.slideIds)
+                  const indexes = slides.flatMap((slide, index) => ids.has(slide.id) ? [index] : [])
+                  await reviseSlides(suggestion.fix.instruction, indexes)
+                }}
+              />
               {sourceVisuals.some((asset) => asset.status === 'approved' && asset.imageDataUrl) && (
                 <section className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
                   <h2 className="mb-3 flex items-center gap-2 text-small font-bold text-ds-text">
