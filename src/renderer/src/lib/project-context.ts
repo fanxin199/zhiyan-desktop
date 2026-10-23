@@ -1,5 +1,6 @@
 import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
-import { findTeacherProject, PROJECT_FIELDS_BY_INTENT, projectPromptBlock } from '@shared/project'
+import { generationContextBlock } from '@shared/generation-context'
+import { findTeacherProject, PROJECT_FIELDS_BY_INTENT } from '@shared/project'
 import { rendererRuntimeClient } from '../agent/runtime-client'
 import { useActiveProjectStore } from './active-project'
 
@@ -25,8 +26,16 @@ export function intentValuesFromProject(toolId: string, project: Pick<TeacherPro
   )
 }
 
-/** The key-point block for requests the page writes itself, such as courseware focus. */
-export async function activeProjectBlock(): Promise<{ project?: TeacherProjectSettingsV1; block: string }> {
-  const project = await loadActiveProject()
-  return { project, block: project ? projectPromptBlock(project) : '' }
+/**
+ * The project's key points and the teacher's habits for a tool, for requests the page writes
+ * itself, such as courseware focus (Tasks 3.2.1, 3.3.1).
+ */
+export async function activeProjectBlock(toolId: string): Promise<{ project?: TeacherProjectSettingsV1; block: string }> {
+  try {
+    const settings = await rendererRuntimeClient.getSettings()
+    const project = findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId)
+    return { project, block: generationContextBlock(settings, toolId, project?.id) }
+  } catch {
+    return { block: '' }
+  }
 }

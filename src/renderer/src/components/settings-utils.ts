@@ -21,6 +21,7 @@ import {
   type AppSettingsPatch,
   type AppSettingsV1
 } from '@shared/app-settings'
+import { normalizeTeacherPreferences } from '@shared/preferences'
 import type { GuiUpdateInfo } from '@shared/gui-update'
 
 type RendererSettingsShape = AppSettingsPatch
@@ -121,6 +122,7 @@ export function coerceRendererSettings(settings: AppSettingsV1): AppSettingsV1 {
     teacherProfile: normalizeTeacherProfileSettings(raw.teacherProfile),
     teacherProjects: normalizeTeacherProjectSettings(raw.teacherProjects),
     moduleContext: normalizeModuleContextSettings(raw.moduleContext),
+    preferences: normalizeTeacherPreferences(raw.preferences),
     appBehavior: normalizeAppBehaviorSettings(raw.appBehavior),
     write: normalizeWriteSettings(raw.write),
     claw: normalizeClawSettings(raw.claw),

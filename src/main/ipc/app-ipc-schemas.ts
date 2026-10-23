@@ -56,6 +56,7 @@ import { intentExtractInputSchema } from '../../shared/intent-brief'
 import { lessonPlanCreateInputSchema } from '../../shared/lesson-plan'
 import { literatureReportInputSchema } from '../../shared/literature-report'
 import { projectAdoptInputSchema, projectCreateInputSchema, projectUpdateInputSchema } from '../../shared/project'
+import { MAX_TEACHER_PREFERENCES, teacherPreferenceSchema } from '../../shared/preferences'
 import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
@@ -587,6 +588,7 @@ const settingsPatchObjectSchema = z.object({
   teacherProfile: teacherProfilePatchSchema.optional(),
   teacherProjects: z.array(teacherProjectPatchSchema).max(200).optional(),
   moduleContext: moduleContextPatchSchema.optional(),
+  preferences: z.array(teacherPreferenceSchema).max(MAX_TEACHER_PREFERENCES).optional(),
   appBehavior: appBehaviorPatchSchema.optional(),
   write: writeSettingsPatchSchema.optional(),
   claw: clawSettingsPatchSchema.optional(),

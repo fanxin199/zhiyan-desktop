@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { safeStorage } from 'electron'
+import { normalizeTeacherPreferences } from '../shared/preferences'
 import {
   applyKunRuntimePatch,
   kunSettingsEnvelope,
@@ -305,6 +306,7 @@ const defaultSettings = (): AppSettingsV1 => ({
   teacherProfile: normalizeTeacherProfileSettings(),
   teacherProjects: normalizeTeacherProjectSettings(),
   moduleContext: normalizeModuleContextSettings(),
+  preferences: [],
   appBehavior: normalizeAppBehaviorSettings(),
   guiUpdate: {
     channel: DEFAULT_GUI_UPDATE_CHANNEL
@@ -332,6 +334,7 @@ function buildMergedSettings(parsed: Partial<AppSettingsV1>): AppSettingsV1 {
     }),
     teacherProjects: normalizeTeacherProjectSettings(migrated.teacherProjects),
     moduleContext: normalizeModuleContextSettings(migrated.moduleContext),
+    preferences: normalizeTeacherPreferences(migrated.preferences),
     appBehavior: normalizeAppBehaviorSettings({
       ...defaults.appBehavior,
       ...migrated.appBehavior

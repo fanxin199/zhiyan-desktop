@@ -513,7 +513,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
           const outcome = await requestIntentBrief('ppt-gen', sentence, [{ name: sourceName, text: sourceTextRef.current }])
           if (!outcome.ok) throw new Error(outcome.message)
           showBrief(outcome.brief)
-          const { block } = await activeProjectBlock()
+          const { block } = await activeProjectBlock('ppt-gen')
           const fromBrief = coursewareRequestFromBrief(requestRef.current, outcome.brief, sentence)
           // Inside a project its key points go with the teacher's emphasis (Task 3.2.1).
           const next = block ? { ...fromBrief, focus: [fromBrief.focus, block].filter(Boolean).join('\n\n') } : fromBrief

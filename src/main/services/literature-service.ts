@@ -55,7 +55,7 @@ export class LiteratureService {
     const request = literatureReportInputSchema.parse(input)
     const settings = await this.options.loadSettings()
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
-    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot, 'literature')
     const single = request.papers.length === 1
     const materials = request.papers.map((paper) => wrapUntrustedPromptMaterial(
       paper.text.slice(0, single ? SINGLE_PAPER_CHARS : PAPER_CHARS_IN_TABLE),

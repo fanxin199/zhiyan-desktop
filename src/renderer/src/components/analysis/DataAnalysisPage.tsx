@@ -249,7 +249,7 @@ export function DataAnalysisPage({
             runtime: status
           })
           await persistAnalysisReproducibilityManifest(workspaceRoot, manifest)
-          const projectContext = await activeProjectBlock()
+          const projectContext = await activeProjectBlock('bioinformatics')
           reportPath = joinPath(workspaceRoot, manifest.artifacts.report ?? '')
           reportTitle = `${values.goal || '数据分析'} 分析报告`.slice(0, 120)
           const artifact = await recordArtifact({

@@ -52,7 +52,7 @@ export class LessonPlanService {
     const settings = await this.options.loadSettings()
     const { fields } = request
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
-    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot, 'syllabus')
     const planned = plannedLessonMinutes(fields.hours)
 
     const generated = await requestStructuredJson(settings, lessonPlanContentSchema, [

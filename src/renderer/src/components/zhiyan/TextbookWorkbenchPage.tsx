@@ -528,7 +528,7 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
           showBrief(outcome.brief)
           applyBrief(outcome.brief)
           // Inside a project its key points go into the outline brief (Task 3.2.1).
-          const { block } = await activeProjectBlock()
+          const { block } = await activeProjectBlock('textbook')
           if (block) {
             teacherBriefRef.current = `${teacherBriefRef.current}\n\n${block}`
             setTeacherBrief(teacherBriefRef.current)

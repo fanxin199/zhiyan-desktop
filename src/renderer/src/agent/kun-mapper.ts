@@ -34,6 +34,7 @@ import type {
   CoreUsageSnapshotJson
 } from './kun-contract'
 import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH } from '@shared/prompt-boundary'
+import { preferencePromptBlock, type TeacherPreferenceV1 } from '@shared/preferences'
 import { projectPromptBlock } from '@shared/project'
 import { teacherLabel } from '../lib/teacher-label'
 
@@ -42,6 +43,8 @@ export type ZhiYanManagedPromptContext = {
   project?: TeacherProjectSettingsV1
   /** The course or research project the teacher is working in (Task 3.2.1). */
   workingProject?: TeacherProjectSettingsV1
+  /** Habits that apply (Task 3.3.1). */
+  preferences?: TeacherPreferenceV1[]
 }
 
 const MODULE_LABELS_BY_ID: Record<string, string> = {
@@ -75,7 +78,7 @@ export function buildZhiYanManagedPrompt(
   context: ZhiYanManagedPromptContext = {}
 ): string {
   const request = userRequest.trim()
-  const { teacherProfile, project, workingProject } = context
+  const { teacherProfile, project, workingProject, preferences } = context
   const teacher = teacherLabel(teacherProfile)
   const projectName = nonEmpty(project?.name) || '当前任务'
   const lines = [
@@ -102,6 +105,8 @@ export function buildZhiYanManagedPrompt(
   }
   const workingBlock = workingProject ? projectPromptBlock(workingProject) : ''
   if (workingBlock) lines.push('', workingBlock)
+  const habits = preferencePromptBlock(preferences, 'chat', workingProject?.id)
+  if (habits) lines.push('', habits)
 
   lines.push(
     '',

@@ -25,6 +25,7 @@ import { normalizeModelProviderSettings } from './app-settings-provider'
 import { compactStrings, normalizeDeepseekBaseUrl } from './app-settings-normalizers'
 import { normalizeClawSettings } from './app-settings-claw'
 import { normalizeScheduleSettings } from './app-settings-schedule'
+import { normalizeTeacherPreferences } from './preferences'
 import { normalizeProjectBrief } from './project'
 import { normalizeWriteSettings } from './app-settings-write'
 
@@ -78,6 +79,7 @@ export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
     teacherProfile: normalizeTeacherProfileSettings(maybeSettings.teacherProfile),
     teacherProjects: normalizeTeacherProjectSettings(maybeSettings.teacherProjects),
     moduleContext: normalizeModuleContextSettings(maybeSettings.moduleContext),
+    preferences: normalizeTeacherPreferences(maybeSettings.preferences),
     appBehavior: normalizeAppBehaviorSettings(maybeSettings.appBehavior),
     write: normalizeWriteSettings(maybeSettings.write),
     claw: normalizeClawSettings(maybeSettings.claw),

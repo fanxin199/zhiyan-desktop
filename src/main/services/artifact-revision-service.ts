@@ -1,6 +1,7 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import type { AppSettingsV1 } from '../../shared/app-settings'
+import { generationContextBlock } from '../../shared/generation-context'
 import {
   revisionRequestSchema,
   splitMarkdownSections,
@@ -151,7 +152,8 @@ export class ArtifactRevisionService {
     let discardedOutsideScope = false
     const settings = await this.options.loadSettings()
     for (const part of parts) {
-      const rewritten = await this.rewritePart(settings, text, part, request.instruction, artifact.title)
+      const rewritten = await this.rewritePart(settings, text, part, request.instruction, artifact.title,
+        generationContextBlock(settings, artifact.toolId, artifact.projectId))
       if (!rewritten.ok) return rewritten
       discardedOutsideScope ||= rewritten.discarded
       rewrites.push({ part, original: text.slice(part.start, part.end), revised: rewritten.revised, summary: rewritten.summary })
@@ -206,7 +208,9 @@ export class ArtifactRevisionService {
     text: string,
     part: ResolvedScope,
     instruction: string,
-    title: string
+    title: string,
+    /** The project's key points and the teacher's habits (Tasks 3.2.1, 3.3.1). */
+    context: string
   ): Promise<{ ok: true; revised: string; summary: string; discarded: boolean } | Exclude<RevisionOutcome, { ok: true }>> {
     const original = text.slice(part.start, part.end)
     const generated = await requestStructuredJson(settings, revisionOutputSchema, [
@@ -222,6 +226,7 @@ export class ArtifactRevisionService {
       {
         role: 'user',
         content: [
+          ...(context ? [context, ''] : []),
           `老师的要求：${instruction}`,
           '',
           '全文（供理解上下文，不要改写范围外的内容）：',

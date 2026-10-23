@@ -242,7 +242,8 @@ export class KunRuntimeProvider implements AgentProvider {
     const managedPrompt = buildZhiYanManagedPrompt(text, {
       teacherProfile: settings.teacherProfile,
       project,
-      workingProject: findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId)
+      workingProject: findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId),
+      preferences: settings.preferences
     })
     const displayText = options?.displayText?.trim() || text.trim()
     const body: Record<string, unknown> = {

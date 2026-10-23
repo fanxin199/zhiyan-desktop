@@ -510,7 +510,7 @@ type TeacherPreference = {
 
 #### Task 3.3 · 偏好记忆
 
-- [ ] **3.3.1** 实现 §6.6 的 `TeacherPreference` 存储、迁移与提示注入。
+- [x] **3.3.1** 实现 §6.6 的 `TeacherPreference` 存储、迁移与提示注入。偏好定义在 `src/shared/preferences.ts`，保存在设置的 `preferences`（旧设置读入时为空，范围为工具或项目却缺少对应 id 的条目丢弃，最多 100 条）。适用范围：全局、某个工具、某个项目（只在该项目里）。`generationContextBlock` 把项目要点与适用的习惯合成一段，加入教案、文稿、文献报告的生成提示和所有“说一句就改”（`artifact-revision-service`），课件、教材、数据分析由页面并入本次要求，AI 助手的后台提示也带上全局和项目习惯。
 - [ ] **3.3.2** AI 栏识别可沉淀的习惯并询问“记住这个习惯？”；设置中新增“我的偏好”。
 
 #### Task 3.4 · 主动接力

@@ -1,3 +1,4 @@
+import type { TeacherPreferenceV1 } from './preferences'
 import type { GuiUpdateChannel } from './gui-update'
 import type { ApprovalPolicy, SandboxMode } from '../../kun/src/contracts/policy.js'
 export { DEFAULT_GUI_UPDATE_CHANNEL, normalizeGuiUpdateChannel, type GuiUpdateChannel } from './gui-update'
@@ -528,6 +529,8 @@ export type AppSettingsV1 = {
   teacherProfile: TeacherProfileSettingsV1
   teacherProjects: TeacherProjectSettingsV1[]
   moduleContext: ModuleContextSettingsV1
+  /** Remembered habits (Task 3.3); absent in settings saved before them. */
+  preferences?: TeacherPreferenceV1[]
   appBehavior: AppBehaviorConfigV1
   write: WriteSettingsV1
   claw: ClawSettingsV1

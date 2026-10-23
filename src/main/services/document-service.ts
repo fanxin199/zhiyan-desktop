@@ -75,7 +75,7 @@ export class DocumentService {
     const template = DOCUMENT_TEMPLATES[request.template]
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
     const settings = await this.options.loadSettings()
-    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot, 'write')
 
     let title = UNTITLED_DOCUMENT_TITLE
     let markdown = `# ${UNTITLED_DOCUMENT_TITLE}\n\n`
