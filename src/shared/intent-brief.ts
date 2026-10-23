@@ -142,3 +142,13 @@ export const INTENT_SOURCE_LABELS: Record<IntentSource, string> = {
   preference: '来自你的习惯',
   default: '默认'
 }
+
+/** The teacher changed a point: it becomes theirs, and missing points and the question follow. */
+export function updateIntentField(brief: IntentBrief, key: string, value: string): IntentBrief {
+  const fields = brief.fields.map((field) =>
+    field.key === key ? { ...field, value: value.trim().slice(0, 2_000), source: 'teacher' as const } : field)
+  const missing = fields.filter((field) => field.required && !field.value).map((field) => field.key)
+  const next: IntentBrief = { toolId: brief.toolId, fields, missing }
+  if (missing.length > 0 && brief.question) next.question = brief.question
+  return next
+}
