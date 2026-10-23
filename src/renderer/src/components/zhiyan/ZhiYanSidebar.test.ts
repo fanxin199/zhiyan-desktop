@@ -3,8 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { ZhiYanSidebar } from './ZhiYanSidebar'
 
-describe('ZhiYanSidebar direct teacher task entries', () => {
-  it('shows the seven tools under 教学 and 科研, with AI 助手 and 设置 at the bottom', () => {
+describe('ZhiYanSidebar', () => {
+  it('shows 首页, 我的课程, 我的课题 and 文件库, with AI 助手 and 设置 at the bottom', () => {
     const noop = vi.fn()
     const html = renderToStaticMarkup(createElement(ZhiYanSidebar, {
       activeRoute: 'dashboard',
@@ -15,15 +15,14 @@ describe('ZhiYanSidebar direct teacher task entries', () => {
     }))
     const labels = [...html.matchAll(/<span[^>]*>([^<]+)<\/span>/gu)].map((match) => match[1])
 
-    for (const group of ['教学', '科研']) expect(html).toContain(group)
-    expect(html).not.toContain('能力中心')
-    for (const entry of ['首页', '教案', '课件', '教材', '文稿', '文献', '数据分析', '文件库', 'AI 助手']) {
-      expect(labels).toContain(entry)
+    for (const entry of ['首页', '我的课程', '我的课题', '文件库', 'AI 助手']) expect(labels).toContain(entry)
+    expect(labels.indexOf('首页')).toBeLessThan(labels.indexOf('我的课程'))
+    expect(labels.indexOf('我的课题')).toBeLessThan(labels.indexOf('文件库'))
+    // Tools are reached from 首页 and the project pages; groups have no headings any more.
+    for (const entry of ['教案', '课件', '教材', '文稿', '文献', '数据分析', '教学', '科研', 'AI 对话']) {
+      expect(labels).not.toContain(entry)
     }
-    // The AI 对话 page became the AI 助手 panel; paper, review and grant writing are templates of 文稿.
-    for (const entry of ['AI 对话', '智能教案', '文件管理', '文本写作', '综述撰写', '自然基金撰写', '自由写作台']) {
-      expect(html).not.toContain(entry)
-    }
-    expect(html.indexOf('文件库')).toBeLessThan(html.indexOf('AI 助手'))
+    // No gap between 首页 and the projects.
+    expect(html).not.toContain('class="mt-4"')
   })
 })

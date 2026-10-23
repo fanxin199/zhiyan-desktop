@@ -20,7 +20,10 @@ import {
   Trash2,
   X
 } from 'lucide-react'
+import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
+import { PROJECT_FOLDERS, PROJECT_TYPE_LABELS } from '@shared/project'
 import type { WorkspaceEntry } from '@shared/workspace-file'
+import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { useChatStore } from '../../store/chat-store'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 
@@ -260,6 +263,20 @@ export function FileManagerWorkspacePage({
   const [aiTaskId, setAiTaskId] = useState<FileManagerAiTaskId>('classify')
   const [aiRequest, setAiRequest] = useState('')
   const [fileContextMenu, setFileContextMenu] = useState<FileContextMenuState>(null)
+  // Project folders (Task 3.1.4): the library opens straight at a course or research project.
+  const [projectFolders, setProjectFolders] = useState<TeacherProjectSettingsV1[]>([])
+
+  useEffect(() => {
+    void rendererRuntimeClient.getSettings()
+      .then((settings) => setProjectFolders(settings.teacherProjects.filter((project) =>
+        project.origin === 'teacher' && !project.archived && project.directory && project.workspacePath)))
+      .catch(() => undefined)
+  }, [])
+
+  const openFolder = (root: string, folder: string): void => {
+    setWorkspaceRoot(root)
+    setDirectory(folder)
+  }
 
   const loadDirectory = async (targetDirectory = directory, targetRoot = workspaceRoot): Promise<void> => {
     if (!targetRoot.trim() || !window.dsGui?.listWorkspaceDirectory) return
@@ -527,6 +544,32 @@ export function FileManagerWorkspacePage({
             </>
           }
         />
+        {projectFolders.length > 0 ? (
+          <nav aria-label="项目文件夹" className="-mt-2 mb-4 flex flex-wrap gap-2">
+            {projectFolders.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                onClick={() => openFolder(project.workspacePath!, project.directory!)}
+                className="inline-flex max-w-[16rem] items-center gap-1.5 rounded-lg border border-ds-border bg-ds-card px-2.5 py-1 text-caption text-ds-text hover:bg-ds-hover"
+              >
+                <FolderOpen className="h-3.5 w-3.5 shrink-0 text-ds-muted" strokeWidth={1.8} />
+                <span className="truncate">{PROJECT_TYPE_LABELS[project.type]} · {project.name}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                const root = projectFolders[0].workspacePath!
+                openFolder(root, joinPath(root, PROJECT_FOLDERS.unfiled))
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ds-border bg-ds-card px-2.5 py-1 text-caption text-ds-text hover:bg-ds-hover"
+            >
+              <FolderOpen className="h-3.5 w-3.5 shrink-0 text-ds-muted" strokeWidth={1.8} />
+              {PROJECT_FOLDERS.unfiled}
+            </button>
+          </nav>
+        ) : null}
       </PageColumn>
 
       {!workspaceRoot ? (

@@ -2,9 +2,11 @@ import {
   Award,
   BookOpen,
   FileText,
+  FlaskConical,
   FolderOpen,
   GraduationCap,
   Home,
+  Library,
   MessageCircle,
   Microscope,
   PenTool,
@@ -70,6 +72,27 @@ export const ZHIYAN_MODULE_REGISTRY = [
     showInSidebar: true
   },
   {
+    // Course and research projects (Task 3.1.4); the tools are reached from them and from 首页.
+    id: 'courses',
+    icon: Library,
+    sidebarLabel: '我的课程',
+    section: 'capabilities',
+    taskDescription: '按课程章节管理教案、课件、教材：要点写一次，成果都按它来写。',
+    keywords: ['课程', '章节', '项目', '教学'],
+    requiredCapabilities: ['core-navigation'],
+    showInSidebar: true
+  },
+  {
+    id: 'topics',
+    icon: FlaskConical,
+    sidebarLabel: '我的课题',
+    section: 'capabilities',
+    taskDescription: '按课题管理文献、文稿和数据分析：题目和科学问题写一次，成果都按它来。',
+    keywords: ['课题', '科研', '项目', '研究'],
+    requiredCapabilities: ['core-navigation'],
+    showInSidebar: true
+  },
+  {
     id: 'syllabus',
     icon: GraduationCap,
     sidebarLabel: '教案',
@@ -78,7 +101,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '根据课程信息或章节内容，AI 辅助生成规范教案',
     keywords: ['教案', '教学设计', '课程', '授课', '章节', 'Word', 'DOCX'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '教案' }
   },
   {
@@ -90,7 +114,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '上传教材 PDF，自动生成教学课件',
     keywords: ['课件', 'PPT', '幻灯片', '教材', 'PDF', '讲稿', '教学'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-pptx-export'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '课件' }
   },
   {
@@ -102,7 +127,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: 'AI 辅助撰写教材章节，保持教学主线和术语一致',
     keywords: ['教材', '章节', '编写', '讲义', '课程建设', '教学材料'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '教材' }
   },
   {
@@ -115,7 +141,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '论文、综述、国自然和日常文稿：一句话开始，AI 先写初稿，说一句就改',
     keywords: ['文稿', '写作', '论文', '综述', '基金', '国自然', '润色', '草稿', '自由写作台', 'DOCX', 'PDF', '导出'],
     requiredCapabilities: ['ai', 'workspace-files', 'write-workspace', 'native-docx-export'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '文稿' }
   },
   {
@@ -138,7 +165,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '文献精读、关键图解读和组会汇报 PPT 制作',
     keywords: ['文献', 'PDF', '论文', '精读', '阅读', '图表', '组会', 'Journal Club', 'PMID', 'DOI'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '文献' }
   },
   {
@@ -172,7 +200,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '基于整理后数据生成批量转录组和单细胞可视化分析',
     keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
     requiredCapabilities: ['ai', 'workspace-files', 'python-base', 'python-bioinformatics'],
-    showInSidebar: true,
+    // Reached from 首页 and the project pages since Task 3.1.4.
+    showInSidebar: false,
     dashboard: { title: '数据分析' }
   },
   {

@@ -48,7 +48,7 @@ describe('Workbench writing page navigation', () => {
     const html = renderWorkbench('write')
 
     expect(html).toContain('文件库')
-    expect(html).toContain('数据分析')
+    expect(html).toContain('我的课题')
     expect(html).toContain('data-testid="write-files-panel"')
     expect(html).toContain('aria-label="收起文稿列表"')
     expect(html).not.toContain('aria-label="显示文稿列表"')

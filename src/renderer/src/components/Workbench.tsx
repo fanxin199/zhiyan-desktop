@@ -43,6 +43,7 @@ import {
 import { LessonPlanPage } from './lesson-plan/LessonPlanPage'
 import { LiteratureReportPage } from './literature/LiteratureReportPage'
 import { DataAnalysisPage } from './analysis/DataAnalysisPage'
+import { ProjectsPage } from './projects/ProjectsPage'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -883,6 +884,14 @@ export function Workbench(): ReactElement {
             recentThreads={getRecentDashboardThreads(threads)}
             onOpenArtifact={openArtifact}
             onSubmitPrompt={handleDashboardPrompt}
+            className="ds-no-drag"
+          />
+        ) : route === 'courses' || route === 'topics' ? (
+          <ProjectsPage
+            key={route}
+            type={route === 'courses' ? 'teaching' : 'research'}
+            onOpenArtifact={openArtifact}
+            onOpenTool={(request, text) => openToolWithRequest(request, text, 'page')}
             className="ds-no-drag"
           />
         ) : route === 'syllabus' ? (

@@ -67,13 +67,15 @@ export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
         {getZhiYanSidebarModules().map((item) => {
           const startsSection = item.section !== null && item.section !== lastSection
           const sectionLabel = item.section ? sectionLabels[item.section] : null
+          // A group without a heading right after 首页 needs no gap.
+          const afterGroup = lastSection !== null
           lastSection = item.section
 
           return (
             <div key={item.id}>
               {startsSection ? (
                 // A group without a heading is only set apart from the one above it.
-                sectionLabel ? <SectionLabel label={sectionLabel} /> : <div className="mt-4" aria-hidden="true" />
+                sectionLabel ? <SectionLabel label={sectionLabel} /> : afterGroup ? <div className="mt-4" aria-hidden="true" /> : null
               ) : null}
               <SidebarCommandRow
                 icon={<item.icon className="h-4 w-4" strokeWidth={1.75} />}

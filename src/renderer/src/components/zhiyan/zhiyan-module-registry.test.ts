@@ -15,6 +15,8 @@ describe('ZhiYan module registry', () => {
     expect(new Set(ZHIYAN_MODULE_ROUTE_IDS).size).toBe(ZHIYAN_MODULE_ROUTE_IDS.length)
     expect(ZHIYAN_MODULE_ROUTE_IDS).toEqual([
       'dashboard',
+      'courses',
+      'topics',
       'syllabus',
       'ppt-gen',
       'textbook',
@@ -49,24 +51,17 @@ describe('ZhiYan module registry', () => {
   })
 
   it('derives sidebar and dashboard collections from the same definitions', () => {
+    // The final navigation (§4.1): tools are reached from 首页 and the project pages.
     expect(getZhiYanSidebarModules().map((module) => module.id)).toEqual([
       'dashboard',
-      'syllabus',
-      'ppt-gen',
-      'textbook',
-      'write',
-      'literature',
-      'bioinformatics',
+      'courses',
+      'topics',
       'file-manager'
     ])
     expect(getZhiYanSidebarModules().map((module) => module.sidebarLabel)).toEqual([
       '首页',
-      '教案',
-      '课件',
-      '教材',
-      '文稿',
-      '文献',
-      '数据分析',
+      '我的课程',
+      '我的课题',
       '文件库'
     ])
     expect(getZhiYanDashboardModules('teaching').map((module) => module.dashboard?.title)).toEqual([
