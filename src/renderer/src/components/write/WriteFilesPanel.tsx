@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import type { WorkspaceEntry } from '@shared/workspace-file'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
 import { useChatStore } from '../../store/chat-store'
+import { useEscapeKey } from '../../lib/use-escape-key'
 import {
   useWriteWorkspaceStore,
   writeBasenameFromPath,
@@ -427,6 +428,7 @@ function WriteEntryDialog({
   t: Translate
 }): ReactElement {
   const deleting = dialog.kind === 'delete'
+  useEscapeKey(true, onClose)
   return (
     <div
       className="ds-no-drag fixed inset-0 z-[80] flex items-center justify-center bg-ds-overlay px-4 backdrop-blur-[2px]"

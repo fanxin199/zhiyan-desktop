@@ -33,7 +33,7 @@ export function ReviewPlanCard({
       title={relativePath}
       className="flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border border-ds-border-muted bg-ds-card px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.07)] backdrop-blur-xl"
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-accent">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-accent-strong">
         <ListTodo className="h-5 w-5" strokeWidth={1.9} />
       </div>
       <div className="min-w-0 flex-1">
@@ -99,7 +99,7 @@ export function ReviewSummaryCard({ review }: { review: ReviewBlock }): ReactEle
           failed || incorrect
             ? 'bg-ds-danger-soft text-ds-danger'
             : running
-              ? 'bg-accent/10 text-accent'
+              ? 'bg-accent/10 text-accent-strong'
               : 'bg-ds-success-soft text-ds-success'
         }`}>
           {icon}

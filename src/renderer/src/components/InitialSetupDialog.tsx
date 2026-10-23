@@ -15,6 +15,7 @@ import { rendererRuntimeClient } from '../agent/runtime-client'
 import { applyTheme } from '../lib/apply-theme'
 import { useChatStore } from '../store/chat-store'
 import { FirstRunWelcome } from './FirstRunWelcome'
+import { useEscapeKey } from '../lib/use-escape-key'
 import { Eye, EyeOff, ExternalLink, Sparkles, Sun, Moon, Monitor, X } from 'lucide-react'
 
 type ThemePref = AppSettingsV1['theme']
@@ -119,6 +120,11 @@ export function InitialSetupDialog(): ReactElement {
     closeInitialSetup()
     void reloadUiSettings()
   }
+
+  useEscapeKey(!saving, () => {
+    if (welcome) closeInitialSetup()
+    else handleClose()
+  })
 
   const handleOpenOfficialApiPage = () => {
     if (typeof window.dsGui?.openExternal !== 'function') return

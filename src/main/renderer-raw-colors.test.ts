@@ -38,6 +38,18 @@ function matchesByLine(sources: Array<{ file: string; text: string }>, pattern: 
 }
 
 const components = read(sourceFiles(resolve('src/renderer/src'), /\.tsx?$/))
+
+// Accent text on an accent tint is about 4:1; such text uses text-accent-strong (Task 4.3.1).
+const STRING_LITERAL = /"[^"\n]*"|'[^'\n]*'|`[^`\n]*`/g
+const ACCENT_TINT = /(?:^|\s)(?:[\w-]+:)*bg-accent(?:-soft|\/\d+)(?=\s|$)/
+const PLAIN_ACCENT_TEXT = /(?:^|\s)(?:[\w-]+:)*text-accent(?=\s|$)/
+
+function accentTextOnTint(sources: Array<{ file: string; text: string }>): string[] {
+  return matchesByLine(sources, STRING_LITERAL).filter((entry) => {
+    const classes = entry.slice(entry.indexOf(' ') + 2, -1)
+    return ACCENT_TINT.test(classes) && PLAIN_ACCENT_TEXT.test(classes)
+  })
+}
 const stylesheets = read(sourceFiles(resolve('src/renderer/src/styles'), /\.css$/))
 
 describe('renderer raw colors', () => {
@@ -50,6 +62,10 @@ describe('renderer raw colors', () => {
       (entry) => !ALLOWED_WHITE.test(entry.slice(entry.indexOf(' ') + 1))
     )
     expect(violations).toEqual([])
+  })
+
+  it('uses the strong accent for text on an accent tint', () => {
+    expect(accentTextOnTint(components)).toEqual([])
   })
 
   it('keeps hex colors and the legacy accent out of components and stylesheets', () => {

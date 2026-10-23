@@ -336,7 +336,7 @@ function WarmupStatePanel({
           className={`mb-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-caption font-semibold ${
             mode === 'error'
               ? 'border-ds-warning/30 bg-ds-warning-soft text-ds-warning'
-              : 'border-accent/15 bg-accent/10 text-accent'
+              : 'border-accent/15 bg-accent/10 text-accent-strong'
           }`}
         >
           {icon}

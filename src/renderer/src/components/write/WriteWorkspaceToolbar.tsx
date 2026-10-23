@@ -100,7 +100,7 @@ export function WriteWorkspaceToolbar({
                 <PanelLeftOpen className="h-4 w-4" strokeWidth={1.85} />
               </button>
             ) : null}
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-strong">
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
             </span>
             <div className="min-w-0 truncate text-body font-semibold tracking-[-0.01em] text-ds-ink">
@@ -180,7 +180,7 @@ export function WriteWorkspaceToolbar({
                     }}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-small transition ${
                       item.active
-                        ? 'bg-accent/10 text-accent'
+                        ? 'bg-accent/10 text-accent-strong'
                         : 'text-ds-ink hover:bg-ds-subtle'
                     } ${!activeFileIsText ? 'cursor-not-allowed opacity-40' : ''}`}
                   >

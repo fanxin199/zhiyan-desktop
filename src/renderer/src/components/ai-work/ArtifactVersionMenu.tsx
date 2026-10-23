@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useEscapeKey } from '../../lib/use-escape-key'
 import { ChevronDown, History, Loader2 } from 'lucide-react'
 import type { ArtifactVersion, ArtifactVersionSource } from '@shared/artifact'
 import { formatRelativeTime } from '../../lib/format-relative-time'
@@ -45,6 +46,8 @@ export function ArtifactVersionMenu({ artifactId, onRestored, api }: ArtifactVer
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- bridge() only resolves the injected or global API.
   }, [api, artifactId, open])
+
+  useEscapeKey(open, () => setOpen(false))
 
   useEffect(() => {
     if (!open) return

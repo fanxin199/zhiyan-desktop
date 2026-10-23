@@ -1544,7 +1544,7 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
                     type="button"
                     disabled={!sectionInstruction.trim() || busy !== null}
                     onClick={() => void reviseActiveSection(sectionInstruction)}
-                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent-strong hover:bg-accent/5 disabled:opacity-50"
                   >
                     {busy === 'revise' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     按指令修订当前节
@@ -1562,7 +1562,7 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
                     type="button"
                     disabled={!termFrom.trim() || !termTo.trim() || busy !== null}
                     onClick={replaceTermInBook}
-                    className="mt-2 w-full rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                    className="mt-2 w-full rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent-strong hover:bg-accent/5 disabled:opacity-50"
                   >
                     在全书替换
                   </button>

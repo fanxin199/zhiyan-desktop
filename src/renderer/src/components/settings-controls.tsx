@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import { createContext, useContext, useId, type ReactElement, type ReactNode } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
 export type InlineNotice = {
@@ -116,6 +116,9 @@ export function SettingsCard({
   )
 }
 
+/** The id of the row title, so a switch in the row is announced by name (Task 4.3.1). */
+const SettingRowLabel = createContext<string | undefined>(undefined)
+
 export function SettingRow({
   title,
   description,
@@ -127,6 +130,7 @@ export function SettingRow({
   control: ReactNode
   wideControl?: boolean
 }): ReactElement {
+  const titleId = useId()
   return (
     <div
       className={`flex gap-3 px-3 py-4 ${
@@ -136,13 +140,13 @@ export function SettingRow({
       }`}
     >
       <div className={`min-w-0 ${wideControl ? 'w-full max-w-none shrink-0' : 'flex-1'}`}>
-        <div className="text-body font-semibold text-ds-ink">{title}</div>
+        <div id={titleId} className="text-body font-semibold text-ds-ink">{title}</div>
         {description ? (
           <p className="mt-0.5 text-small leading-relaxed text-ds-muted">{description}</p>
         ) : null}
       </div>
       <div className={`w-full min-w-0 ${wideControl ? '' : 'sm:max-w-[420px]'}`}>
-        {control}
+        <SettingRowLabel.Provider value={titleId}>{control}</SettingRowLabel.Provider>
       </div>
     </div>
   )
@@ -157,11 +161,13 @@ export function Toggle({
   onChange: (v: boolean) => void
   disabled?: boolean
 }): ReactElement {
+  const labelledBy = useContext(SettingRowLabel)
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-labelledby={labelledBy}
       aria-disabled={disabled}
       disabled={disabled}
       onClick={() => {

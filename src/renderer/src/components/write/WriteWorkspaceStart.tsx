@@ -24,7 +24,7 @@ export function WriteWorkspaceStart({
     <div className="write-start-shell relative h-full min-h-[420px] overflow-auto rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(247,250,255,0.62))] px-5 py-5 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] sm:px-8 sm:py-8">
       <div className="write-start-grid mx-auto grid min-h-full w-full max-w-6xl gap-6">
         <section className="write-start-hero min-w-0 py-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/10 px-3 py-1.5 text-caption font-semibold text-accent">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/10 px-3 py-1.5 text-caption font-semibold text-accent-strong">
             <Sparkles className="h-3.5 w-3.5" strokeWidth={1.9} />
             <span>{t('writeStudio')}</span>
           </div>
@@ -117,7 +117,7 @@ export function WriteWorkspaceStart({
 
           <div className="mt-5 rounded-[20px] border border-ds-border-muted bg-ds-card p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.64)] dark:shadow-none">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent-strong">
                 <FilePenLine className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <div className="min-w-0">

@@ -400,7 +400,7 @@ export function ResearchTaskCardPanel({
       {task.errorMessage ? <p className="mt-2 text-caption text-ds-danger">{task.errorMessage}</p> : null}
 
       <div className="mt-3 flex justify-end">
-        <button type="button" onClick={() => onContinue(task)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-small font-semibold text-accent transition hover:bg-accent/15">
+        <button type="button" onClick={() => onContinue(task)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-small font-semibold text-accent-strong transition hover:bg-accent/15">
           <PencilLine className="h-3.5 w-3.5" strokeWidth={1.8} />
           {task.status === 'failed' || task.status === 'paused' ? '从上次进度继续' : '继续修改'}
         </button>

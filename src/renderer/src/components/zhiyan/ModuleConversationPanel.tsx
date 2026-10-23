@@ -75,7 +75,7 @@ export function ModuleConversationPanel({
             <button
               type="button"
               onClick={onCreateWriteDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-caption font-semibold text-accent transition hover:bg-accent/20"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-caption font-semibold text-accent-strong transition hover:bg-accent/20"
             >
               <FilePenLine className="h-3.5 w-3.5" strokeWidth={1.9} />
               {writeDraftActionLabel}

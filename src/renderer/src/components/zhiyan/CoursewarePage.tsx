@@ -1069,7 +1069,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
               {blueprint.sections.map((section, index) => (
                 <section key={section.id} className="rounded-2xl border border-ds-border-muted bg-ds-card p-4 shadow-sm">
                   <div className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-caption font-bold text-accent">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-caption font-bold text-accent-strong">
                       {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1202,7 +1202,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                   type="button"
                   disabled={!blueprintInstruction.trim() || busy !== null}
                   onClick={() => void createBlueprint(blueprintInstruction)}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-accent px-4 py-2 text-small font-semibold text-accent-strong hover:bg-accent/5 disabled:opacity-50"
                 >
                   {busy === 'blueprint' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   应用整体调整
@@ -1305,7 +1305,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                           event.preventDefault()
                           void refreshActiveNotes()
                         }}
-                        className="rounded-md border border-accent px-1.5 py-0.5 font-medium text-accent hover:bg-accent-soft disabled:opacity-50"
+                        className="rounded-md border border-accent px-1.5 py-0.5 font-medium text-accent-strong hover:bg-accent-soft disabled:opacity-50"
                       >
                         正文改过了，按正文更新讲稿
                       </button>

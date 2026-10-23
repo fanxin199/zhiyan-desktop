@@ -189,7 +189,7 @@ export function SessionHeader({ compact = false, className = '' }: Props): React
               ) : null}
               {active.forkedFromThreadId ? (
                 <span
-                  className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 font-medium text-accent"
+                  className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 font-medium text-accent-strong"
                   title={forkLabel}
                 >
                   <GitFork className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />

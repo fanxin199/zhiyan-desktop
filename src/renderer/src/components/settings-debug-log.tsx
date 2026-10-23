@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import type { WriteInlineCompletionDebugEntry } from '@shared/write-inline-completion'
 import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
+import { useEscapeKey } from '../lib/use-escape-key'
 
 function formatWriteEditDebugTime(value: string): string {
   const date = new Date(value)
@@ -47,6 +48,7 @@ export function WriteDebugLogModal({
   onClose: () => void
   t: (key: string, values?: Record<string, unknown>) => string
 }): ReactElement {
+  useEscapeKey(true, onClose)
   const completionSelected =
     completionEntries.find((entry) => entry.id === completionSelectedId) ?? completionEntries[0] ?? null
 

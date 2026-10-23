@@ -317,7 +317,7 @@ function NextStepCard({ step, onOpen }: { step: ArtifactNextStep; onOpen: () => 
       onClick={onOpen}
       className="group flex min-w-0 items-center gap-3 rounded-xl border border-accent/15 bg-accent/[0.045] px-3.5 py-3 text-left transition hover:border-accent/30 hover:bg-accent/[0.075]"
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-strong">
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">

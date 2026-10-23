@@ -13,7 +13,7 @@ export function WriteWorkspaceEmptyState({
   return (
     <div className="flex h-full min-h-0 items-center justify-center">
       <div className="max-w-md rounded-[28px] border border-ds-border bg-ds-card/90 px-8 py-8 text-center shadow-[0_22px_56px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent-strong">
           <FolderOpen className="h-6 w-6" strokeWidth={1.9} />
         </div>
         <h2 className="mt-5 text-display font-semibold tracking-[-0.04em] text-ds-ink">

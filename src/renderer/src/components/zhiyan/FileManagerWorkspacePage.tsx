@@ -629,7 +629,7 @@ export function FileManagerWorkspacePage({
               {selectedFiles.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 border-b border-accent/20 bg-accent/5 px-3 py-2 text-caption text-ds-text">
                   <span className="font-semibold">已选 {selectedFiles.length} 个文件</span>
-                  <button type="button" onClick={sendSelectedToAi} className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-ds-card px-2.5 py-1.5 font-semibold text-accent hover:bg-accent/10"><Send className="h-3.5 w-3.5" />交给 AI 分析</button>
+                  <button type="button" onClick={sendSelectedToAi} className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-ds-card px-2.5 py-1.5 font-semibold text-accent-strong hover:bg-accent/10"><Send className="h-3.5 w-3.5" />交给 AI 分析</button>
                   <button type="button" onClick={() => setDeletePending(true)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-semibold text-ds-danger hover:bg-ds-danger-soft"><Trash2 className="h-3.5 w-3.5" />删除</button>
                 </div>
               ) : null}

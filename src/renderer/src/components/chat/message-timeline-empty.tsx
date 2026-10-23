@@ -102,7 +102,7 @@ export function ThreadForkBanner({ parentTitle }: { parentTitle: string }): Reac
   return (
     <div className="rounded-[18px] border border-accent/15 bg-accent/5 px-4 py-3 text-ds-muted shadow-lg shadow-accent/5">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-accent/10 text-accent">
+        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-accent/10 text-accent-strong">
           <GitFork className="h-4 w-4" strokeWidth={1.85} />
         </span>
         <span className="min-w-0">
