@@ -20,6 +20,8 @@ describe('SettingsSidebar', () => {
     }))
 
     expect(html).toContain('通用设置中可修改教师信息')
-    expect((html.match(/<button/g) ?? [])).toHaveLength(4)
+    // 返回, 通用, 写作, 我的偏好 (Task 3.3.2) and 高级设置.
+    expect((html.match(/<button/g) ?? [])).toHaveLength(5)
+    expect(html).toContain('我的偏好')
   })
 })
