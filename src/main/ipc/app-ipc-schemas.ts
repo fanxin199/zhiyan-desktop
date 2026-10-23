@@ -306,7 +306,11 @@ const teacherProjectPatchSchema = z.object({
   type: z.enum(['teaching', 'research']),
   workspacePath: defaultPathSchema.optional(),
   lastUsedAt: z.string().trim().max(128),
-  summary: z.string().trim().max(4_000).optional()
+  summary: z.string().trim().max(4_000).optional(),
+  origin: z.enum(['teacher', 'conversation']).optional(),
+  brief: z.record(z.string().trim().min(1).max(40), z.string().max(4_000)).optional(),
+  directory: defaultPathSchema.optional(),
+  archived: z.boolean().optional()
 }).strict()
 
 const syllabusModuleContextPatchSchema = z.object({

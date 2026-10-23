@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TeacherProjectSettingsV1 } from '@shared/app-settings'
+import { normalizeTeacherProjectSettings } from '@shared/app-settings-normalize'
 import type { NormalizedThread } from '../agent/types'
 import {
   emptyThreadProjectRegistry,
@@ -96,7 +97,8 @@ describe('upsertTeacherProject', () => {
       name: '移植免疫',
       type: 'teaching',
       workspacePath: 'J:\\courses',
-      lastUsedAt: '2026-06-29T00:00:00.000Z'
+      lastUsedAt: '2026-06-29T00:00:00.000Z',
+      origin: 'conversation'
     })
     expect(project.id).toMatch(/^teacher-project:syllabus:/u)
     expect(projects).toHaveLength(1)
@@ -116,5 +118,20 @@ describe('upsertTeacherProject', () => {
 
     expect(second.projects.map((project) => project.name)).toEqual(['肿瘤免疫', '移植免疫'])
     expect(new Set(second.projects.map((project) => project.id))).toHaveProperty('size', 2)
+  })
+
+  describe('teacher projects', () => {
+    it('never lets conversation entries push the teacher’s projects out', () => {
+      const teacherProject = normalizeTeacherProjectSettings([
+        { id: 'course-1', name: '生理学', type: 'teaching', lastUsedAt: '', origin: 'teacher', brief: {} }
+      ])[0]
+      let projects = [teacherProject]
+      for (let index = 0; index < 220; index += 1) {
+        projects = upsertTeacherProject(projects, { moduleId: 'literature', name: `文献 ${index}`, type: 'research' }).projects
+      }
+
+      expect(projects).toHaveLength(200)
+      expect(projects.filter((project) => project.origin === 'teacher')).toEqual([teacherProject])
+    })
   })
 })

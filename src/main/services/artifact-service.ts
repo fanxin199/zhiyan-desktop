@@ -115,7 +115,11 @@ export class ArtifactRegistry {
         ...(request.title !== undefined ? { title: request.title } : {}),
         ...(request.stage !== undefined ? { stage: request.stage } : {}),
         ...(typeof request.progress === 'number' ? { progress: request.progress } : {}),
-        updatedAt: this.now().toISOString()
+        ...(request.projectId !== undefined ? { projectId: request.projectId } : {}),
+        // Filing an artifact into a project is not work on it, so it keeps its place in 继续上次的工作.
+        updatedAt: Object.keys(request).every((key) => key === 'id' || key === 'projectId')
+          ? existing.updatedAt
+          : this.now().toISOString()
       }
       return { file: replaceArtifact(file, updated), result: updated }
     })
@@ -143,6 +147,7 @@ export class ArtifactRegistry {
     const artifacts = (await this.load()).artifacts
       .filter((artifact) => !filter.toolId || artifact.toolId === filter.toolId)
       .filter((artifact) => !filter.kind || artifact.kind === filter.kind)
+      .filter((artifact) => filter.projectId === undefined || artifact.projectId === filter.projectId)
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
       .slice(0, filter.limit ?? 200)
     return Promise.all(artifacts.map(async (artifact) => ({

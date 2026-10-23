@@ -25,6 +25,7 @@ import { normalizeModelProviderSettings } from './app-settings-provider'
 import { compactStrings, normalizeDeepseekBaseUrl } from './app-settings-normalizers'
 import { normalizeClawSettings } from './app-settings-claw'
 import { normalizeScheduleSettings } from './app-settings-schedule'
+import { normalizeProjectBrief } from './project'
 import { normalizeWriteSettings } from './app-settings-write'
 
 export function normalizeAppSettings(settings: AppSettingsV1): AppSettingsV1 {
@@ -118,15 +119,24 @@ export function normalizeTeacherProjectSettings(
         : ''
       const summary = typeof project?.summary === 'string' ? project.summary.trim() : ''
       const lastUsedAt = typeof project?.lastUsedAt === 'string' ? project.lastUsedAt.trim() : ''
+      const type: TeacherProjectSettingsV1['type'] = project?.type === 'research' ? 'research' : 'teaching'
+      const origin: NonNullable<TeacherProjectSettingsV1['origin']> = project?.origin === 'teacher' ? 'teacher' : 'conversation'
+      const directory = typeof project?.directory === 'string' ? project.directory.trim() : ''
+      const brief = normalizeProjectBrief(type, project?.brief)
 
-      return {
+      const normalized: TeacherProjectSettingsV1 = {
         id,
         name,
-        type: project?.type === 'research' ? 'research' : 'teaching',
+        type,
         ...(workspacePath ? { workspacePath } : {}),
         lastUsedAt,
-        ...(summary ? { summary } : {})
+        ...(summary ? { summary } : {}),
+        origin,
+        ...(origin === 'teacher' ? { brief } : {}),
+        ...(directory ? { directory } : {}),
+        ...(project?.archived === true ? { archived: true } : {})
       }
+      return normalized
     })
     .filter((project): project is TeacherProjectSettingsV1 => project !== null)
 }

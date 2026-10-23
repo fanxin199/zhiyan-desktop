@@ -271,7 +271,9 @@ describe('teacher project settings', () => {
         type: 'teaching',
         workspacePath: 'J:/courses/immunology',
         lastUsedAt: '2026-06-29T00:00:00.000Z',
-        summary: '本科医学免疫学课件项目'
+        summary: '本科医学免疫学课件项目',
+        // Projects saved before P3 came from conversations.
+        origin: 'conversation'
       }
     ])
   })

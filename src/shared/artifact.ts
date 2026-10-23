@@ -79,11 +79,15 @@ export const artifactUpdateInputSchema = z.object({
   id: trimmed(MAX_ID_LENGTH),
   title: trimmed(200).optional(),
   stage: z.string().trim().max(80).optional(),
-  progress: z.number().min(0).max(1).nullable().optional()
+  progress: z.number().min(0).max(1).nullable().optional(),
+  /** A course or research project; null moves the artifact back to 未归档. */
+  projectId: trimmed(MAX_ID_LENGTH).nullable().optional()
 }).strict()
 
 export const artifactListInputSchema = z.object({
   toolId: trimmed(80).optional(),
+  /** Artifacts of one project; null lists the ones in 未归档. */
+  projectId: trimmed(MAX_ID_LENGTH).nullable().optional(),
   kind: artifactKindSchema.optional(),
   limit: z.number().int().min(1).max(500).optional()
 }).strict()

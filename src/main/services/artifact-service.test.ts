@@ -94,6 +94,22 @@ describe('ArtifactRegistry', () => {
     expect(done).not.toHaveProperty('progress')
   })
 
+  it('files artifacts into a project and back to 未归档 without moving them up the recent list', async () => {
+    const { workspace, draft, registry } = await setup()
+    const notes = join(workspace, '讲稿.md')
+    await writeFile(notes, '讲稿', 'utf8')
+    const plan = await registry.register({ kind: 'lesson-plan', title: '教案', toolId: 'syllabus', workspaceRoot: workspace, storage: { type: 'file', path: draft } })
+    await registry.register({ kind: 'speaker-notes', title: '讲稿', toolId: 'ppt-gen', workspaceRoot: workspace, storage: { type: 'file', path: notes } })
+
+    const filed = await registry.update({ id: plan.id, projectId: 'course-1' })
+    expect(filed).toMatchObject({ projectId: 'course-1', updatedAt: plan.updatedAt })
+    expect((await registry.list({ projectId: 'course-1' })).map((item) => item.title)).toEqual(['教案'])
+    expect((await registry.list({ projectId: null })).map((item) => item.title)).toEqual(['讲稿'])
+
+    await registry.update({ id: plan.id, projectId: null })
+    expect((await registry.list({ projectId: null })).map((item) => item.title)).toEqual(['讲稿', '教案'])
+  })
+
   it('lists the latest artifacts first, filtered by tool, and marks moved files as unavailable', async () => {
     const { workspace, draft, registry } = await setup()
     const notes = join(workspace, '讲稿.md')

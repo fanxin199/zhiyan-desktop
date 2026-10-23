@@ -161,10 +161,14 @@ export function upsertTeacherProject(
     type: input.type === 'research' ? 'research' : 'teaching',
     ...(workspacePath ? { workspacePath } : {}),
     lastUsedAt,
-    ...(summary ? { summary } : {})
+    ...(summary ? { summary } : {}),
+    origin: 'conversation'
   }
+  const others = projects.filter((item) => item.id !== id)
+  const teacherProjects = others.filter((item) => item.origin === 'teacher')
+  const conversationProjects = others.filter((item) => item.origin !== 'teacher')
   return {
     project,
-    projects: [project, ...projects.filter((item) => item.id !== id)].slice(0, 200)
+    projects: [project, ...conversationProjects].slice(0, Math.max(1, 200 - teacherProjects.length)).concat(teacherProjects)
   }
 }

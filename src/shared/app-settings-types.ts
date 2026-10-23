@@ -222,6 +222,16 @@ export type TeacherProjectSettingsV1 = {
   workspacePath?: string
   lastUsedAt: string
   summary?: string
+  /**
+   * `teacher` for a course or research project the teacher made (P3); `conversation` for the
+   * entries tool conversations create, which is what every project made before P3 is.
+   */
+  origin?: 'teacher' | 'conversation'
+  /** Project key points by key (see PROJECT_BRIEF_FIELDS); later generation starts from them. */
+  brief?: Record<string, string>
+  /** The project's folder, such as <workspace>/课程/生理学 · 第八章. */
+  directory?: string
+  archived?: boolean
 }
 
 export type SyllabusModuleContextV1 = {
