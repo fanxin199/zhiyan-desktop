@@ -12,6 +12,7 @@ import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import { AiSidePanel } from '../ai-work/AiSidePanel'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { RevisionResultCard } from '../ai-work/RevisionResultCard'
+import { useHabitOffer } from '../ai-work/RememberHabitOffer'
 
 type Exchange = {
   id: number
@@ -63,6 +64,7 @@ export function DocumentAiPanel(): ReactElement {
   const [sectionId, setSectionId] = useState(WHOLE_DOCUMENT)
   const [exchanges, setExchanges] = useState<Exchange[]>([])
   const nextId = useRef(1)
+  const habit = useHabitOffer('write', '文稿')
   const sections = useMemo(() => splitMarkdownSections(fileContent).filter((section) => section.level > 1), [fileContent])
   const { scope, label } = documentRevisionScope(selection, sections, sectionId)
   const busy = exchanges.some((exchange) => exchange.status === 'working')
@@ -102,6 +104,7 @@ export function DocumentAiPanel(): ReactElement {
       latest.setActiveArtifact({ id: artifact.id, currentVersion: outcome.value.newVersion })
       latest.setAiChangeHighlights(outcome.value.changes.flatMap((change) => aiChangeRanges(latest.fileContent, change)))
       update(id, { status: 'done', result: outcome.value })
+      habit.consider(instruction)
     } catch (error) {
       update(id, { status: 'error', error: error instanceof Error ? error.message : '修改没有完成，请稍后再试。' })
     }
@@ -174,6 +177,7 @@ export function DocumentAiPanel(): ReactElement {
         </div>
       )}
     >
+      {habit.offer ? <div className="mb-3">{habit.offer}</div> : null}
       {exchanges.length === 0 ? (
         <p className="text-small leading-6 text-ds-muted">
           选中文稿里的文字，或在下方选一节，说一句想怎么改；不选就是改全文。每次修改都会保存版本，可以随时撤销。

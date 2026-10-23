@@ -54,6 +54,7 @@ import { IntentBriefChips } from '../ai-work/IntentBriefChips'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { WorkflowProgress } from '../ai-work/WorkflowProgress'
 import { ActiveProjectNote } from '../projects/ActiveProjectNote'
+import { useHabitOffer } from '../ai-work/RememberHabitOffer'
 import {
   LONG_DECK_SLIDES,
   coursewareRequestFromBrief,
@@ -212,6 +213,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
   // Slides edited by hand since their notes were written.
   const [staleNotes, setStaleNotes] = useState<Set<string>>(new Set())
   const runner = useRef<WorkflowRunner | null>(null)
+  const habit = useHabitOffer('ppt-gen', '课件')
   const briefRef = useRef<IntentBrief | null>(null)
   const sentenceRef = useRef('')
   // A request from the AI assistant fills the input box once per request.
@@ -612,6 +614,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
         notesUpdated,
         failed
       })
+      if (changed > 0) habit.consider(instruction)
     } catch (error) {
       setMessage(errorMessage(error))
     } finally {
@@ -1371,6 +1374,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                     正在修改第 {reviseProgress.done + 1} / {reviseProgress.total} 页……
                   </p>
                 ) : null}
+                {habit.offer ? <div className="mt-3">{habit.offer}</div> : null}
                 {deckChange && !reviseProgress ? (
                   <div className="mt-3 rounded-xl border border-ds-border-muted bg-ds-subtle px-3 py-2 text-small text-ds-text">
                     <p className="font-semibold">

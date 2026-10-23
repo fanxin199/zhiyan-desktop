@@ -4,13 +4,14 @@ import type { RevisionOutcome, RevisionResult, RevisionScope } from '@shared/art
 import { markdownBlocks, type MarkdownBlock } from '@shared/document-blocks'
 import { openDocumentArtifact } from '../../lib/resume-artifact'
 import { useChatStore } from '../../store/chat-store'
-import type { ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
+import { getZhiYanModule, type ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
 import { WriteMarkdownPreview } from '../write/WriteMarkdownPreview'
 import { AiSidePanel, type AiNextStep } from './AiSidePanel'
 import { AiWorkPage } from './AiWorkPage'
 import { ArtifactTopBar } from './ArtifactTopBar'
 import { IntentComposer } from './IntentComposer'
 import { RevisionResultCard } from './RevisionResultCard'
+import { useHabitOffer } from './RememberHabitOffer'
 
 /** A Markdown artifact open in a tool's work state. */
 export type OpenSectionedDocument = {
@@ -142,6 +143,7 @@ export function SectionedDocumentWorkspace({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const nextExchange = useRef(1)
+  const habit = useHabitOffer(module, getZhiYanModule(module)?.sidebarLabel ?? toolTitle)
 
   const shownChanges = changedBlocks && changedBlocks.size > 0 ? changedBlocks : changed
   const blocks = useMemo(() => markdownBlocks(document.markdown), [document.markdown])
@@ -182,6 +184,7 @@ export function SectionedDocumentWorkspace({
       const after = await reload()
       setChanged(changedDocumentBlocks(before, after))
       updateExchange(id, { status: 'done', result: outcome.value })
+      habit.consider(instruction)
     } catch (reviseError) {
       updateExchange(id, { status: 'error', error: reviseError instanceof Error ? reviseError.message : '修改没有完成，请稍后再试。' })
     }
@@ -309,6 +312,7 @@ export function SectionedDocumentWorkspace({
             </div>
           )}
         >
+          {habit.offer ? <div className="mb-3">{habit.offer}</div> : null}
           {exchanges.length === 0 ? (
             <p className="text-small leading-6 text-ds-muted">{emptyHint}</p>
           ) : (

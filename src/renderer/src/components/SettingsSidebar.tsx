@@ -6,10 +6,11 @@ import {
   ChevronRight,
   Globe,
   PencilLine,
-  Settings
+  Settings,
+  Sparkles
 } from 'lucide-react'
 
-type SettingsCategory = 'general' | 'write' | 'agents'
+type SettingsCategory = 'general' | 'write' | 'preferences' | 'agents'
 
 export function SettingsSidebar({
   category,
@@ -54,6 +55,10 @@ export function SettingsSidebar({
         <button type="button" className={catCls('write')} onClick={() => setCategory('write')}>
           <PencilLine className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
           {t('write')}
+        </button>
+        <button type="button" className={catCls('preferences')} onClick={() => setCategory('preferences')}>
+          <Sparkles className="h-4 w-4 shrink-0 opacity-70" strokeWidth={1.75} />
+          我的偏好
         </button>
         <button
           type="button"
