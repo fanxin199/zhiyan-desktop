@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import type { ArtifactListItem } from '@shared/artifact'
 import {
   DOCUMENT_TEMPLATE_IDS,
   DOCUMENT_TEMPLATES,
@@ -8,6 +7,7 @@ import {
   type DocumentTemplateId
 } from '@shared/document-templates'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
+import { openDocumentArtifact } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import { AiWorkExamples, AiWorkPage, AiWorkRecentArtifacts } from '../ai-work/AiWorkPage'
@@ -16,11 +16,6 @@ import { WriteWorkspaceEmptyState } from '../write/WriteWorkspaceEmptyState'
 import { extractResearchTaskFileText } from '../zhiyan/ZhiYanModulePages'
 
 type LoadedMaterial = DocumentMaterial & { id: string }
-
-function samePath(left: string, right: string): boolean {
-  const normalize = (value: string): string => value.replaceAll('\\', '/').replace(/\/+$/u, '').toLowerCase()
-  return normalize(left) === normalize(right)
-}
 
 async function fileToBase64(file: File): Promise<string> {
   const bytes = new Uint8Array(await file.arrayBuffer())
@@ -110,16 +105,6 @@ export function DocumentStartView({ template, prefill }: { template: DocumentTem
     }
   }
 
-  const openRecent = async (artifact: ArtifactListItem): Promise<void> => {
-    const store = useWriteWorkspaceStore.getState()
-    // Documents can live in another writing space; switch to it so the file tree matches.
-    const sameSpace = store.workspaceRoots.find((root) => samePath(root, artifact.workspaceRoot))
-    if (sameSpace && !samePath(sameSpace, workspaceRoot)) await store.selectWriteWorkspace(sameSpace)
-    const root = sameSpace ?? workspaceRoot
-    await store.openFile(root, artifact.storage.path)
-    store.closeDocumentStart()
-  }
-
   const pickWorkspace = async (): Promise<void> => {
     try {
       const picked = await window.dsGui.pickWorkspaceDirectory()
@@ -195,7 +180,7 @@ export function DocumentStartView({ template, prefill }: { template: DocumentTem
           <AiWorkExamples examples={current.examples} onSelect={setInput} />
           <AiWorkRecentArtifacts
             toolId="write"
-            onOpen={(artifact) => void openRecent(artifact)}
+            onOpen={(artifact) => void openDocumentArtifact(artifact)}
           />
         </>
       )}

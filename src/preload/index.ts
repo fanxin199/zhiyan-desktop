@@ -48,6 +48,8 @@ const api = {
     ipcRenderer.invoke('courseware:analyze-source', { path }),
   loadCoursewareProject: (path) =>
     ipcRenderer.invoke('courseware:load-project', { path }),
+  loadCoursewareArtifact: (id) =>
+    ipcRenderer.invoke('courseware:load-artifact', { id }),
   registerArtifact: (input) =>
     ipcRenderer.invoke('artifact:register', input),
   updateArtifact: (input) =>

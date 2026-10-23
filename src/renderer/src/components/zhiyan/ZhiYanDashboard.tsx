@@ -1,16 +1,19 @@
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TeacherProfileSettingsV1 } from '@shared/app-settings'
+import type { ArtifactListItem } from '@shared/artifact'
 import { documentTemplateForModule } from '@shared/document-templates'
 import {
   ArrowRight,
   Clock3,
+  FileText,
   MessageCircle,
   Search,
   type LucideIcon
 } from 'lucide-react'
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
+import { ARTIFACT_KIND_LABELS } from '../../lib/resume-artifact'
 import { teacherLabel } from '../../lib/teacher-label'
 import { isInternalPlaceholderThreadTitle, shouldAutoTitleThread } from '../../lib/thread-title'
 import { isWriteThreadId, WRITE_ASSISTANT_THREAD_TITLE } from '../../write/write-thread-registry'
@@ -46,13 +49,10 @@ export type DashboardTaskRecommendation = {
   description: string
 }
 
-type RecentThreadCardProps = {
-  thread: NormalizedThread
-  locale: string
-  onOpen: (threadId: string) => void
-}
+type ListArtifacts = Window['dsGui']['listArtifacts']
 
 const RECENT_THREAD_LIMIT = 5
+const CONTINUE_WORK_LIMIT = 6
 
 const DASHBOARD_SECTION_LABELS = Object.fromEntries(
   ZHIYAN_MODULE_SECTIONS.map((section) => [section.id, section.dashboardLabel])
@@ -163,11 +163,6 @@ function recentThreadModuleId(thread: NormalizedThread): ZhiYanModuleRouteId | n
   const moduleId = isZhiYanModuleRoute(projectModuleId) ? projectModuleId : moduleIdFromPromptTitle(thread.title?.trim() ?? '')
   // Paper, review and grant writing are templates of 文稿 now.
   return moduleId && documentTemplateForModule(moduleId) ? 'write' : moduleId
-}
-
-function recentThreadIcon(thread: NormalizedThread): LucideIcon {
-  const moduleId = recentThreadModuleId(thread)
-  return moduleId ? getZhiYanModule(moduleId)?.icon ?? MessageCircle : MessageCircle
 }
 
 /** The feature a recent conversation belongs to, as named in the sidebar. */
@@ -294,31 +289,79 @@ function DashboardCardSection({
   )
 }
 
-function RecentThreadCard({ thread, locale, onOpen }: RecentThreadCardProps): ReactElement {
-  const Icon = recentThreadIcon(thread)
-  const title = recentThreadTitle(thread) ?? thread.title
+/** Up to six deliverables to continue, latest first; ones whose file is gone are left out. */
+export function continueWorkArtifacts(artifacts: ArtifactListItem[]): ArtifactListItem[] {
+  return artifacts
+    .filter((artifact) => artifact.available)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+    .slice(0, CONTINUE_WORK_LIMIT)
+}
+
+function ContinueWorkCard({
+  artifact,
+  locale,
+  onOpen
+}: {
+  artifact: ArtifactListItem
+  locale: string
+  onOpen: (artifact: ArtifactListItem) => void
+}): ReactElement {
+  const module = isZhiYanModuleRoute(artifact.toolId) ? getZhiYanModule(artifact.toolId) : undefined
+  const Icon = module?.icon ?? FileText
+  const tone: ZhiYanModuleSectionId = module?.section ?? 'capabilities'
+  const progress = artifact.progress === undefined ? null : `完成 ${Math.round(artifact.progress * 100)}%`
+  // Projects arrive in P3; until then every deliverable is 未归档.
+  const project = artifact.projectId === null ? '未归档' : null
   return (
     <button
       type="button"
-      onClick={() => onOpen(thread.id)}
-      className="group flex min-w-0 items-center gap-3 rounded-xl border border-ds-border-muted bg-ds-card px-3.5 py-3 text-left shadow-sm transition hover:border-accent/30 hover:bg-ds-hover"
-      aria-label={`继续：${title}`}
+      onClick={() => onOpen(artifact)}
+      className="group flex min-w-0 items-start gap-3 rounded-xl border border-ds-border-muted bg-ds-card px-3.5 py-3 text-left shadow-sm transition hover:border-accent/30 hover:bg-ds-hover"
+      aria-label={`继续：${artifact.title}`}
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ds-subtle text-ds-muted transition group-hover:text-accent">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${ICON_TONE_CLASSES[tone]}`}>
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-body font-semibold text-ds-text">
-          {title}
+        <span className="block truncate text-body font-semibold text-ds-text">{artifact.title}</span>
+        <span className="mt-0.5 block truncate text-caption text-ds-muted">
+          {[ARTIFACT_KIND_LABELS[artifact.kind], project].filter(Boolean).join(' · ')}
         </span>
         <span className="mt-0.5 flex items-center gap-1.5 text-caption text-ds-muted">
-          <span className="truncate">{recentThreadFeatureLabel(thread)}</span>
-          <span aria-hidden>·</span>
+          {[artifact.stage, progress].filter(Boolean).map((detail) => (
+            <span key={detail} className="truncate">{detail} ·</span>
+          ))}
           <Clock3 className="h-3 w-3 shrink-0" strokeWidth={1.8} />
-          <span className="shrink-0">{formatRelativeTime(thread.updatedAt, locale)}</span>
+          <span className="shrink-0">{formatRelativeTime(artifact.updatedAt, locale)}</span>
         </span>
       </span>
     </button>
+  )
+}
+
+/** 继续上次的工作 (Task 1.6.2): the latest deliverables; clicking one returns to where it was left. */
+export function ContinueWorkSection({
+  artifacts,
+  locale,
+  onOpen
+}: {
+  artifacts: ArtifactListItem[]
+  locale: string
+  onOpen: (artifact: ArtifactListItem) => void
+}): ReactElement | null {
+  const visible = continueWorkArtifacts(artifacts)
+  if (visible.length === 0) return null
+  return (
+    <section className="mb-8" aria-label="继续上次的工作">
+      <h2 className="mb-4 text-small font-semibold uppercase tracking-wider text-ds-faint">
+        继续上次的工作
+      </h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {visible.map((artifact) => (
+          <ContinueWorkCard key={artifact.id} artifact={artifact} locale={locale} onOpen={onOpen} />
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -350,8 +393,10 @@ function TaskRecommendationCard({
 
 type ZhiYanDashboardProps = {
   onOpenModule: (route: ZhiYanModuleRouteId) => void
+  /** Used for next-step recommendations. */
   recentThreads?: NormalizedThread[]
-  onOpenRecentThread?: (threadId: string) => void
+  onOpenArtifact?: (artifact: ArtifactListItem) => void
+  listArtifacts?: ListArtifacts
   onSubmitPrompt?: (prompt: string) => void
   className?: string
 }
@@ -359,15 +404,26 @@ type ZhiYanDashboardProps = {
 export function ZhiYanDashboard({
   onOpenModule,
   recentThreads = [],
-  onOpenRecentThread,
+  onOpenArtifact,
+  listArtifacts = typeof window === 'undefined' ? undefined : window.dsGui?.listArtifacts,
   onSubmitPrompt,
   className = ''
 }: ZhiYanDashboardProps): ReactElement {
   const { i18n } = useTranslation('common')
   const [searchQuery, setSearchQuery] = useState('')
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfileSettingsV1 | undefined>()
-  const visibleRecentThreads = getRecentDashboardThreads(recentThreads)
+  const [artifacts, setArtifacts] = useState<ArtifactListItem[]>([])
   const taskRecommendations = getDashboardTaskRecommendations(recentThreads)
+
+  useEffect(() => {
+    if (typeof listArtifacts !== 'function' || !onOpenArtifact) return
+    let active = true
+    // Some entries may point at files that have since been moved, so ask for a few extra.
+    void listArtifacts({ limit: CONTINUE_WORK_LIMIT * 2 })
+      .then((items) => { if (active) setArtifacts(items) })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [listArtifacts, onOpenArtifact])
 
   useEffect(() => {
     const getSettings = typeof window === 'undefined' ? undefined : window.dsGui?.getSettings
@@ -439,22 +495,8 @@ export function ZhiYanDashboard({
           </div>
         </div>
 
-        {visibleRecentThreads.length > 0 && onOpenRecentThread ? (
-          <div className="mb-8">
-            <h2 className="mb-4 text-small font-semibold uppercase tracking-wider text-ds-faint">
-              最近使用
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {visibleRecentThreads.map((thread) => (
-                <RecentThreadCard
-                  key={thread.id}
-                  thread={thread}
-                  locale={i18n.language}
-                  onOpen={onOpenRecentThread}
-                />
-              ))}
-            </div>
-          </div>
+        {!hasSearchQuery && onOpenArtifact ? (
+          <ContinueWorkSection artifacts={artifacts} locale={i18n.language} onOpen={onOpenArtifact} />
         ) : null}
 
         {!hasSearchQuery && taskRecommendations.length > 0 ? (

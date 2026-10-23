@@ -208,6 +208,8 @@ export type DsGuiApi = {
   inspectPdf: (path: string) => Promise<PdfInspectResult>
   analyzeCoursewareSource: (path: string) => Promise<CoursewareSourceAnalysisResult>
   loadCoursewareProject: (path: string) => Promise<CoursewareProject>
+  /** Reopens courseware registered as an artifact, by its id. */
+  loadCoursewareArtifact: (id: string) => Promise<CoursewareProject>
   /** Records a saved deliverable in the artifact registry; the file must be inside an authorized workspace. */
   registerArtifact: (input: ArtifactRegisterInput) => Promise<ArtifactRecord>
   updateArtifact: (input: ArtifactUpdateInput) => Promise<ArtifactRecord>

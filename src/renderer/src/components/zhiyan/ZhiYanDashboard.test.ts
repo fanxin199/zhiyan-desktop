@@ -1,8 +1,12 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import type { ArtifactListItem } from '@shared/artifact'
 import type { NormalizedThread } from '../../agent/types'
+import { resumeTargetFor } from '../../lib/resume-artifact'
 import {
+  ContinueWorkSection,
+  continueWorkArtifacts,
   dashboardActionCardMatches,
   filterDashboardActionCards,
   getDashboardTaskRecommendations,
@@ -19,6 +23,24 @@ function dashboard(overrides: Partial<Parameters<typeof ZhiYanDashboard>[0]> = {
     onOpenModule: noop,
     ...overrides
   })
+}
+
+function artifact(id: string, updatedAt: string, extra: Partial<ArtifactListItem> = {}): ArtifactListItem {
+  return {
+    id,
+    kind: 'document',
+    title: `文稿 ${id}`,
+    projectId: null,
+    toolId: 'write',
+    workspaceRoot: 'J:\\write',
+    storage: { type: 'file', path: `J:\\write\\${id}.md` },
+    stage: '',
+    currentVersion: 1,
+    createdAt: updatedAt,
+    updatedAt,
+    available: true,
+    ...extra
+  }
 }
 
 function thread(
@@ -101,32 +123,63 @@ describe('ZhiYanDashboard recent use', () => {
     expect(recentThreadFeatureLabel(thread('grant', '自然基金立项依据', '2026-06-29T06:00:00.000Z', {
       projectId: 'teacher-project:grant-writing:nsfc'
     }))).toBe('文稿')
+  })
+})
 
-    const html = renderToStaticMarkup(dashboard({ recentThreads: [writing, chat], onOpenRecentThread: noop }))
-    expect(html).toContain('写作助手对话')
-    expect(html).toContain('文稿')
-    expect(html).not.toContain('Write Assistant')
+describe('ZhiYanDashboard continue last work', () => {
+  it('keeps the six latest deliverables whose files are still there', () => {
+    const items = [
+      artifact('a', '2026-10-20T08:00:00.000Z'),
+      artifact('gone', '2026-10-23T08:00:00.000Z', { available: false }),
+      ...['b', 'c', 'd', 'e', 'f', 'g'].map((id, index) => artifact(id, `2026-10-2${index}T09:00:00.000Z`))
+    ]
+
+    expect(continueWorkArtifacts(items).map((item) => item.id)).toEqual(['g', 'f', 'e', 'd', 'c', 'b'])
   })
 
-  it('does not render the recent section when there is no history', () => {
-    const html = renderToStaticMarkup(dashboard({ recentThreads: [] }))
-
-    expect(html).not.toContain('最近使用')
-  })
-
-  it('renders recent conversations before the teaching tools section', () => {
-    const html = renderToStaticMarkup(dashboard({
-      recentThreads: [
-        thread('thread-literature', '文献解读：B 细胞 TLS', '2026-06-29T06:00:00.000Z', {
-          projectId: 'teacher-project:literature:abc'
+  it('shows the title, kind, project, stage, progress and time of each deliverable', () => {
+    const html = renderToStaticMarkup(createElement(ContinueWorkSection, {
+      artifacts: [
+        artifact('slides', '2026-10-22T08:00:00.000Z', {
+          kind: 'courseware',
+          title: '第八章 呼吸系统',
+          toolId: 'ppt-gen',
+          storage: { type: 'courseware-project', path: 'J:\\out\\第八章.zhiyan-courseware' },
+          stage: '图片审核',
+          progress: 0.6
         })
       ],
-      onOpenRecentThread: noop
+      locale: 'zh-CN',
+      onOpen: noop
     }))
 
-    expect(html).toContain('最近使用')
-    expect(html).toContain('文献解读：B 细胞 TLS')
-    expect(html.indexOf('最近使用')).toBeLessThan(html.indexOf('教学工具'))
+    expect(html).toContain('继续上次的工作')
+    expect(html).toContain('第八章 呼吸系统')
+    expect(html).toContain('课件 · 未归档')
+    expect(html).toContain('图片审核')
+    expect(html).toContain('完成 60%')
+  })
+
+  it('renders nothing without deliverables, and nothing on the home page until they load', () => {
+    expect(renderToStaticMarkup(createElement(ContinueWorkSection, { artifacts: [], locale: 'zh-CN', onOpen: noop }))).toBe('')
+    expect(renderToStaticMarkup(dashboard({ onOpenArtifact: noop }))).not.toContain('继续上次的工作')
+  })
+
+  it('reopens documents in 文稿, courseware in 课件 and other results in their tool', () => {
+    expect(resumeTargetFor(artifact('doc', '2026-10-22T08:00:00.000Z'))).toEqual({ type: 'document' })
+    // A lesson plan sent to the writing workspace is a Markdown file there.
+    expect(resumeTargetFor(artifact('plan', '2026-10-22T08:00:00.000Z', { kind: 'lesson-plan', toolId: 'syllabus' })))
+      .toEqual({ type: 'document' })
+    expect(resumeTargetFor(artifact('ppt', '2026-10-22T08:00:00.000Z', {
+      kind: 'courseware',
+      toolId: 'ppt-gen',
+      storage: { type: 'courseware-project', path: 'J:\\out\\a.zhiyan-courseware' }
+    }))).toEqual({ type: 'courseware' })
+    expect(resumeTargetFor(artifact('report', '2026-10-22T08:00:00.000Z', {
+      kind: 'analysis-report',
+      toolId: 'bioinformatics',
+      storage: { type: 'file', path: 'J:\\analysis\\manifest.json' }
+    }))).toEqual({ type: 'tool', toolId: 'bioinformatics' })
   })
 })
 
@@ -203,8 +256,7 @@ describe('ZhiYanDashboard task recommendations', () => {
     const withHistory = renderToStaticMarkup(dashboard({
       recentThreads: [thread('grant', '自然基金立项依据', '2026-07-15T08:00:00.000Z', {
         projectId: 'teacher-project:grant-writing:nsfc'
-      })],
-      onOpenRecentThread: noop
+      })]
     }))
     const withoutHistory = renderToStaticMarkup(dashboard())
 

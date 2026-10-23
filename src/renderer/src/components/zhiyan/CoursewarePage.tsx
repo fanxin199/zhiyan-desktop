@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -49,6 +50,7 @@ import {
   MissingRequirementsHint,
   type MissingRequirement
 } from './missing-requirements'
+import { usePendingCoursewareStore } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
@@ -297,6 +299,43 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     }
   }, [])
 
+  // Shows a saved project, read by `load`; used by 打开项目 and by 继续上次的工作 on the home page.
+  const showProject = useCallback(async (load: () => Promise<CoursewareProject>): Promise<void> => {
+    setBusy('source')
+    setMessage('')
+    setWarning('')
+    try {
+      const project = await load()
+      setRequest(project.request)
+      setSourceDocument(project.sourceDocument)
+      setSourceVisuals(project.sourceVisuals)
+      setEvidence(project.evidence)
+      setBlueprint(project.blueprint)
+      setSlides(project.slides)
+      setPageCount(project.sourceDocument.pageCount)
+      setFigurePage(project.request.pageStart)
+      setActiveSlideIndex(0)
+      setStep('slides')
+      const analyzed = await window.dsGui.analyzeCoursewareSource(project.sourceDocument.path)
+      if (analyzed.ok) {
+        setSourceText(analyzed.text)
+      } else {
+        setSourceText('')
+        setWarning('项目已打开；原教材暂时不可读取，因此可继续编辑和导出，但不能重新调用 AI 生成。')
+      }
+    } catch (error) {
+      setMessage(errorMessage(error))
+    } finally {
+      setBusy(null)
+    }
+  }, [])
+
+  // Courseware chosen in 继续上次的工作 on the home page.
+  useEffect(() => {
+    const artifactId = usePendingCoursewareStore.getState().take()
+    if (artifactId) void showProject(() => window.dsGui.loadCoursewareArtifact(artifactId))
+  }, [showProject])
+
   async function chooseSource(): Promise<void> {
     const result = await window.dsGui.pickFile({
       filters: [{ name: '教材文件', extensions: ['pdf', 'pptx'] }]
@@ -493,33 +532,8 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
       ]
     })
     if (selected.canceled || !selected.path) return
-    setBusy('source')
-    setMessage('')
-    setWarning('')
-    try {
-      const project = await window.dsGui.loadCoursewareProject(selected.path)
-      setRequest(project.request)
-      setSourceDocument(project.sourceDocument)
-      setSourceVisuals(project.sourceVisuals)
-      setEvidence(project.evidence)
-      setBlueprint(project.blueprint)
-      setSlides(project.slides)
-      setPageCount(project.sourceDocument.pageCount)
-      setFigurePage(project.request.pageStart)
-      setActiveSlideIndex(0)
-      setStep('slides')
-      const analyzed = await window.dsGui.analyzeCoursewareSource(project.sourceDocument.path)
-      if (analyzed.ok) {
-        setSourceText(analyzed.text)
-      } else {
-        setSourceText('')
-        setWarning('项目已打开；原教材暂时不可读取，因此可继续编辑和导出，但不能重新调用 AI 生成。')
-      }
-    } catch (error) {
-      setMessage(errorMessage(error))
-    } finally {
-      setBusy(null)
-    }
+    const path = selected.path
+    await showProject(() => window.dsGui.loadCoursewareProject(path))
   }
 
   async function exportPackage(): Promise<void> {

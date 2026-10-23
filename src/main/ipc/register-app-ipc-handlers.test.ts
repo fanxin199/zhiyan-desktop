@@ -485,4 +485,56 @@ describe('registerAppIpcHandlers', () => {
       await rm(dir, { recursive: true, force: true })
     }
   })
+
+  it('reopens registered courseware by its id without the file picker, and nothing else', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'zhiyan-courseware-resume-ipc-'))
+    try {
+      const project = {
+        version: 2,
+        request: {
+          sourcePath: join(dir, 'source.pdf'), pageStart: 1, pageEnd: 1, topic: '呼吸系统', durationMinutes: 45,
+          audience: 'undergraduate', focus: '', includeRecentLiterature: false, maxLiteratureResults: 6
+        },
+        sourceDocument: { kind: 'pdf', path: join(dir, 'source.pdf'), pageCount: 1, searchable: true },
+        blueprint: {
+          title: '呼吸系统', audience: 'undergraduate', durationMinutes: 45, teachingGoal: '理解通气与换气。',
+          sections: [{ id: 'section-1', title: '通气', objective: '建立主线。', summary: '肺通气。', slideCount: 1, emphasis: [] }]
+        },
+        slides: [{
+          id: 'slide-1', sectionId: 'section-1', kind: 'content', title: '肺通气', bullets: ['呼吸肌运动'],
+          speakerNotes: '说明肺通气。', visual: { type: 'none' }, evidenceRefs: []
+        }],
+        sourceVisuals: [],
+        evidence: [],
+        generatedAt: '2026-10-23T00:00:00.000Z'
+      }
+      const projectPath = join(dir, '呼吸系统.zhiyan-courseware')
+      const zip = new JSZip()
+      zip.file('project.json', JSON.stringify(project))
+      await writeFile(projectPath, await zip.generateAsync({ type: 'nodebuffer' }))
+      const documentPath = join(dir, '综述.md')
+      await writeFile(documentPath, '# 综述')
+      const artifactRegistry = new ArtifactRegistry({ dataDirectory: join(dir, 'data') })
+      const courseware = await artifactRegistry.register({
+        kind: 'courseware', title: '呼吸系统', toolId: 'ppt-gen', workspaceRoot: dir,
+        storage: { type: 'courseware-project', path: projectPath }
+      })
+      const document = await artifactRegistry.register({
+        kind: 'document', title: '综述', toolId: 'write', workspaceRoot: dir,
+        storage: { type: 'file', path: documentPath }
+      })
+      registerAppIpcHandlers(registerOptions({ artifactRegistry }))
+      const handler = handlers.get('courseware:load-artifact')
+
+      await expect(handler?.({}, { id: courseware.id })).resolves.toMatchObject({ request: { topic: '呼吸系统' } })
+      // Opening it this way counts as choosing it, so the page can load it again.
+      await expect(handlers.get('courseware:load-project')?.({}, { path: projectPath })).resolves.toMatchObject({
+        request: { topic: '呼吸系统' }
+      })
+      await expect(handler?.({}, { id: document.id })).rejects.toThrow('找不到这个课件')
+      await expect(handler?.({}, { id: 'unknown' })).rejects.toThrow('找不到这个课件')
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
 })

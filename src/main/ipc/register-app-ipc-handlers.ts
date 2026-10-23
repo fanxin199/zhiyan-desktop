@@ -112,6 +112,7 @@ import {
 } from '../services/courseware-generation-service'
 import { exportCoursewarePackage } from '../services/courseware-export-service'
 import { loadCoursewareProject } from '../services/courseware-project-service'
+import { resolveTargetPathWithinWorkspace } from '../services/workspace-paths'
 import type { ArtifactRegistry } from '../services/artifact-service'
 import type { ArtifactVersionStore } from '../services/artifact-version-service'
 import type { ArtifactRevisionService } from '../services/artifact-revision-service'
@@ -590,6 +591,20 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     )
     await requireAuthorizedFileReadPath(request.path)
     return loadCoursewareProject(request.path)
+  })
+
+  // Reopens courseware from the home page without the file picker. Only a project the app itself
+  // registered can be opened this way, and its path must still lie inside its workspace.
+  ipcMain.handle('courseware:load-artifact', async (_, payload: unknown) => {
+    const { id } = parseIpcPayload('courseware:load-artifact', artifactIdPayloadSchema, payload)
+    const artifact = await artifactRegistry.get(id)
+    if (!artifact || artifact.storage.type !== 'courseware-project') {
+      throw new Error('找不到这个课件，可能已被移除。')
+    }
+    if (!artifact.available) throw new Error('课件项目文件已被移走或删除。')
+    const path = await resolveTargetPathWithinWorkspace(artifact.storage.path, artifact.workspaceRoot)
+    await authorizeFileReadPath(path)
+    return loadCoursewareProject(path)
   })
 
   ipcMain.handle('literature:search-pubmed', async (_, payload: unknown) =>

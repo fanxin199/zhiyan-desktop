@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import type { SkillListItem } from '@shared/ds-gui-api'
-import type { ArtifactRegisterInput } from '@shared/artifact'
+import type { ArtifactListItem, ArtifactRegisterInput } from '@shared/artifact'
 import { documentTemplateForModule } from '@shared/document-templates'
 import type { ClipboardImageReadResult } from '@shared/workspace-file'
 import type { AttachmentReference } from '../agent/types'
@@ -24,6 +24,7 @@ import {
 import { recordArtifact } from '../lib/artifact-records'
 import { buildAssistantPrompt, describeAssistantContext, type AssistantPageContext } from '../lib/assistant-context'
 import { useAssistantStore } from '../lib/assistant-store'
+import { openDocumentArtifact, resumeTargetFor, usePendingCoursewareStore } from '../lib/resume-artifact'
 import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
 import { AssistantDrawer } from './assistant/AssistantDrawer'
 import {
@@ -697,9 +698,19 @@ export function Workbench(): ReactElement {
     rememberAssistantThread(threadId)
     void selectThread(threadId)
   }
-  const openRecentThread = (threadId: string): void => {
-    rememberAssistantThread(threadId)
-    openAssistant()
+  // 继续上次的工作 on the home page returns to where the deliverable was left.
+  const openArtifact = (artifact: ArtifactListItem): void => {
+    const target = resumeTargetFor(artifact)
+    if (target.type === 'document') {
+      void openDocumentArtifact(artifact).finally(openWriteMode)
+      return
+    }
+    if (target.type === 'courseware') {
+      usePendingCoursewareStore.getState().request(artifact.id)
+      setRoute('ppt-gen')
+      return
+    }
+    if (isZhiYanModuleRoute(target.toolId)) openRegisteredModule(target.toolId)
   }
   const handleDashboardPrompt = (prompt: string): void => {
     openAssistant()
@@ -869,7 +880,7 @@ export function Workbench(): ReactElement {
           <ZhiYanDashboard
             onOpenModule={openRegisteredModule}
             recentThreads={getRecentDashboardThreads(threads)}
-            onOpenRecentThread={openRecentThread}
+            onOpenArtifact={openArtifact}
             onSubmitPrompt={handleDashboardPrompt}
             className="ds-no-drag"
           />
