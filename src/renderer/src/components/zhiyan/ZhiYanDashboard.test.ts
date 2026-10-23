@@ -82,16 +82,25 @@ describe('ZhiYanDashboard recent use', () => {
       '帮我设计一节翻转课堂'
     ])
     expect([literature, syllabus, writing, chat].map(recentThreadFeatureLabel)).toEqual([
-      '文献阅读',
-      '智能教案',
+      '文献',
+      '教案',
       '文稿',
-      'AI 对话'
+      'AI 助手'
     ])
 
     const legacyLiterature = thread('old-lit', '你正在处理「文献阅读」模块中的科研任务', '2026-06-26T03:00:00.000Z')
     const legacySyllabus = thread('old-syl', '你是一个高校教学辅助AI，专门为大学教师生成...', '2026-06-16T03:00:00.000Z')
-    expect([legacyLiterature, legacySyllabus].map(recentThreadTitle)).toEqual(['文献阅读任务', '智能教案任务'])
-    expect([legacyLiterature, legacySyllabus].map(recentThreadFeatureLabel)).toEqual(['文献阅读', '智能教案'])
+    expect([legacyLiterature, legacySyllabus].map(recentThreadTitle)).toEqual(['文献任务', '教案任务'])
+    expect([legacyLiterature, legacySyllabus].map(recentThreadFeatureLabel)).toEqual(['文献', '教案'])
+
+    // A title that only shares its first word with the short feature name keeps it.
+    expect(recentThreadTitle(thread('tls', '文献解读：B 细胞 TLS', '2026-06-29T06:00:00.000Z', {
+      projectId: 'teacher-project:literature:abc'
+    }))).toBe('文献解读：B 细胞 TLS')
+    // Conversations of the old paper, review and grant pages belong to 文稿.
+    expect(recentThreadFeatureLabel(thread('grant', '自然基金立项依据', '2026-06-29T06:00:00.000Z', {
+      projectId: 'teacher-project:grant-writing:nsfc'
+    }))).toBe('文稿')
 
     const html = renderToStaticMarkup(dashboard({ recentThreads: [writing, chat], onOpenRecentThread: noop }))
     expect(html).toContain('写作助手对话')
@@ -202,8 +211,8 @@ describe('ZhiYanDashboard task recommendations', () => {
     expect(withHistory).toContain('推荐下一步')
     expect(withHistory).toContain('核验立项依据中的关键文献')
     expect(withHistory.indexOf('推荐下一步')).toBeLessThan(withHistory.indexOf('教学工具'))
-    expect(withHistory).toContain('智能教案')
-    expect(withHistory).toContain('科研数据分析')
+    expect(withHistory).toContain('课件')
+    expect(withHistory).toContain('数据分析')
     expect(withoutHistory).not.toContain('推荐下一步')
   })
 })

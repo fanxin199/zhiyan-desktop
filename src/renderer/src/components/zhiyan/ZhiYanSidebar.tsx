@@ -65,13 +65,15 @@ export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
     >
       <div className="ds-no-drag flex flex-col px-1">
         {getZhiYanSidebarModules().map((item) => {
-          const showSection = item.section && item.section !== lastSection
+          const startsSection = item.section !== null && item.section !== lastSection
+          const sectionLabel = item.section ? sectionLabels[item.section] : null
           lastSection = item.section
 
           return (
             <div key={item.id}>
-              {showSection && item.section ? (
-                <SectionLabel label={sectionLabels[item.section] ?? item.section} />
+              {startsSection ? (
+                // A group without a heading is only set apart from the one above it.
+                sectionLabel ? <SectionLabel label={sectionLabel} /> : <div className="mt-4" aria-hidden="true" />
               ) : null}
               <SidebarCommandRow
                 icon={<item.icon className="h-4 w-4" strokeWidth={1.75} />}

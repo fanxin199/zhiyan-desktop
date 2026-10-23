@@ -37,7 +37,7 @@ function drawerProps(overrides: Partial<Parameters<typeof AssistantDrawer>[0]> =
 
 describe('AI assistant context', () => {
   it('names the page and the document being edited', () => {
-    expect(assistantPageContext('syllabus', null)).toEqual({ page: '智能教案' })
+    expect(assistantPageContext('syllabus', null)).toEqual({ page: '教案' })
     expect(assistantPageContext('write', 'C:\\write\\第八章 教案.md')).toEqual({
       page: '文稿',
       artifact: { kind: '文稿', title: '第八章 教案' }

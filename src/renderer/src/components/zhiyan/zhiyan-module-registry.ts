@@ -36,6 +36,8 @@ type ZhiYanModuleDefinition = {
   id: string
   icon: LucideIcon
   sidebarLabel: string
+  /** Names used before Task 1.6.1; saved conversation titles and prompts still carry them. */
+  formerLabels?: readonly string[]
   section: ZhiYanModuleSectionId | null
   taskDescription: string
   keywords: readonly string[]
@@ -47,10 +49,11 @@ type ZhiYanModuleDefinition = {
 export const ZHIYAN_MODULE_SECTIONS = [
   { id: 'teaching', label: '教学', dashboardLabel: '教学工具' },
   { id: 'research', label: '科研', dashboardLabel: '科研工具' },
-  { id: 'capabilities', label: '能力中心', dashboardLabel: '能力中心' }
+  // No heading in the sidebar: 文件库 simply sits apart below the two groups (Task 1.6.1).
+  { id: 'capabilities', label: null, dashboardLabel: '能力中心' }
 ] as const satisfies ReadonlyArray<{
   id: ZhiYanModuleSectionId
-  label: string
+  label: string | null
   dashboardLabel: string
 }>
 
@@ -58,7 +61,8 @@ export const ZHIYAN_MODULE_REGISTRY = [
   {
     id: 'dashboard',
     icon: Home,
-    sidebarLabel: '工作台',
+    sidebarLabel: '首页',
+    formerLabels: ['工作台'],
     section: null,
     taskDescription: '查看最近使用、搜索功能并获得下一步任务推荐。',
     keywords: ['工作台', '首页', '最近使用', '搜索', '推荐'],
@@ -68,35 +72,38 @@ export const ZHIYAN_MODULE_REGISTRY = [
   {
     id: 'syllabus',
     icon: GraduationCap,
-    sidebarLabel: '智能教案',
+    sidebarLabel: '教案',
+    formerLabels: ['智能教案'],
     section: 'teaching',
     taskDescription: '根据课程信息或章节内容，AI 辅助生成规范教案',
     keywords: ['教案', '教学设计', '课程', '授课', '章节', 'Word', 'DOCX'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
     showInSidebar: true,
-    dashboard: { title: '智能教案' }
+    dashboard: { title: '教案' }
   },
   {
     id: 'ppt-gen',
     icon: Presentation,
-    sidebarLabel: '课件 PPT',
+    sidebarLabel: '课件',
+    formerLabels: ['课件 PPT', '制作课件 PPT'],
     section: 'teaching',
     taskDescription: '上传教材 PDF，自动生成教学课件',
     keywords: ['课件', 'PPT', '幻灯片', '教材', 'PDF', '讲稿', '教学'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-pptx-export'],
     showInSidebar: true,
-    dashboard: { title: '制作课件 PPT' }
+    dashboard: { title: '课件' }
   },
   {
     id: 'textbook',
     icon: BookOpen,
-    sidebarLabel: '教材编写',
+    sidebarLabel: '教材',
+    formerLabels: ['教材编写'],
     section: 'teaching',
     taskDescription: 'AI 辅助撰写教材章节，保持教学主线和术语一致',
     keywords: ['教材', '章节', '编写', '讲义', '课程建设', '教学材料'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'native-docx-export'],
     showInSidebar: true,
-    dashboard: { title: '教材编写' }
+    dashboard: { title: '教材' }
   },
   {
     // 文稿 keeps the route id of the writing workspace it grew from; the paper, review and grant
@@ -125,13 +132,14 @@ export const ZHIYAN_MODULE_REGISTRY = [
   {
     id: 'literature',
     icon: Search,
-    sidebarLabel: '文献阅读',
+    sidebarLabel: '文献',
+    formerLabels: ['文献阅读'],
     section: 'research',
     taskDescription: '文献精读、关键图解读和组会汇报 PPT 制作',
     keywords: ['文献', 'PDF', '论文', '精读', '阅读', '图表', '组会', 'Journal Club', 'PMID', 'DOI'],
     requiredCapabilities: ['ai', 'workspace-files', 'document-reading', 'web-research'],
     showInSidebar: true,
-    dashboard: { title: '文献阅读' }
+    dashboard: { title: '文献' }
   },
   {
     id: 'review-writing',
@@ -158,13 +166,14 @@ export const ZHIYAN_MODULE_REGISTRY = [
   {
     id: 'bioinformatics',
     icon: Microscope,
-    sidebarLabel: '科研数据分析',
+    sidebarLabel: '数据分析',
+    formerLabels: ['科研数据分析'],
     section: 'research',
     taskDescription: '基于整理后数据生成批量转录组和单细胞可视化分析',
     keywords: ['数据', '分析', '单细胞', 'bulk', 'RNA-seq', '转录组', '可视化', '统计', '差异分析'],
     requiredCapabilities: ['ai', 'workspace-files', 'python-base', 'python-bioinformatics'],
     showInSidebar: true,
-    dashboard: { title: '科研数据分析' }
+    dashboard: { title: '数据分析' }
   },
   {
     id: 'chat',
@@ -174,13 +183,15 @@ export const ZHIYAN_MODULE_REGISTRY = [
     taskDescription: '自由对话，让 AI 助手帮您处理任何教学科研任务',
     keywords: ['对话', '聊天', 'AI', '助手', '问答', '任务'],
     requiredCapabilities: ['ai'],
-    showInSidebar: true,
-    dashboard: { title: 'AI 对话' }
+    // The AI assistant panel replaces this page in the navigation (Task 1.6.1); the route stays for
+    // old links and sessions.
+    showInSidebar: false
   },
   {
     id: 'file-manager',
     icon: FolderOpen,
-    sidebarLabel: '文件管理',
+    sidebarLabel: '文件库',
+    formerLabels: ['文件管理'],
     section: 'capabilities',
     taskDescription: '浏览、预览和安全整理当前工作区文件。',
     keywords: ['文件', '文件夹', '整理', '预览', '重命名', '转换格式'],
@@ -220,6 +231,13 @@ export function getZhiYanSectionModule(id: ZhiYanSectionModuleId): ZhiYanSection
   )
   if (!module) throw new Error(`Unknown ZhiYan module: ${id}`)
   return module
+}
+
+/** The module a name refers to, current or former (e.g. “文献阅读” → literature). */
+export function findZhiYanModuleByLabel(label: string): ZhiYanModuleDefinitionV1 | undefined {
+  return ZHIYAN_MODULE_REGISTRY.find((module) =>
+    module.sidebarLabel === label || ('formerLabels' in module && (module.formerLabels as readonly string[]).includes(label))
+  )
 }
 
 export function getZhiYanSidebarModules(): ZhiYanModuleDefinitionV1[] {

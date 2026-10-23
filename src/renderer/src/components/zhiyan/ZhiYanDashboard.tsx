@@ -1,6 +1,7 @@
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TeacherProfileSettingsV1 } from '@shared/app-settings'
+import { documentTemplateForModule } from '@shared/document-templates'
 import {
   ArrowRight,
   Clock3,
@@ -19,7 +20,7 @@ import {
   ZHIYAN_MODULE_SECTIONS,
   getZhiYanDashboardModules,
   getZhiYanModule,
-  getZhiYanSidebarModules,
+  findZhiYanModuleByLabel,
   isZhiYanModuleRoute,
   type ZhiYanModuleRouteId,
   type ZhiYanModuleSectionId
@@ -153,14 +154,15 @@ function moduleIdFromPromptTitle(title: string): ZhiYanModuleRouteId | null {
   if (SYLLABUS_PROMPT_TITLE.test(title)) return 'syllabus'
   const label = MODULE_TASK_PROMPT_TITLE.exec(title)?.[1]
   if (!label) return null
-  return getZhiYanSidebarModules().find((module) => module.sidebarLabel === label)?.id ?? null
+  return findZhiYanModuleByLabel(label)?.id ?? null
 }
 
 function recentThreadModuleId(thread: NormalizedThread): ZhiYanModuleRouteId | null {
   if (isWriteAssistantThread(thread)) return 'write'
-  const moduleId = moduleIdFromProjectId(thread.projectId)
-  if (isZhiYanModuleRoute(moduleId)) return moduleId
-  return moduleIdFromPromptTitle(thread.title?.trim() ?? '')
+  const projectModuleId = moduleIdFromProjectId(thread.projectId)
+  const moduleId = isZhiYanModuleRoute(projectModuleId) ? projectModuleId : moduleIdFromPromptTitle(thread.title?.trim() ?? '')
+  // Paper, review and grant writing are templates of 文稿 now.
+  return moduleId && documentTemplateForModule(moduleId) ? 'write' : moduleId
 }
 
 function recentThreadIcon(thread: NormalizedThread): LucideIcon {
@@ -171,7 +173,15 @@ function recentThreadIcon(thread: NormalizedThread): LucideIcon {
 /** The feature a recent conversation belongs to, as named in the sidebar. */
 export function recentThreadFeatureLabel(thread: NormalizedThread): string {
   const moduleId = recentThreadModuleId(thread)
-  return (moduleId ? getZhiYanModule(moduleId)?.sidebarLabel : undefined) ?? 'AI 对话'
+  return (moduleId ? getZhiYanModule(moduleId)?.sidebarLabel : undefined) ?? 'AI 助手'
+}
+
+/** Every name the conversation's feature has had, which saved titles may start with. */
+function recentThreadFeatureNames(thread: NormalizedThread): { current: string; former: readonly string[] } {
+  const moduleId = recentThreadModuleId(thread)
+  const module = moduleId ? getZhiYanModule(moduleId) : undefined
+  if (!module) return { current: 'AI 助手', former: ['AI 对话'] }
+  return { current: module.sidebarLabel, former: 'formerLabels' in module ? module.formerLabels : [] }
 }
 
 /**
@@ -184,9 +194,14 @@ export function recentThreadTitle(thread: NormalizedThread): string | null {
   if (shouldAutoTitleThread(thread) || isInternalPlaceholderThreadTitle(title)) return null
   if (moduleIdFromPromptTitle(title)) return `${recentThreadFeatureLabel(thread)}任务`
   // Module tasks are named like “文献阅读 · 精读：…”; the feature is shown separately, so drop it here.
-  const feature = recentThreadFeatureLabel(thread)
+  // Former full names also match longer prefixes (“智能教案生成”); the short current names do not,
+  // so “文献解读：…” keeps its first word.
+  const { current, former } = recentThreadFeatureNames(thread)
   const prefixed = /^(.{2,12}?)\s*[：:·]\s*(.+)$/u.exec(title)
-  if (prefixed && (prefixed[1].startsWith(feature) || feature.startsWith(prefixed[1]))) return prefixed[2]
+  const prefix = prefixed?.[1] ?? ''
+  const isFeaturePrefix = [current, ...former].some((name) => name.startsWith(prefix))
+    || former.some((name) => prefix.startsWith(name))
+  if (prefixed && isFeaturePrefix) return prefixed[2]
   return title
 }
 
@@ -380,16 +395,13 @@ export function ZhiYanDashboard({
 
   const teachingCards = dashboardActionCards('teaching', onOpenModule)
   const researchCards = dashboardActionCards('research', onOpenModule)
-  const capabilityCards = dashboardActionCards('capabilities', onOpenModule)
 
   const visibleTeachingCards = filterDashboardActionCards(teachingCards, searchQuery)
   const visibleResearchCards = filterDashboardActionCards(researchCards, searchQuery)
-  const visibleCapabilityCards = filterDashboardActionCards(capabilityCards, searchQuery)
   const hasSearchQuery = searchQuery.trim().length > 0
   const hasSearchResults =
     visibleTeachingCards.length > 0 ||
-    visibleResearchCards.length > 0 ||
-    visibleCapabilityCards.length > 0
+    visibleResearchCards.length > 0
 
   const handleSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
     if (event.key !== 'Enter') return
@@ -467,12 +479,11 @@ export function ZhiYanDashboard({
             <div className="space-y-8">
               <DashboardCardSection title={DASHBOARD_SECTION_LABELS.teaching} cards={visibleTeachingCards} />
               <DashboardCardSection title={DASHBOARD_SECTION_LABELS.research} cards={visibleResearchCards} />
-              <DashboardCardSection title={DASHBOARD_SECTION_LABELS.capabilities} cards={visibleCapabilityCards} compact />
             </div>
           ) : (
             <div className="rounded-2xl border border-ds-border-muted bg-ds-card px-5 py-8 text-center">
               <p className="text-body leading-5 font-semibold text-ds-text">没有找到匹配的功能</p>
-              <p className="mt-1 text-small text-ds-muted">可以换一个关键词，或直接打开 AI 对话描述需求。</p>
+              <p className="mt-1 text-small text-ds-muted">可以换一个关键词，或直接按回车，把需求交给 AI 助手。</p>
             </div>
           )
         ) : null}
@@ -481,7 +492,6 @@ export function ZhiYanDashboard({
           <div className="space-y-8">
             <DashboardCardSection title={DASHBOARD_SECTION_LABELS.teaching} cards={teachingCards} />
             <DashboardCardSection title={DASHBOARD_SECTION_LABELS.research} cards={researchCards} />
-            <DashboardCardSection title={DASHBOARD_SECTION_LABELS.capabilities} cards={capabilityCards} compact />
           </div>
         ) : null}
       </div>

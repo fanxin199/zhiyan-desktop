@@ -983,7 +983,7 @@ function ModulePageShell({
             </div>
             <h2 className="text-title leading-7 font-semibold text-ds-text">功能即将开放</h2>
             <p className="mt-2 max-w-md text-body leading-5 text-ds-muted">
-              此模块正在开发中，敬请期待。您可以先通过 AI 对话来使用相关功能。
+              此模块正在开发中，敬请期待。您可以先通过 AI 助手来使用相关功能。
             </p>
           </div>
         ) : (

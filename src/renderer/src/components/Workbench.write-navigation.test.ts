@@ -47,8 +47,8 @@ describe('Workbench writing page navigation', () => {
   it('keeps the main navigation on the writing page and shows the file tree as an in-page panel', () => {
     const html = renderWorkbench('write')
 
-    expect(html).toContain('智能教案')
-    expect(html).toContain('科研数据分析')
+    expect(html).toContain('文件库')
+    expect(html).toContain('数据分析')
     expect(html).toContain('data-testid="write-files-panel"')
     expect(html).toContain('aria-label="收起文稿列表"')
     expect(html).not.toContain('aria-label="显示文稿列表"')
@@ -57,7 +57,7 @@ describe('Workbench writing page navigation', () => {
   it('collapses the file panel into a toolbar button without hiding the main navigation', () => {
     const html = renderWorkbench('write', false)
 
-    expect(html).toContain('智能教案')
+    expect(html).toContain('文件库')
     expect(html).not.toContain('data-testid="write-files-panel"')
     expect(html).toContain('aria-label="显示文稿列表"')
   })

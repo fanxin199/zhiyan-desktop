@@ -513,7 +513,7 @@ export function FileManagerWorkspacePage({
       <PageColumn width="work" className="shrink-0 pt-8">
         <PageHeader
           module="file-manager"
-          title="文件管理"
+          title="文件库"
           description="浏览、预览和整理项目文件夹里的文件"
           actions={
             <>

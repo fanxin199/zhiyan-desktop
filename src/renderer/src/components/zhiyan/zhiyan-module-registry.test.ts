@@ -3,6 +3,7 @@ import {
   ZHIYAN_MODULE_REGISTRY,
   ZHIYAN_MODULE_ROUTE_IDS,
   ZHIYAN_MODULE_SECTIONS,
+  findZhiYanModuleByLabel,
   getZhiYanDashboardModules,
   getZhiYanModule,
   getZhiYanSidebarModules,
@@ -31,7 +32,7 @@ describe('ZhiYan module registry', () => {
   })
 
   it('keeps section, task, search, icon, and capability metadata complete', () => {
-    expect(ZHIYAN_MODULE_SECTIONS.map((section) => section.label)).toEqual(['教学', '科研', '能力中心'])
+    expect(ZHIYAN_MODULE_SECTIONS.map((section) => section.label)).toEqual(['教学', '科研', null])
     for (const module of ZHIYAN_MODULE_REGISTRY) {
       expect(module.sidebarLabel.trim()).not.toBe('')
       expect(module.taskDescription.trim()).not.toBe('')
@@ -56,19 +57,37 @@ describe('ZhiYan module registry', () => {
       'write',
       'literature',
       'bioinformatics',
-      'chat',
       'file-manager'
     ])
+    expect(getZhiYanSidebarModules().map((module) => module.sidebarLabel)).toEqual([
+      '首页',
+      '教案',
+      '课件',
+      '教材',
+      '文稿',
+      '文献',
+      '数据分析',
+      '文件库'
+    ])
     expect(getZhiYanDashboardModules('teaching').map((module) => module.dashboard?.title)).toEqual([
-      '智能教案',
-      '制作课件 PPT',
-      '教材编写'
+      '教案',
+      '课件',
+      '教材'
     ])
     expect(getZhiYanDashboardModules('research').map((module) => module.id)).toEqual([
       'write',
       'literature',
       'bioinformatics'
     ])
-    expect(getZhiYanDashboardModules('capabilities').map((module) => module.id)).toEqual(['chat'])
+    // The AI assistant panel replaces the AI 对话 page.
+    expect(getZhiYanDashboardModules('capabilities')).toEqual([])
+  })
+
+  it('still recognises the names modules had before Task 1.6.1', () => {
+    expect(findZhiYanModuleByLabel('文献阅读')?.id).toBe('literature')
+    expect(findZhiYanModuleByLabel('文献')?.id).toBe('literature')
+    expect(findZhiYanModuleByLabel('智能教案')?.id).toBe('syllabus')
+    expect(findZhiYanModuleByLabel('文件管理')?.id).toBe('file-manager')
+    expect(findZhiYanModuleByLabel('不存在')).toBeUndefined()
   })
 })
