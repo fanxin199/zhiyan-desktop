@@ -59,9 +59,8 @@ export const WORKFLOW_STAGES: Record<IntentToolId, readonly WorkflowStage[]> = {
   ],
   literature: [
     { id: 'read', label: '读取文献', estimateSeconds: 20 },
-    { id: 'figures', label: '逐图解读', estimateSeconds: 120 },
-    { id: 'report', label: '写成报告', estimateSeconds: 60 },
-    { id: 'citations', label: '核验引用', estimateSeconds: 30 }
+    { id: 'report', label: '逐图解读并写成报告', estimateSeconds: 150 },
+    { id: 'citations', label: '核验引用', estimateSeconds: 20 }
   ],
   bioinformatics: [
     { id: 'read', label: '读取数据', estimateSeconds: 20 },

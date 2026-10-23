@@ -18,10 +18,8 @@ export const ARTIFACT_KIND_LABELS: Record<ArtifactKind, string> = {
 export type ResumeTarget =
   /** A text file: it opens in 文稿, wherever it was made. */
   | { type: 'document' }
-  /** A courseware project: the 课件 page reopens it. */
-  | { type: 'courseware' }
-  /** A lesson plan made by 教案: it reopens there, section by section. */
-  | { type: 'lesson-plan' }
+  /** Reopened by the tool that made it: courseware projects, lesson plans, literature reports. */
+  | { type: 'reopen'; toolId: 'ppt-gen' | 'syllabus' | 'literature' }
   /** Anything else opens the tool that made it. */
   | { type: 'tool'; toolId: string }
 
@@ -29,9 +27,12 @@ const DOCUMENT_FILE = /\.(md|markdown|txt)$/iu
 
 /** Where clicking an artifact on the home page takes the teacher (Task 1.6.2). */
 export function resumeTargetFor(artifact: Pick<ArtifactListItem, 'kind' | 'storage' | 'toolId'>): ResumeTarget {
-  if (artifact.storage.type === 'courseware-project') return { type: 'courseware' }
-  if (artifact.kind === 'lesson-plan' && artifact.toolId === 'syllabus' && DOCUMENT_FILE.test(artifact.storage.path)) {
-    return { type: 'lesson-plan' }
+  if (artifact.storage.type === 'courseware-project') return { type: 'reopen', toolId: 'ppt-gen' }
+  if (DOCUMENT_FILE.test(artifact.storage.path)) {
+    if (artifact.kind === 'lesson-plan' && artifact.toolId === 'syllabus') return { type: 'reopen', toolId: 'syllabus' }
+    if ((artifact.kind === 'literature-report' || artifact.kind === 'evidence-table') && artifact.toolId === 'literature') {
+      return { type: 'reopen', toolId: 'literature' }
+    }
   }
   if (DOCUMENT_FILE.test(artifact.storage.path)) return { type: 'document' }
   return { type: 'tool', toolId: artifact.toolId }

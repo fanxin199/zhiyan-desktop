@@ -7,10 +7,8 @@ import { PageHeader } from './PageHeader'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import { LessonPlanPage } from '../lesson-plan/LessonPlanPage'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
-import {
-  BioinformaticsPage,
-  LiteraturePage
-} from './ZhiYanModulePages'
+import { BioinformaticsPage } from './ZhiYanModulePages'
+import { LiteratureReportPage } from '../literature/LiteratureReportPage'
 import { getZhiYanSectionModule, type ZhiYanSectionModuleId } from './zhiyan-module-registry'
 
 // PageColumn renders `mx-auto w-full px-8 max-w-[Npx]`, so its content is N minus two 32px gutters.
@@ -50,7 +48,7 @@ describe('PageHeader', () => {
 describe('tool pages', () => {
   const pages: Array<[ZhiYanSectionModuleId, ReactElement, number]> = [
     ['syllabus', createElement(LessonPlanPage), 720],
-    ['literature', createElement(LiteraturePage, { onStartChat: vi.fn() }), 720],
+    ['literature', createElement(LiteratureReportPage), 720],
     ['bioinformatics', createElement(BioinformaticsPage, { onStartChat: vi.fn() }), 720],
     ['ppt-gen', createElement(CoursewarePage), 720],
     ['textbook', createElement(TextbookWorkbenchPage), 720],

@@ -38,11 +38,11 @@ import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashb
 import {
   BioinformaticsPage,
   FileManagerPage,
-  LiteraturePage,
   PptGenPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
 import { LessonPlanPage } from './lesson-plan/LessonPlanPage'
+import { LiteratureReportPage } from './literature/LiteratureReportPage'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -648,8 +648,9 @@ export function Workbench(): ReactElement {
   }
   const pageContext = assistantPageContext(route, activeWriteFilePath)
   // A deliverable asked for in the assistant opens its tool with the request filled in.
-  const openToolWithRequest = (request: ToolRequest, text: string): void => {
-    useAssistantStore.getState().handOff(request, text)
+  const openToolWithRequest = (request: ToolRequest, text: string, from: 'assistant' | 'page' = 'assistant'): void => {
+    if (from === 'assistant') useAssistantStore.getState().handOff(request, text)
+    else useAssistantStore.getState().prefillTool(request, text)
     if (request.moduleId === 'write') {
       useWriteWorkspaceStore.getState().openDocumentStart(request.template ?? 'blank')
       openWriteMode()
@@ -705,10 +706,9 @@ export function Workbench(): ReactElement {
       void openDocumentArtifact(artifact).finally(openWriteMode)
       return
     }
-    if (target.type === 'courseware' || target.type === 'lesson-plan') {
-      const toolId = target.type === 'courseware' ? 'ppt-gen' : 'syllabus'
-      usePendingArtifactStore.getState().request(toolId, artifact)
-      setRoute(toolId)
+    if (target.type === 'reopen') {
+      usePendingArtifactStore.getState().request(target.toolId, artifact)
+      setRoute(target.toolId)
       return
     }
     if (isZhiYanModuleRoute(target.toolId)) openRegisteredModule(target.toolId)
@@ -898,24 +898,14 @@ export function Workbench(): ReactElement {
         ) : route === 'ppt-gen' ? (
           <PptGenPage onStartChat={handleModuleQuickPrompt} prefill={prefillFor('ppt-gen')} className="ds-no-drag" />
         ) : route === 'literature' ? (
-          <LiteraturePage
-            onStartChat={handleModuleQuickPrompt}
+          <LiteratureReportPage
             prefill={prefillFor('literature')}
-            researchTaskExecution={researchTaskExecutionFor('literature')}
             handoffFile={moduleHandoffFiles.literature}
             onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
               ...current,
               literature: undefined
             }))}
-            showInlineConversation={isInlineModuleConversationVisible({
-              inlineConversationThreadIds,
-              moduleId: 'literature',
-              activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('文献解读', {
-              busy: '正在解读',
-              ready: '解读已完成'
-            })}
+            onOpenTool={(request, text) => openToolWithRequest(request, text, 'page')}
             className="ds-no-drag"
           />
         ) : route === 'textbook' ? (

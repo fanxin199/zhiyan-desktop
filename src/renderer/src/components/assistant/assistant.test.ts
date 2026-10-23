@@ -113,17 +113,15 @@ describe('requests handed from the assistant to a tool', () => {
   })
 
   it('fill the input box of the tool page', async () => {
-    const { LiteraturePage } = await import('../zhiyan/ZhiYanModulePages')
+    const { LiteratureReportPage } = await import('../literature/LiteratureReportPage')
     const { DocumentStartView } = await import('../documents/DocumentStartView')
-    const prefill = { id: 1, text: '帮我写一份第八章呼吸系统的教案' }
-
-    expect(renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: vi.fn(), prefill: { id: 2, text: '精读这篇 TLS 论文' } })))
-      .toContain('精读这篇 TLS 论文')
     const { useWriteWorkspaceStore } = await import('../../write/write-workspace-store')
     const initial = useWriteWorkspaceStore.getInitialState()
     const workspaceRoot = initial.workspaceRoot
     initial.workspaceRoot = '/write'
     try {
+      expect(renderToStaticMarkup(createElement(LiteratureReportPage, { prefill: { id: 2, text: '精读这篇 TLS 论文' } })))
+        .toContain('精读这篇 TLS 论文')
       expect(renderToStaticMarkup(createElement(DocumentStartView, { template: 'grant', prefill: { id: 3, text: '起草国自然申请书' } })))
         .toContain('起草国自然申请书')
     } finally {

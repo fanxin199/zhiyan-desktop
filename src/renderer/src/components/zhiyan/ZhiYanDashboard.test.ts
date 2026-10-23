@@ -169,14 +169,16 @@ describe('ZhiYanDashboard continue last work', () => {
     expect(resumeTargetFor(artifact('doc', '2026-10-22T08:00:00.000Z'))).toEqual({ type: 'document' })
     // Lesson plans made by 教案 reopen there, section by section; other Markdown opens in 文稿.
     expect(resumeTargetFor(artifact('plan', '2026-10-22T08:00:00.000Z', { kind: 'lesson-plan', toolId: 'syllabus' })))
-      .toEqual({ type: 'lesson-plan' })
+      .toEqual({ type: 'reopen', toolId: 'syllabus' })
     expect(resumeTargetFor(artifact('notes', '2026-10-22T08:00:00.000Z', { kind: 'document', toolId: 'syllabus' })))
       .toEqual({ type: 'document' })
     expect(resumeTargetFor(artifact('ppt', '2026-10-22T08:00:00.000Z', {
       kind: 'courseware',
       toolId: 'ppt-gen',
       storage: { type: 'courseware-project', path: 'J:\\out\\a.zhiyan-courseware' }
-    }))).toEqual({ type: 'courseware' })
+    }))).toEqual({ type: 'reopen', toolId: 'ppt-gen' })
+    expect(resumeTargetFor(artifact('lit', '2026-10-22T08:00:00.000Z', { kind: 'evidence-table', toolId: 'literature' })))
+      .toEqual({ type: 'reopen', toolId: 'literature' })
     expect(resumeTargetFor(artifact('report', '2026-10-22T08:00:00.000Z', {
       kind: 'analysis-report',
       toolId: 'bioinformatics',

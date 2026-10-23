@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { CoursewarePage } from './CoursewarePage'
 import { MissingRequirementsHint, missingRequirementsText } from './missing-requirements'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
-import { LiteraturePage } from './ZhiYanModulePages'
+import { BioinformaticsPage } from './ZhiYanModulePages'
 
 function buttonContaining(html: string, label: string): string {
   const labelIndex = html.indexOf(`${label}</button>`)
@@ -27,10 +27,10 @@ describe('missing requirements', () => {
   it('keeps primary buttons clickable before their requirements are met', () => {
     const courseware = renderToStaticMarkup(createElement(CoursewarePage))
     const textbook = renderToStaticMarkup(createElement(TextbookWorkbenchPage))
-    const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: () => undefined }))
+    const analysis = renderToStaticMarkup(createElement(BioinformaticsPage, { onStartChat: () => undefined }))
 
     for (const [html, label] of [
-      [literature, '发送文献任务']
+      [analysis, '发送分析任务']
     ] as const) {
       const button = buttonContaining(html, label)
       expect(button, label).not.toBe('')
@@ -44,6 +44,6 @@ describe('missing requirements', () => {
     const textbookSend = textbook.match(/<button[^>]*aria-label="发送"[^>]*>/u)?.[0] ?? ''
     expect(textbookSend).not.toBe('')
     expect(textbookSend).not.toContain('disabled=""')
-    expect(literature).toContain('id="research-task-input"')
+    expect(analysis).toContain('id="research-task-input"')
   })
 })

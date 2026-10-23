@@ -64,6 +64,7 @@ import type { RevisionOutcome, RevisionRequest } from './artifact-revision'
 import type { DocumentCreateInput } from './document-templates'
 import type { IntentBrief, IntentExtractInput } from './intent-brief'
 import type { LessonPlanCreateInput } from './lesson-plan'
+import type { LiteratureReportInput } from './literature-report'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -237,6 +238,11 @@ export type DsGuiApi = {
   >
   /** Writes a lesson plan from its key points and materials and saves it in the writing workspace. */
   createLessonPlan: (input: LessonPlanCreateInput) => Promise<
+    | { ok: true; path: string; artifact: ArtifactRecord; markdown: string }
+    | { ok: false; code: string; message: string }
+  >
+  /** Writes a 文献报告 for one paper or an 证据表 for several, saved in the writing workspace. */
+  createLiteratureReport: (input: LiteratureReportInput) => Promise<
     | { ok: true; path: string; artifact: ArtifactRecord; markdown: string }
     | { ok: false; code: string; message: string }
   >

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { splitMarkdownSections } from './artifact-revision'
+import { markdownBlocks, type MarkdownBlock } from './document-blocks'
 
 /**
  * Lesson plans (Task 2.2). The model writes the teaching content as JSON; the app turns it into a
@@ -211,30 +212,6 @@ export function lessonPlanHours(markdown: string): string {
   return /\|\s*计划学时\s*\|\s*([^|\n]*?)\s*\|/u.exec(markdown)?.[1]?.replace(/^\u3000$/u, '') ?? ''
 }
 
-export type LessonPlanBlock = {
-  /** The section's id from `splitMarkdownSections`, used as the revision scope. */
-  sectionId: string
-  title: string
-  level: number
-  /** Text between this heading and the next heading of any level. */
-  body: string
-}
-
-/**
- * The canvas of a lesson plan (Task 2.2.2): one block per part and per teaching segment. The text
- * before the first part (title and header table) is returned as `intro`.
- */
-export function lessonPlanBlocks(markdown: string): { intro: string; blocks: LessonPlanBlock[] } {
-  const sections = splitMarkdownSections(markdown).filter((section) => section.level >= 2 && section.level <= 3)
-  const headings = splitMarkdownSections(markdown)
-  const bodyEnd = (start: number): number => headings.find((section) => section.start > start)?.start ?? markdown.length
-  const firstPart = sections[0]?.start ?? markdown.length
-  return {
-    intro: markdown.slice(0, firstPart).replace(/^#[ \t].*\n?/u, '').trim(),
-    blocks: sections.map((section) => {
-      const headingEnd = markdown.indexOf('\n', section.start)
-      const bodyStart = headingEnd < 0 ? markdown.length : headingEnd + 1
-      return { sectionId: section.id, title: section.title, level: section.level, body: markdown.slice(bodyStart, bodyEnd(section.start)).trim() }
-    })
-  }
-}
+/** The canvas blocks of a lesson plan: one per part and per teaching segment. */
+export const lessonPlanBlocks = markdownBlocks
+export type LessonPlanBlock = MarkdownBlock

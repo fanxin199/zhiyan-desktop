@@ -16,6 +16,8 @@ type AssistantState = {
   setOpen: (open: boolean) => void
   rememberThread: (threadId: string | null) => void
   handOff: (request: ToolRequest, text: string) => void
+  /** Fills a tool's input box without a note in the assistant, e.g. for a next step on a tool page. */
+  prefillTool: (request: ToolRequest, text: string) => void
   dismissHandOff: (id: number) => void
   clearHandOffs: () => void
   clearPrefill: () => void
@@ -42,6 +44,7 @@ export const useAssistantStore = create<AssistantState>((set) => ({
       handOffs: [...state.handOffs, { id, text, request }]
     }))
   },
+  prefillTool: (request, text) => set({ prefill: { moduleId: request.moduleId, id: Date.now(), text } }),
   dismissHandOff: (id) => set((state) => ({ handOffs: state.handOffs.filter((item) => item.id !== id) })),
   clearHandOffs: () => set({ handOffs: [] }),
   clearPrefill: () => set({ prefill: null })

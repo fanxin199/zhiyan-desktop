@@ -56,6 +56,7 @@ import {
   documentCreatePayloadSchema,
   intentExtractPayloadSchema,
   lessonPlanCreatePayloadSchema,
+  literatureReportPayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -121,6 +122,7 @@ import type { ArtifactRevisionService } from '../services/artifact-revision-serv
 import type { DocumentService } from '../services/document-service'
 import type { IntentBriefService } from '../services/intent-brief-service'
 import type { LessonPlanService } from '../services/lesson-plan-service'
+import type { LiteratureService } from '../services/literature-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -161,6 +163,7 @@ type RegisterAppIpcHandlersOptions = {
   documents: Pick<DocumentService, 'create'>
   intentBriefs: Pick<IntentBriefService, 'extract'>
   lessonPlans: Pick<LessonPlanService, 'create'>
+  literature: Pick<LiteratureService, 'createReport'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -271,6 +274,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     documents,
     intentBriefs,
     lessonPlans,
+    literature,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -786,6 +790,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('lesson-plans:create', lessonPlanCreatePayloadSchema, payload)
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return lessonPlans.create(request)
+  })
+  ipcMain.handle('literature:create-report', async (_, payload: unknown) => {
+    const request = parseIpcPayload('literature:create-report', literatureReportPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return literature.createReport(request)
   })
   // Reads text the renderer already holds; no files are touched.
   ipcMain.handle('intent:extract', async (_, payload: unknown) =>
