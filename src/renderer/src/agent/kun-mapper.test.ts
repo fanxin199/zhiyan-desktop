@@ -977,3 +977,18 @@ describe('tool presentation inference', () => {
     })
   })
 })
+
+describe('ZhiYan managed prompt inside a project', () => {
+  it('adds the key points of the project the teacher works in', () => {
+    const prompt = buildZhiYanManagedPrompt('帮我出 10 道选择题', {
+      workingProject: {
+        id: 'course-1', name: '生理学 · 第八章', type: 'teaching', lastUsedAt: '', origin: 'teacher',
+        brief: { courseName: '生理学', chapter: '第八章 呼吸系统' }
+      }
+    })
+
+    expect(prompt).toContain('## 课程项目要点（生理学 · 第八章')
+    expect(prompt).toContain('- 章节：第八章 呼吸系统')
+    expect(prompt.indexOf('课程项目要点')).toBeLessThan(prompt.indexOf('## 老师当前请求'))
+  })
+})

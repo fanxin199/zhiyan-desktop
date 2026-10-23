@@ -1,6 +1,8 @@
 import { useState, type KeyboardEvent, type ReactElement } from 'react'
 import { HelpCircle } from 'lucide-react'
 import { INTENT_SOURCE_LABELS, type IntentBrief, type IntentField } from '@shared/intent-brief'
+import { PROJECT_BRIEF_FIELDS, PROJECT_FIELDS_BY_INTENT } from '@shared/project'
+import { useActiveProject } from '../projects/ActiveProjectNote'
 
 type IntentBriefChipsProps = {
   brief: IntentBrief
@@ -38,11 +40,29 @@ function FieldChip({ field, onEdit }: { field: IntentField; onEdit: () => void }
  */
 export function IntentBriefChips({ brief, onChange }: IntentBriefChipsProps): ReactElement {
   const [editing, setEditing] = useState<{ key: string; draft: string } | null>(null)
+  const project = useActiveProject()
+  // A project-level point changed here, waiting for “同步到项目” (Task 3.2.1).
+  const [syncOffer, setSyncOffer] = useState<{ projectKey: string; label: string; value: string } | null>(null)
+  const [synced, setSynced] = useState('')
 
   const commit = (): void => {
     if (!editing) return
     onChange(editing.key, editing.draft)
+    const projectKey = PROJECT_FIELDS_BY_INTENT[brief.toolId]?.[editing.key]
+    const value = editing.draft.trim()
+    if (project && projectKey && value && value !== (project.brief?.[projectKey] ?? '').trim()) {
+      const label = PROJECT_BRIEF_FIELDS[project.type].find((field) => field.key === projectKey)?.label ?? projectKey
+      setSyncOffer({ projectKey, label, value })
+      setSynced('')
+    }
     setEditing(null)
+  }
+
+  const syncToProject = async (): Promise<void> => {
+    if (!project || !syncOffer) return
+    await window.dsGui.updateProject({ id: project.id, brief: { ...(project.brief ?? {}), [syncOffer.projectKey]: syncOffer.value } })
+    setSynced(`已把${syncOffer.label}同步到项目“${project.name}”。`)
+    setSyncOffer(null)
   }
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.nativeEvent.isComposing) return
@@ -79,6 +99,14 @@ export function IntentBriefChips({ brief, onChange }: IntentBriefChipsProps): Re
           </li>
         ))}
       </ul>
+      {syncOffer && project ? (
+        <p role="status" className="flex flex-wrap items-center gap-2 text-caption text-ds-text">
+          <span>这次把{syncOffer.label}改成了“{syncOffer.value}”，也改到项目“{project.name}”里吗？之后的成果会按新的来写。</span>
+          <button type="button" onClick={() => void syncToProject()} className="rounded-md bg-accent px-2 py-0.5 font-semibold text-white">同步到项目</button>
+          <button type="button" onClick={() => setSyncOffer(null)} className="rounded-md px-2 py-0.5 text-ds-muted hover:bg-ds-hover">只改这次</button>
+        </p>
+      ) : null}
+      {synced ? <p role="status" className="text-caption text-ds-muted">{synced}</p> : null}
     </section>
   )
 }

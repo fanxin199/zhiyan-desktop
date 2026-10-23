@@ -16,6 +16,7 @@ import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH, wrapUntrustedPromptMaterial } from '
 import type { ArtifactRegistry } from './artifact-service'
 import type { ArtifactVersionStore } from './artifact-version-service'
 import { documentFileStem } from './document-service'
+import { projectPlacement } from './project-placement'
 import { requestStructuredJson, type StructuredGenerationOptions } from './structured-generation'
 import { canonicalPath, expandHomePath, resolveTargetPathWithinWorkspace } from './workspace-paths'
 
@@ -54,12 +55,16 @@ export class LiteratureService {
     const request = literatureReportInputSchema.parse(input)
     const settings = await this.options.loadSettings()
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
     const single = request.papers.length === 1
     const materials = request.papers.map((paper) => wrapUntrustedPromptMaterial(
       paper.text.slice(0, single ? SINGLE_PAPER_CHARS : PAPER_CHARS_IN_TABLE),
       `${paper.name}${paperIdentifier(paper) ? `（${paperIdentifier(paper)}）` : ''}${paper.source === 'abstract' ? '，仅摘要' : ''}`
     ))
-    const question = `老师的问题：${request.question || '（没有具体问题，按常规精读）'}`
+    const question = [
+      ...(placement.block ? [placement.block, ''] : []),
+      `老师的问题：${request.question || '（没有具体问题，按常规精读）'}`
+    ].join('\n')
     const options = { maxTokens: 8_000, timeoutMessage: '读文献超过 3 分钟，请稍后重试，或减少文献数量。', ...this.options.generation }
 
     let title: string
@@ -110,8 +115,8 @@ export class LiteratureService {
 
     const kindLabel = single ? '文献报告' : '证据表'
     const stem = documentFileStem(`${title.slice(0, 40)} ${kindLabel}`)
-    let path = join(workspaceRoot, `${stem}.md`)
-    for (let copy = 2; await exists(path); copy += 1) path = join(workspaceRoot, `${stem} (${copy}).md`)
+    let path = join(placement.directory, `${stem}.md`)
+    for (let copy = 2; await exists(path); copy += 1) path = join(placement.directory, `${stem} (${copy}).md`)
     path = await resolveTargetPathWithinWorkspace(path, workspaceRoot)
     await writeFile(path, markdown, { encoding: 'utf8', flag: 'wx' })
 
@@ -121,7 +126,8 @@ export class LiteratureService {
       toolId: 'literature',
       workspaceRoot,
       storage: { type: 'file', path },
-      stage: request.papers.some((paper) => paper.source === 'abstract') ? '部分仅依据摘要' : '已读全文'
+      stage: request.papers.some((paper) => paper.source === 'abstract') ? '部分仅依据摘要' : '已读全文',
+      projectId: placement.project?.id ?? null
     })
     await this.options.versions.createVersion({
       id: artifact.id,

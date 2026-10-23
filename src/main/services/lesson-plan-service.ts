@@ -15,6 +15,7 @@ import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH, wrapUntrustedPromptMaterial } from '
 import type { ArtifactRegistry } from './artifact-service'
 import type { ArtifactVersionStore } from './artifact-version-service'
 import { documentFileStem } from './document-service'
+import { projectPlacement } from './project-placement'
 import { requestStructuredJson, type StructuredGenerationOptions } from './structured-generation'
 import { canonicalPath, expandHomePath, resolveTargetPathWithinWorkspace } from './workspace-paths'
 
@@ -51,6 +52,7 @@ export class LessonPlanService {
     const settings = await this.options.loadSettings()
     const { fields } = request
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
     const planned = plannedLessonMinutes(fields.hours)
 
     const generated = await requestStructuredJson(settings, lessonPlanContentSchema, [
@@ -72,6 +74,7 @@ export class LessonPlanService {
       {
         role: 'user',
         content: [
+          ...(placement.block ? [placement.block, ''] : []),
           `课程：${fields.courseName || '（从材料推断）'}`,
           `章节：${fields.topic || '（从材料推断）'}`,
           `授课对象：${fields.audience || '本科生'}；专业：${fields.major || '（未说明）'}`,
@@ -100,8 +103,8 @@ export class LessonPlanService {
     const title = `${lessonPlanTitle(header)} 教案`
 
     const stem = documentFileStem(title)
-    let path = join(workspaceRoot, `${stem}.md`)
-    for (let copy = 2; await exists(path); copy += 1) path = join(workspaceRoot, `${stem} (${copy}).md`)
+    let path = join(placement.directory, `${stem}.md`)
+    for (let copy = 2; await exists(path); copy += 1) path = join(placement.directory, `${stem} (${copy}).md`)
     path = await resolveTargetPathWithinWorkspace(path, workspaceRoot)
     await writeFile(path, markdown, { encoding: 'utf8', flag: 'wx' })
 
@@ -111,7 +114,8 @@ export class LessonPlanService {
       toolId: 'syllabus',
       workspaceRoot,
       storage: { type: 'file', path },
-      stage: '初稿'
+      stage: '初稿',
+      projectId: placement.project?.id ?? null
     })
     await this.options.versions.createVersion({
       id: artifact.id,

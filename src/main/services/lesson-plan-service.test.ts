@@ -28,7 +28,7 @@ afterEach(async () => {
   await Promise.all(tempDirs.splice(0).map((path) => rm(path, { recursive: true, force: true })))
 })
 
-function settings(): AppSettingsV1 {
+function settings(teacherProjects: AppSettingsV1['teacherProjects'] = []): AppSettingsV1 {
   const provider = defaultModelProviderSettings()
   provider.apiKey = 'sk-test'
   provider.providers[0].apiKey = 'sk-test'
@@ -38,7 +38,7 @@ function settings(): AppSettingsV1 {
     workspaceRoot: 'C:\\workspace', log: { enabled: false, retentionDays: 7 }, notifications: { turnComplete: true },
     showTechnicalMetrics: false,
     teacherProfile: { name: '王老师', school: '某医科大学', department: '生理学系', courses: [], researchTopics: [] },
-    teacherProjects: [], moduleContext: { projects: {}, recent: {} },
+    teacherProjects, moduleContext: { projects: {}, recent: {} },
     appBehavior: { openAtLogin: false, startMinimized: false, closeToTray: false },
     write: defaultWriteSettings(), claw: defaultClawSettings(), schedule: defaultScheduleSettings(),
     guiUpdate: { channel: 'stable' }
@@ -63,7 +63,7 @@ const content: LessonPlanContent = {
   improvement: ''
 }
 
-async function setup(reply: unknown) {
+async function setup(reply: unknown, teacherProjects: (workspace: string) => AppSettingsV1['teacherProjects'] = () => []) {
   const root = await mkdtemp(join(tmpdir(), 'zhiyan-lesson-plans-'))
   tempDirs.push(root)
   const workspace = join(root, 'write')
@@ -75,12 +75,42 @@ async function setup(reply: unknown) {
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   ))
   const service = new LessonPlanService({
-    registry, versions, loadSettings: async () => settings(), generation: { fetcher: fetcher as unknown as typeof fetch }
+    registry, versions, loadSettings: async () => settings(teacherProjects(workspace)), generation: { fetcher: fetcher as unknown as typeof fetch }
   })
   return { workspace, registry, versions, service, fetcher }
 }
 
 describe('LessonPlanService', () => {
+  it('writes inside a course project: its key points guide the plan, which is saved in its folder and filed into it', async () => {
+    const { workspace, registry, service, fetcher } = await setup(content, (root) => [{
+      id: 'course-1', name: '生理学 · 第八章', type: 'teaching', lastUsedAt: '', origin: 'teacher',
+      brief: { courseName: '生理学', glossary: '肺通气 pulmonary ventilation' },
+      directory: join(root, '课程', '生理学 · 第八章')
+    }])
+
+    const outcome = await service.create({ workspaceRoot: workspace, fields: { courseName: '生理学', topic: '呼吸' }, projectId: 'course-1' })
+
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.path).toBe(join(workspace, '课程', '生理学 · 第八章', '生理学 · 呼吸 教案.md'))
+    expect(outcome.artifact.projectId).toBe('course-1')
+    await expect(registry.list({ projectId: 'course-1' })).resolves.toHaveLength(1)
+    const body = JSON.parse(String(fetcher.mock.calls[0][1].body)) as { messages: Array<{ content: string }> }
+    expect(body.messages[1].content).toContain('## 课程项目要点（生理学 · 第八章')
+    expect(body.messages[1].content).toContain('- 术语表：肺通气 pulmonary ventilation')
+  })
+
+  it('ignores an unknown or archived project and writes in the workspace as before', async () => {
+    const { workspace, service } = await setup(content, () => [{
+      id: 'old', name: '旧课程', type: 'teaching', lastUsedAt: '', origin: 'teacher', archived: true, directory: 'C:\\elsewhere'
+    }])
+
+    const outcome = await service.create({ workspaceRoot: workspace, fields: { topic: '呼吸' }, projectId: 'old' })
+
+    expect(outcome.ok && outcome.path).toBe(join(workspace, '呼吸 教案.md'))
+    expect(outcome.ok && outcome.artifact.projectId).toBeNull()
+  })
+
   it('writes a lesson plan with one section per part and one per segment, and keeps it as a version', async () => {
     const { workspace, registry, versions, service, fetcher } = await setup(content)
 

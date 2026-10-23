@@ -1,6 +1,9 @@
-import type { AppSettingsV1 } from '@shared/app-settings'
+import type { AppSettingsV1, TeacherProjectSettingsV1 } from '@shared/app-settings'
 import type { IntentLayers, IntentToolId } from '@shared/intent-brief'
+import { findTeacherProject } from '@shared/project'
 import { rendererRuntimeClient } from '../agent/runtime-client'
+import { useActiveProjectStore } from './active-project'
+import { intentValuesFromProject } from './project-context'
 
 type ContextLayers = Pick<IntentLayers, 'project' | 'profile' | 'preference'>
 
@@ -13,11 +16,22 @@ function compact(values: Record<string, string | undefined>): Record<string, str
 }
 
 /**
- * What the app already knows for a tool's key points (§6.3): the teacher's profile and, until P3
- * brings real projects, the most recent lesson plan's course details from `moduleContext`.
- * A chapter is never carried over, since each lesson is about a new one; preferences arrive in P3.
+ * What the app already knows for a tool's key points (§6.3): the active course or research project
+ * when there is one (Task 3.2.1), otherwise the most recent lesson plan's course details from
+ * `moduleContext`, and the teacher's profile. Outside a project a chapter is never carried over,
+ * since each lesson is about a new one.
  */
 export function intentContextFromSettings(
+  toolId: IntentToolId,
+  settings: Pick<AppSettingsV1, 'teacherProfile' | 'moduleContext'>,
+  project?: Pick<TeacherProjectSettingsV1, 'brief'>
+): ContextLayers {
+  const layers = contextWithoutProject(toolId, settings)
+  const fromProject = intentValuesFromProject(toolId, project)
+  return Object.keys(fromProject).length > 0 ? { ...layers, project: { ...layers.project, ...fromProject } } : layers
+}
+
+function contextWithoutProject(
   toolId: IntentToolId,
   settings: Pick<AppSettingsV1, 'teacherProfile' | 'moduleContext'>
 ): ContextLayers {
@@ -54,7 +68,9 @@ export async function requestIntentBrief(
 ): ReturnType<Window['dsGui']['extractIntentBrief']> {
   let context: ContextLayers = {}
   try {
-    context = intentContextFromSettings(toolId, await rendererRuntimeClient.getSettings({ forceRefresh: true }))
+    const settings = await rendererRuntimeClient.getSettings({ forceRefresh: true })
+    const project = findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId)
+    context = intentContextFromSettings(toolId, settings, project)
   } catch {
     // Fall through with no pre-filled values.
   }

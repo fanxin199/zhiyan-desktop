@@ -7,6 +7,7 @@ import {
   type DocumentTemplateId
 } from '@shared/document-templates'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
+import { useActiveProjectStore } from '../../lib/active-project'
 import { openDocumentArtifact } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
@@ -86,7 +87,8 @@ export function DocumentStartView({ template, prefill }: { template: DocumentTem
         workspaceRoot,
         template: selected,
         instruction: input.trim(),
-        materials: materials.map(({ name, text }) => ({ name, text }))
+        materials: materials.map(({ name, text }) => ({ name, text })),
+        projectId: useActiveProjectStore.getState().projectId ?? undefined
       })
       if (!result.ok) {
         setError(result.message)

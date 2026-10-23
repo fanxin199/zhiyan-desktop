@@ -99,3 +99,43 @@ export const projectAdoptInputSchema = z.object({
 export type ProjectCreateInput = z.infer<typeof projectCreateInputSchema>
 export type ProjectUpdateInput = z.infer<typeof projectUpdateInputSchema>
 export type ProjectAdoptInput = z.infer<typeof projectAdoptInputSchema>
+
+/** A project's key points as prompt lines, “- 课程：生理学”, empty values left out. */
+export function projectBriefLines(type: TeacherProjectTypeV1, brief: Record<string, string> = {}): string[] {
+  return PROJECT_BRIEF_FIELDS[type]
+    .filter((field) => brief[field.key]?.trim())
+    .map((field) => `- ${field.label}：${brief[field.key].trim().replace(/\s*\n\s*/gu, '；')}`)
+}
+
+/**
+ * The block added to generation prompts inside a project (Task 3.2.1), so every result follows the
+ * same course or research key points. Empty when the project has none.
+ */
+export function projectPromptBlock(project: { name: string; type: TeacherProjectTypeV1; brief?: Record<string, string> }): string {
+  const lines = projectBriefLines(project.type, project.brief)
+  if (lines.length === 0) return ''
+  return [
+    `## ${PROJECT_TYPE_LABELS[project.type]}项目要点（${project.name}，生成时必须遵循，术语按其中的写法统一）`,
+    ...lines
+  ].join('\n')
+}
+
+/**
+ * Intent keys that are really project key points, per tool, mapped to the project field
+ * (Task 3.2.1): read from the active project, and offered back to it when the teacher edits one.
+ */
+export const PROJECT_FIELDS_BY_INTENT: Record<string, Record<string, string>> = {
+  syllabus: { courseName: 'courseName', topic: 'chapter', audience: 'audience', hours: 'hours', major: 'major' },
+  'ppt-gen': { topic: 'chapter', audience: 'audience' },
+  textbook: { bookTitle: 'courseName', chapter: 'chapter', audience: 'audience' },
+  write: { topic: 'title', target: 'target' }
+}
+
+/** The teacher's own project with this id, if it is still in use. */
+export function findTeacherProject<T extends { id: string; origin?: string; archived?: boolean }>(
+  projects: T[],
+  projectId: string | undefined | null
+): T | undefined {
+  if (!projectId) return undefined
+  return projects.find((project) => project.id === projectId && project.origin === 'teacher' && !project.archived)
+}

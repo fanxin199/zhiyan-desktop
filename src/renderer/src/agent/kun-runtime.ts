@@ -70,6 +70,8 @@ import {
   todosFromCore,
   threadFromCore
 } from './kun-mapper'
+import { findTeacherProject } from '@shared/project'
+import { useActiveProjectStore } from '../lib/active-project'
 import { readThreadProjectRegistry } from '../lib/thread-project-registry'
 import { rendererRuntimeClient } from './runtime-client'
 
@@ -239,7 +241,8 @@ export class KunRuntimeProvider implements AgentProvider {
       : undefined
     const managedPrompt = buildZhiYanManagedPrompt(text, {
       teacherProfile: settings.teacherProfile,
-      project
+      project,
+      workingProject: findTeacherProject(settings.teacherProjects, useActiveProjectStore.getState().projectId)
     })
     const displayText = options?.displayText?.trim() || text.trim()
     const body: Record<string, unknown> = {

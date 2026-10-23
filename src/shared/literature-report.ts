@@ -19,7 +19,9 @@ export const literatureReportInputSchema = z.object({
   workspaceRoot: z.string().trim().min(1).max(4_096),
   /** The teacher's question about the paper(s); may be empty. */
   question: z.string().trim().max(2_000).default(''),
-  papers: z.array(literaturePaperSchema).min(1).max(10)
+  papers: z.array(literaturePaperSchema).min(1).max(10),
+  /** A course or research project: its key points guide the writing and the result is filed into it. */
+  projectId: z.string().trim().min(1).max(160).optional(),
 }).strict()
 
 export type LiteraturePaper = z.infer<typeof literaturePaperSchema>

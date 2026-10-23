@@ -23,6 +23,7 @@ import {
 } from '../lib/composer-file-references'
 import { recordArtifact } from '../lib/artifact-records'
 import { buildAssistantPrompt, describeAssistantContext, type AssistantPageContext } from '../lib/assistant-context'
+import { useActiveProjectStore } from '../lib/active-project'
 import { useAssistantStore } from '../lib/assistant-store'
 import { openDocumentArtifact, resumeTargetFor, usePendingArtifactStore } from '../lib/resume-artifact'
 import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
@@ -602,6 +603,7 @@ export function Workbench(): ReactElement {
     void openWrite()
   }
   const openRegisteredModule = (moduleId: ZhiYanModuleRouteId): void => {
+    useActiveProjectStore.getState().setProjectId(null)
     // The paper, review and grant pages became templates of 文稿.
     const template = documentTemplateForModule(moduleId)
     if (template) {
@@ -702,6 +704,7 @@ export function Workbench(): ReactElement {
   }
   // 继续上次的工作 on the home page returns to where the deliverable was left.
   const openArtifact = (artifact: ArtifactListItem): void => {
+    useActiveProjectStore.getState().setProjectId(artifact.projectId)
     const target = resumeTargetFor(artifact)
     if (target.type === 'document') {
       void openDocumentArtifact(artifact).finally(openWriteMode)

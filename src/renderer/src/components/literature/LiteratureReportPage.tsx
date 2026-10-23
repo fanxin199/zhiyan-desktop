@@ -11,6 +11,7 @@ import { requestIntentBrief } from '../../lib/intent-context'
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
 import type { ToolPrefill, ToolRequest } from '../../lib/tool-request'
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
+import { useActiveProjectStore } from '../../lib/active-project'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import { AiWorkExamples, AiWorkPage, AiWorkRecentArtifacts } from '../ai-work/AiWorkPage'
 import { IntentBriefChips } from '../ai-work/IntentBriefChips'
@@ -174,7 +175,7 @@ export function LiteratureReportPage({
           papers = [found]
         },
         report: async () => {
-          const created = await window.dsGui.createLiteratureReport({ workspaceRoot: root, question, papers })
+          const created = await window.dsGui.createLiteratureReport({ workspaceRoot: root, question, papers, projectId: useActiveProjectStore.getState().projectId ?? undefined })
           if (!created.ok) throw new Error(created.message)
           setReport({ artifactId: created.artifact.id, path: created.path, workspaceRoot: root, title: created.artifact.title, markdown: created.markdown })
         },

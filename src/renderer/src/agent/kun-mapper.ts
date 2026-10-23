@@ -34,11 +34,14 @@ import type {
   CoreUsageSnapshotJson
 } from './kun-contract'
 import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH } from '@shared/prompt-boundary'
+import { projectPromptBlock } from '@shared/project'
 import { teacherLabel } from '../lib/teacher-label'
 
 export type ZhiYanManagedPromptContext = {
   teacherProfile?: TeacherProfileSettingsV1
   project?: TeacherProjectSettingsV1
+  /** The course or research project the teacher is working in (Task 3.2.1). */
+  workingProject?: TeacherProjectSettingsV1
 }
 
 const MODULE_LABELS_BY_ID: Record<string, string> = {
@@ -72,7 +75,7 @@ export function buildZhiYanManagedPrompt(
   context: ZhiYanManagedPromptContext = {}
 ): string {
   const request = userRequest.trim()
-  const { teacherProfile, project } = context
+  const { teacherProfile, project, workingProject } = context
   const teacher = teacherLabel(teacherProfile)
   const projectName = nonEmpty(project?.name) || '当前任务'
   const lines = [
@@ -97,6 +100,8 @@ export function buildZhiYanManagedPrompt(
     if (project.summary?.trim()) lines.push(`项目摘要：${project.summary.trim()}`)
     if (project.workspacePath?.trim()) lines.push(`项目文件夹：${project.workspacePath.trim()}`)
   }
+  const workingBlock = workingProject ? projectPromptBlock(workingProject) : ''
+  if (workingBlock) lines.push('', workingBlock)
 
   lines.push(
     '',

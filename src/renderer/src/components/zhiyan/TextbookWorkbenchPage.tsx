@@ -43,11 +43,13 @@ import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
 import { startWorkflowRun, type WorkflowMode, type WorkflowRunState } from '@shared/workflow'
 import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { requestIntentBrief } from '../../lib/intent-context'
+import { activeProjectBlock } from '../../lib/project-context'
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
 import { AiWorkExamples } from '../ai-work/AiWorkPage'
 import { IntentBriefChips } from '../ai-work/IntentBriefChips'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { WorkflowProgress } from '../ai-work/WorkflowProgress'
+import { ActiveProjectNote } from '../projects/ActiveProjectNote'
 import {
   LONG_TEXTBOOK_SECTIONS,
   replaceTermAcrossSections,
@@ -525,6 +527,12 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
           if (!outcome.ok) throw new Error(outcome.message)
           showBrief(outcome.brief)
           applyBrief(outcome.brief)
+          // Inside a project its key points go into the outline brief (Task 3.2.1).
+          const { block } = await activeProjectBlock()
+          if (block) {
+            teacherBriefRef.current = `${teacherBriefRef.current}\n\n${block}`
+            setTeacherBrief(teacherBriefRef.current)
+          }
           // Common rules are read locally at once; the AI completes the rest.
           if (guidelines.trim()) await parseFormatRulesWithAi()
           if (outcome.brief.missing.length > 0) {
@@ -938,6 +946,7 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
         <PageColumn width={step === 'start' ? 'start' : 'work'} className="py-5">
           {step === 'start' && !run && (
             <div className="space-y-4">
+              <ActiveProjectNote />
               <IntentComposer
                 value={input}
                 onChange={setInput}

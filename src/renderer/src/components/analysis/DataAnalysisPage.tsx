@@ -6,6 +6,7 @@ import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
 import { startWorkflowRun, type WorkflowMode, type WorkflowRunState } from '@shared/workflow'
 import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { recordArtifact } from '../../lib/artifact-records'
+import { activeProjectBlock } from '../../lib/project-context'
 import { requestIntentBrief } from '../../lib/intent-context'
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
@@ -248,6 +249,7 @@ export function DataAnalysisPage({
             runtime: status
           })
           await persistAnalysisReproducibilityManifest(workspaceRoot, manifest)
+          const projectContext = await activeProjectBlock()
           reportPath = joinPath(workspaceRoot, manifest.artifacts.report ?? '')
           reportTitle = `${values.goal || '数据分析'} 分析报告`.slice(0, 120)
           const artifact = await recordArtifact({
@@ -256,12 +258,14 @@ export function DataAnalysisPage({
             toolId: 'bioinformatics',
             workspaceRoot,
             storage: { type: 'file', path: reportPath },
-            stage: '分析中'
+            stage: '分析中',
+            projectId: projectContext.project?.id ?? null
           })
           if (!artifact) throw new Error('没能登记这次分析，请确认数据所在文件夹可以写入。')
           artifactId = artifact.id
           onStartAgentTask([
             '你正在处理「数据分析」模块中的科研任务。',
+            ...(projectContext.block ? [projectContext.block] : []),
             `老师的要求：${text || '（见数据与分组）'}`,
             `数据类型：${values.dataType || '（从文件判断）'}；分析目标：${values.goal || '（按老师的要求）'}`,
             `数据文件：\n${dataFiles.map((file) => `- ${file.path}`).join('\n')}`,

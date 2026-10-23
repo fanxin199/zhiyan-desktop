@@ -129,7 +129,9 @@ export const documentCreateInputSchema = z.object({
   template: documentTemplateIdSchema,
   /** Empty for a blank document without a first draft. */
   instruction: z.string().trim().max(8_000),
-  materials: z.array(documentMaterialSchema).max(10)
+  materials: z.array(documentMaterialSchema).max(10),
+  /** A course or research project: its key points guide the writing and the result is filed into it. */
+  projectId: z.string().trim().min(1).max(160).optional(),
 }).strict()
 
 export type DocumentMaterial = z.infer<typeof documentMaterialSchema>

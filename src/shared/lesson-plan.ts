@@ -50,7 +50,9 @@ export const lessonPlanCreateInputSchema = z.object({
   materials: z.array(z.object({
     name: z.string().trim().min(1).max(255),
     text: z.string().max(200_000)
-  }).strict()).max(10).default([])
+  }).strict()).max(10).default([]),
+  /** A course or research project: its key points guide the writing and the result is filed into it. */
+  projectId: z.string().trim().min(1).max(160).optional(),
 }).strict()
 
 export type LessonPlanCreateInput = z.input<typeof lessonPlanCreateInputSchema>

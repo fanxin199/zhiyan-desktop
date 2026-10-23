@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { AppSettingsV1 } from '@shared/app-settings'
 import { mergeIntentBrief, updateIntentField } from '@shared/intent-brief'
+import { projectPromptBlock } from '@shared/project'
 import { intentContextFromSettings } from '../../lib/intent-context'
 import { IntentBriefChips } from './IntentBriefChips'
 
@@ -77,5 +78,28 @@ describe('intentContextFromSettings', () => {
       project: { topic: '第七章 血液循环', audience: '2023 级本科生' }
     })
     expect(intentContextFromSettings('literature', settings(['生理学']))).toEqual({})
+  })
+})
+
+describe('key points inside a project (Task 3.2.1)', () => {
+  const course = { brief: { courseName: '人体生理学', chapter: '第八章 呼吸系统', audience: '临床医学本科生', glossary: '肺通气' } }
+
+  it('takes course, chapter and audience from the project, ahead of the latest lesson', () => {
+    expect(intentContextFromSettings('syllabus', settings(['生理学']), course).project).toEqual({
+      courseName: '人体生理学', topic: '第八章 呼吸系统', audience: '临床医学本科生', hours: '4 学时', major: '临床医学'
+    })
+    expect(intentContextFromSettings('ppt-gen', settings([], false), course).project).toEqual({ topic: '第八章 呼吸系统', audience: '临床医学本科生' })
+  })
+
+  it('writes the project’s key points as one prompt block, leaving empty ones out', () => {
+    expect(projectPromptBlock({ name: '人体生理学 · 第八章', type: 'teaching', brief: { ...course.brief, goals: '掌握\n肺通气' } }).split('\n')).toEqual([
+      '## 课程项目要点（人体生理学 · 第八章，生成时必须遵循，术语按其中的写法统一）',
+      '- 课程：人体生理学',
+      '- 章节：第八章 呼吸系统',
+      '- 授课对象：临床医学本科生',
+      '- 教学目标：掌握；肺通气',
+      '- 术语表：肺通气'
+    ])
+    expect(projectPromptBlock({ name: '空', type: 'research', brief: {} })).toBe('')
   })
 })

@@ -44,6 +44,7 @@ import {
 import { loadCoursewareContextDefaults } from '../../lib/module-context'
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
 import { requestIntentBrief } from '../../lib/intent-context'
+import { activeProjectBlock, loadActiveProject } from '../../lib/project-context'
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
 import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
@@ -52,6 +53,7 @@ import { AiWorkExamples } from '../ai-work/AiWorkPage'
 import { IntentBriefChips } from '../ai-work/IntentBriefChips'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { WorkflowProgress } from '../ai-work/WorkflowProgress'
+import { ActiveProjectNote } from '../projects/ActiveProjectNote'
 import {
   LONG_DECK_SLIDES,
   coursewareRequestFromBrief,
@@ -511,7 +513,10 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
           const outcome = await requestIntentBrief('ppt-gen', sentence, [{ name: sourceName, text: sourceTextRef.current }])
           if (!outcome.ok) throw new Error(outcome.message)
           showBrief(outcome.brief)
-          const next = coursewareRequestFromBrief(requestRef.current, outcome.brief, sentence)
+          const { block } = await activeProjectBlock()
+          const fromBrief = coursewareRequestFromBrief(requestRef.current, outcome.brief, sentence)
+          // Inside a project its key points go with the teacher's emphasis (Task 3.2.1).
+          const next = block ? { ...fromBrief, focus: [fromBrief.focus, block].filter(Boolean).join('\n\n') } : fromBrief
           requestRef.current = next
           setRequest(next)
           if (outcome.brief.missing.length > 0) {
@@ -663,6 +668,15 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
     await showProject(() => window.dsGui.loadCoursewareProject(path))
   }
 
+  /** The export registers the courseware; inside a project it is filed there (Task 3.2.1). */
+  async function fileExportIntoProject(projectPath: string): Promise<void> {
+    const project = await loadActiveProject()
+    if (!project) return
+    const exported = (await window.dsGui.listArtifacts({ toolId: 'ppt-gen', limit: 20 }))
+      .find((artifact) => artifact.storage.path.toLowerCase() === projectPath.toLowerCase())
+    if (exported && exported.projectId !== project.id) await window.dsGui.updateArtifact({ id: exported.id, projectId: project.id })
+  }
+
   async function exportPackage(): Promise<void> {
     if (!blueprint || !sourceDocument || slides.length === 0) return
     setBusy('export')
@@ -688,6 +702,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
         return
       }
       setExportPaths([result.pptxPath, result.docxPath, result.projectPath, result.qaReportPath])
+      void fileExportIntoProject(result.projectPath)
       if (result.qaReport.issueCount > 0) {
         setWarning(
           `导出已完成；视觉质检发现 ${result.qaReport.issueCount} 个问题（${result.qaReport.errorCount} 个错误，${result.qaReport.warningCount} 个警告），请查看质检报告。`
@@ -907,6 +922,7 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
 
         {step === 'start' && !run && (
           <div className="space-y-4">
+            <ActiveProjectNote />
             <IntentComposer
               value={input}
               onChange={setInput}

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { FileText } from 'lucide-react'
 import type { ArtifactListInput, ArtifactListItem } from '@shared/artifact'
 import { formatRelativeTime } from '../../lib/format-relative-time'
+import { ActiveProjectNote } from '../projects/ActiveProjectNote'
 import { PageColumn, PageHeader } from '../zhiyan/PageHeader'
 import type { ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
 
@@ -41,6 +42,7 @@ export function AiWorkPage({
       <div data-ai-work-state="start" className={`h-full overflow-y-auto bg-ds-main ${className}`}>
         <PageColumn width="start" className="pb-12 pt-8">
           <PageHeader module={module} title={title} description={description} />
+          <ActiveProjectNote className="-mt-2 mb-4" />
           {start}
         </PageColumn>
       </div>

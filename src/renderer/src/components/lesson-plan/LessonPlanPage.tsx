@@ -15,6 +15,7 @@ import { moduleProjectIdFromDisplayText, persistModuleProjectContext } from '../
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
+import { useActiveProjectStore } from '../../lib/active-project'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import { AiWorkExamples, AiWorkPage, AiWorkRecentArtifacts } from '../ai-work/AiWorkPage'
 import { IntentBriefChips } from '../ai-work/IntentBriefChips'
@@ -159,6 +160,7 @@ export function LessonPlanPage({
           const fields = briefFieldValues(current)
           const created = await window.dsGui.createLessonPlan({
             workspaceRoot: root,
+            projectId: useActiveProjectStore.getState().projectId ?? undefined,
             fields: {
               courseName: fields.courseName ?? '', topic: fields.topic ?? '', audience: fields.audience ?? '',
               hours: fields.hours ?? '', methods: fields.methods ?? '', focus: fields.focus ?? '', major: fields.major ?? ''

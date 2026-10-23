@@ -11,6 +11,7 @@ import {
 import { UNTRUSTED_MATERIAL_INSTRUCTION_ZH, wrapUntrustedPromptMaterial } from '../../shared/prompt-boundary'
 import type { ArtifactRegistry } from './artifact-service'
 import type { ArtifactVersionStore } from './artifact-version-service'
+import { projectPlacement } from './project-placement'
 import { requestStructuredJson, type StructuredGenerationOptions } from './structured-generation'
 import { canonicalPath, expandHomePath, resolveTargetPathWithinWorkspace } from './workspace-paths'
 
@@ -73,12 +74,14 @@ export class DocumentService {
     const request = documentCreateInputSchema.parse(input)
     const template = DOCUMENT_TEMPLATES[request.template]
     const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
+    const settings = await this.options.loadSettings()
+    const placement = await projectPlacement(settings, request.projectId, workspaceRoot)
 
     let title = UNTITLED_DOCUMENT_TITLE
     let markdown = `# ${UNTITLED_DOCUMENT_TITLE}\n\n`
     const wantsDraft = request.instruction.length > 0 || request.materials.length > 0
     if (wantsDraft) {
-      const generated = await requestStructuredJson(await this.options.loadSettings(), draftSchema, [
+      const generated = await requestStructuredJson(settings, draftSchema, [
         {
           role: 'system',
           content: [
@@ -92,6 +95,7 @@ export class DocumentService {
         {
           role: 'user',
           content: [
+            ...(placement.block ? [placement.block, ''] : []),
             `老师的要求：${request.instruction || '根据下面的材料写作'}`,
             ...request.materials.map((material) => `\n${wrapUntrustedPromptMaterial(material.text, material.name)}`)
           ].join('\n')
@@ -103,8 +107,8 @@ export class DocumentService {
     }
 
     const stem = documentFileStem(title)
-    let path = join(workspaceRoot, `${stem}.md`)
-    for (let copy = 2; await exists(path); copy += 1) path = join(workspaceRoot, `${stem} (${copy}).md`)
+    let path = join(placement.directory, `${stem}.md`)
+    for (let copy = 2; await exists(path); copy += 1) path = join(placement.directory, `${stem} (${copy}).md`)
     path = await resolveTargetPathWithinWorkspace(path, workspaceRoot)
     await writeFile(path, markdown, { encoding: 'utf8', flag: 'wx' })
 
@@ -114,7 +118,8 @@ export class DocumentService {
       toolId: 'write',
       workspaceRoot,
       storage: { type: 'file', path },
-      stage: wantsDraft ? template.draftStage : '空白文稿'
+      stage: wantsDraft ? template.draftStage : '空白文稿',
+      projectId: placement.project?.id ?? null
     })
     await this.options.versions.createVersion(wantsDraft
       ? { id: artifact.id, source: 'ai-generate', summary: `生成${template.draftStage}`, instruction: request.instruction || undefined }
