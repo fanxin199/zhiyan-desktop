@@ -1,9 +1,10 @@
-import { mkdir, mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { AppSettingsPatch, AppSettingsV1, TeacherProjectSettingsV1 } from '../../shared/app-settings'
 import { normalizeTeacherProjectSettings } from '../../shared/app-settings-normalize'
+import { EXAMPLE_NOTE } from '../../shared/example-projects'
 import { ArtifactRegistry } from './artifact-service'
 import { ProjectService } from './project-service'
 
@@ -86,5 +87,22 @@ describe('ProjectService', () => {
     ])
     // A second run finds nothing new.
     await expect(service.adoptExisting({ workspaceRoot: workspace })).resolves.toEqual({ added: 0 })
+  })
+
+  it('installs the example course and topic once, filed with their results', async () => {
+    const { workspace, service, registry, projects } = await setup([{ id: 'conv-1', name: '移植免疫', type: 'teaching', lastUsedAt: '' }])
+
+    const { projects: installed } = await service.installExamples({ workspaceRoot: workspace })
+    expect(installed.map((project) => project.type)).toEqual(['teaching', 'research'])
+    expect(projects().map((project) => project.id)).toEqual(['course-example-immunology', 'topic-example-tls', 'conv-1'])
+    const artifacts = await registry.list({ limit: 50 })
+    expect(artifacts).toHaveLength(4)
+    expect(new Set(artifacts.map((artifact) => artifact.projectId))).toEqual(new Set(['course-example-immunology', 'topic-example-tls']))
+    expect(await readFile(artifacts[0].storage.path, 'utf8')).toContain(EXAMPLE_NOTE)
+    expect((await readdir(workspace)).sort()).toEqual(['未归档', '课程', '课题'])
+
+    await service.installExamples({ workspaceRoot: workspace })
+    expect(projects()).toHaveLength(3)
+    expect(await registry.list({ limit: 50 })).toHaveLength(4)
   })
 })

@@ -14,6 +14,7 @@ import {
 import { rendererRuntimeClient } from '../agent/runtime-client'
 import { applyTheme } from '../lib/apply-theme'
 import { useChatStore } from '../store/chat-store'
+import { FirstRunWelcome } from './FirstRunWelcome'
 import { Eye, EyeOff, ExternalLink, Sparkles, Sun, Moon, Monitor, X } from 'lucide-react'
 
 type ThemePref = AppSettingsV1['theme']
@@ -37,6 +38,8 @@ export function InitialSetupDialog(): ReactElement {
   const [showApiKey, setShowApiKey] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /** Saved on first run: offer the examples or a first sentence (Task 4.2.1). */
+  const [welcome, setWelcome] = useState(false)
   const isPreview = initialSetupMode === 'preview'
   const providerSettings = form ? getModelProviderSettings(form) : null
   const kun = form ? getKunRuntimeSettings(form) : null
@@ -141,7 +144,8 @@ export function InitialSetupDialog(): ReactElement {
       if (runtimeState.runtimeConnection !== 'ready') {
         throw new Error(runtimeState.error || '无法连接 AI 服务，请检查 API Key 和服务地址。')
       }
-      closeInitialSetup()
+      if (isPreview) closeInitialSetup()
+      else setWelcome(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -155,6 +159,16 @@ export function InitialSetupDialog(): ReactElement {
         <div className="rounded-xl border border-ds-border bg-ds-card/95 px-5 py-4 text-body leading-5 text-ds-muted shadow-panel backdrop-blur-xl">
           {t('loading')}
         </div>
+      </div>
+    )
+  }
+
+  if (welcome) {
+    return (
+      <div className="ds-no-drag fixed inset-0 z-50 grid place-items-center bg-ds-overlay p-4 backdrop-blur-md">
+        <section role="dialog" aria-modal="true" aria-labelledby="initial-setup-title" className="w-full max-w-[560px] rounded-2xl border border-ds-border-muted bg-ds-elevated text-ds-ink shadow-panel">
+          <FirstRunWelcome onDone={closeInitialSetup} />
+        </section>
       </div>
     )
   }

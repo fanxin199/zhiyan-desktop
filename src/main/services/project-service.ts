@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readdir } from 'node:fs/promises'
+import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import { basename, extname, join, resolve } from 'node:path'
 import type { AppSettingsPatch, AppSettingsV1, TeacherProjectSettingsV1 } from '../../shared/app-settings'
 import type { ArtifactKind } from '../../shared/artifact'
+import { EXAMPLE_PROJECTS } from '../../shared/example-projects'
 import {
   normalizeProjectBrief,
   PROJECT_FOLDERS,
@@ -16,7 +17,8 @@ import {
   type ProjectUpdateInput
 } from '../../shared/project'
 import type { ArtifactRegistry } from './artifact-service'
-import { canonicalPath, expandHomePath } from './workspace-paths'
+import type { ArtifactVersionStore } from './artifact-version-service'
+import { canonicalPath, expandHomePath, resolveTargetPathWithinWorkspace } from './workspace-paths'
 
 /** Files found in a workspace and what they are registered as (Task 3.1.2). */
 const ADOPTED_FILES: Record<string, { kind: ArtifactKind; toolId: string }> = {
@@ -30,6 +32,7 @@ type ProjectServiceOptions = {
   loadSettings: () => Promise<AppSettingsV1>
   applySettingsPatch: (patch: AppSettingsPatch) => Promise<AppSettingsV1>
   registry: Pick<ArtifactRegistry, 'register' | 'list'>
+  versions?: Pick<ArtifactVersionStore, 'createVersion'>
   now?: () => Date
   createId?: () => string
 }
@@ -129,5 +132,63 @@ export class ProjectService {
     }
     const after = (await this.options.registry.list({ limit: 500 })).length
     return { added: Math.max(0, after - before) }
+  }
+
+  /**
+   * 看看示例 (Task 4.2.1): adds the example course and topic with their results to the workspace.
+   * Running it again adds nothing new, and a file of the same name already there is left as it is.
+   */
+  async installExamples(input: ProjectAdoptInput): Promise<{ projects: TeacherProjectSettingsV1[] }> {
+    const request = projectAdoptInputSchema.parse(input)
+    const workspaceRoot = await canonicalPath(resolve(expandHomePath(request.workspaceRoot)))
+    const settings = await this.options.loadSettings()
+    const installed: TeacherProjectSettingsV1[] = []
+    const added: TeacherProjectSettingsV1[] = []
+    for (const example of EXAMPLE_PROJECTS) {
+      const existing = settings.teacherProjects.find((project) => project.id === example.id)
+      if (existing) {
+        installed.push(existing)
+        continue
+      }
+      const name = projectDisplayName(example.type, example.brief)
+      const directory = join(workspaceRoot, PROJECT_FOLDERS[example.type], projectFolderName(name))
+      await mkdir(directory, { recursive: true })
+      for (const artifact of example.artifacts) {
+        const path = await resolveTargetPathWithinWorkspace(join(directory, artifact.fileName), workspaceRoot)
+        let written = true
+        try {
+          await writeFile(path, artifact.markdown, { encoding: 'utf8', flag: 'wx' })
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+          written = false
+        }
+        const record = await this.options.registry.register({
+          kind: artifact.kind,
+          title: artifact.title,
+          toolId: artifact.toolId,
+          workspaceRoot,
+          storage: { type: 'file', path },
+          stage: artifact.stage,
+          projectId: example.id,
+          ifMissing: true
+        })
+        if (written) await this.options.versions?.createVersion({ id: record.id, source: 'ai-generate', summary: '示例' })
+      }
+      const project: TeacherProjectSettingsV1 = {
+        id: example.id,
+        name,
+        type: example.type,
+        workspacePath: workspaceRoot,
+        lastUsedAt: this.now(),
+        origin: 'teacher',
+        brief: { ...example.brief },
+        directory
+      }
+      added.push(project)
+      installed.push(project)
+    }
+    await mkdir(join(workspaceRoot, PROJECT_FOLDERS.unfiled), { recursive: true })
+    if (added.length > 0) await this.options.applySettingsPatch({ teacherProjects: [...added, ...settings.teacherProjects] })
+    return { projects: installed }
   }
 }

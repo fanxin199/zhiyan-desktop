@@ -82,6 +82,8 @@ const api = {
     ipcRenderer.invoke('projects:update', input),
   adoptExistingFiles: (workspaceRoot) =>
     ipcRenderer.invoke('projects:adopt-existing', { workspaceRoot }),
+  installExampleProjects: (workspaceRoot) =>
+    ipcRenderer.invoke('projects:install-examples', { workspaceRoot }),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

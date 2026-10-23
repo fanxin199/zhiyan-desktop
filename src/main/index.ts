@@ -807,7 +807,8 @@ app.whenReady().then(async () => {
     projects: new ProjectService({
       loadSettings: () => store.load(),
       applySettingsPatch,
-      registry: artifactRegistry
+      registry: artifactRegistry,
+      versions: artifactVersions
     }),
     getMainWindow: () => mainWindow,
     applySettingsPatch,

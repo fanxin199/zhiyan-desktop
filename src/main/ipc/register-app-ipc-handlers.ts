@@ -171,7 +171,7 @@ type RegisterAppIpcHandlersOptions = {
   intentBriefs: Pick<IntentBriefService, 'extract'>
   lessonPlans: Pick<LessonPlanService, 'create'>
   literature: Pick<LiteratureService, 'createReport'>
-  projects: Pick<ProjectService, 'create' | 'update' | 'adoptExisting'>
+  projects: Pick<ProjectService, 'create' | 'update' | 'adoptExisting' | 'installExamples'>
   questionSets: Pick<QuestionSetService, 'create'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
@@ -829,6 +829,12 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('projects:adopt-existing', projectAdoptPayloadSchema, payload)
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return projects.adoptExisting(request)
+  })
+  // 看看示例 (Task 4.2.1): the example course and topic go into the workspace like any project.
+  ipcMain.handle('projects:install-examples', async (_, payload: unknown) => {
+    const request = parseIpcPayload('projects:install-examples', projectAdoptPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return projects.installExamples(request)
   })
   // Reads text the renderer already holds; no files are touched.
   ipcMain.handle('intent:extract', async (_, payload: unknown) =>

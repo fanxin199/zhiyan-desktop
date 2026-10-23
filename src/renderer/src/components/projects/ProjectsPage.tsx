@@ -186,6 +186,19 @@ export function ProjectsPage({ type, onOpenArtifact, onOpenTool, className = '' 
     onOpenTool(request, text)
   }
 
+  /** 看看示例 (Task 4.2.1), for teachers who skipped it on first run. */
+  const installExamples = async (): Promise<void> => {
+    if (!workspaceRoot) return
+    try {
+      const { projects: installed } = await window.dsGui.installExampleProjects(workspaceRoot)
+      await refresh()
+      const example = installed.find((project) => project.type === type)
+      if (example) setSelectedId(example.id)
+    } catch (installError) {
+      setMessage(formatWorkspacePickerError(installError))
+    }
+  }
+
   const pickWorkspace = async (): Promise<void> => {
     try {
       const picked = await window.dsGui.pickWorkspaceDirectory()
@@ -346,9 +359,12 @@ export function ProjectsPage({ type, onOpenArtifact, onOpenTool, className = '' 
         )}
 
         {projects.length === 0 && !creating ? (
-          <p className="mb-6 rounded-xl border border-dashed border-ds-border px-5 py-6 text-center text-small text-ds-muted">
-            还没有{typeLabel}。新建一个，把要点写一次，之后的成果都会按它来写。
-          </p>
+          <div className="mb-6 rounded-xl border border-dashed border-ds-border px-5 py-6 text-center text-small text-ds-muted">
+            <p>还没有{typeLabel}。新建一个，把要点写一次，之后的成果都会按它来写。</p>
+            <button type="button" onClick={() => void installExamples()} className="mt-3 rounded-lg border border-ds-border px-3 py-1.5 text-small font-semibold text-ds-text hover:bg-ds-hover">
+              先看看示例{typeLabel}
+            </button>
+          </div>
         ) : (
           <ul className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={`我的${typeLabel}`}>
             {projects.map((project) => (

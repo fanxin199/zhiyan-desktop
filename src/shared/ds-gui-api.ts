@@ -254,6 +254,8 @@ export type DsGuiApi = {
   updateProject: (input: ProjectUpdateInput) => Promise<TeacherProjectSettingsV1>
   /** Registers documents and courseware already in the workspace as 未归档, without moving them. */
   adoptExistingFiles: (workspaceRoot: string) => Promise<{ added: number }>
+  /** Adds the example course and topic with their results (Task 4.2.1); safe to run again. */
+  installExampleProjects: (workspaceRoot: string) => Promise<{ projects: TeacherProjectSettingsV1[] }>
   /** Writes 随堂题 by the assessment-designer skill's rules and saves them in the writing workspace. */
   createQuestionSet: (input: QuestionSetCreateInput) => Promise<
     | { ok: true; path: string; artifact: ArtifactRecord; markdown: string; dropped: number }
