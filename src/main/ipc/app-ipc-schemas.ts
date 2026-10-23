@@ -55,6 +55,7 @@ import { documentCreateInputSchema } from '../../shared/document-templates'
 import { intentExtractInputSchema } from '../../shared/intent-brief'
 import { lessonPlanCreateInputSchema } from '../../shared/lesson-plan'
 import { literatureReportInputSchema } from '../../shared/literature-report'
+import { projectAdoptInputSchema, projectCreateInputSchema, projectUpdateInputSchema } from '../../shared/project'
 import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
@@ -904,6 +905,9 @@ export const documentCreatePayloadSchema = documentCreateInputSchema
 export const intentExtractPayloadSchema = intentExtractInputSchema
 export const lessonPlanCreatePayloadSchema = lessonPlanCreateInputSchema
 export const literatureReportPayloadSchema = literatureReportInputSchema
+export const projectCreatePayloadSchema = projectCreateInputSchema
+export const projectUpdatePayloadSchema = projectUpdateInputSchema
+export const projectAdoptPayloadSchema = projectAdoptInputSchema
 
 export const logErrorPayloadSchema = z
   .object({

@@ -3,6 +3,7 @@
  * projects that conversations already create: a project the teacher makes has key points, a folder
  * under the workspace and the artifacts whose `projectId` names it.
  */
+import { z } from 'zod'
 import type { TeacherProjectTypeV1 } from './app-settings-types'
 
 export type ProjectBriefFieldDefinition = {
@@ -75,3 +76,26 @@ export function normalizeProjectBrief(type: TeacherProjectTypeV1, brief: unknown
       .filter(([, value]) => value)
   )
 }
+
+const briefSchema = z.record(z.string().trim().min(1).max(40), z.string().max(4_000))
+
+export const projectCreateInputSchema = z.object({
+  type: z.enum(['teaching', 'research']),
+  brief: briefSchema,
+  /** The writing workspace the project's folder goes in. */
+  workspaceRoot: z.string().trim().min(1).max(4_096)
+}).strict()
+
+export const projectUpdateInputSchema = z.object({
+  id: z.string().trim().min(1).max(160),
+  brief: briefSchema.optional(),
+  archived: z.boolean().optional()
+}).strict()
+
+export const projectAdoptInputSchema = z.object({
+  workspaceRoot: z.string().trim().min(1).max(4_096)
+}).strict()
+
+export type ProjectCreateInput = z.infer<typeof projectCreateInputSchema>
+export type ProjectUpdateInput = z.infer<typeof projectUpdateInputSchema>
+export type ProjectAdoptInput = z.infer<typeof projectAdoptInputSchema>

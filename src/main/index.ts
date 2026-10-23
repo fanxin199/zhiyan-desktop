@@ -44,6 +44,7 @@ import { DocumentService } from './services/document-service'
 import { IntentBriefService } from './services/intent-brief-service'
 import { LessonPlanService } from './services/lesson-plan-service'
 import { LiteratureService } from './services/literature-service'
+import { ProjectService } from './services/project-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -793,6 +794,11 @@ app.whenReady().then(async () => {
       registry: artifactRegistry,
       versions: artifactVersions,
       loadSettings: () => store.load()
+    }),
+    projects: new ProjectService({
+      loadSettings: () => store.load(),
+      applySettingsPatch,
+      registry: artifactRegistry
     }),
     getMainWindow: () => mainWindow,
     applySettingsPatch,

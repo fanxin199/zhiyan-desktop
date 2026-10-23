@@ -74,6 +74,12 @@ const api = {
     ipcRenderer.invoke('lesson-plans:create', input),
   createLiteratureReport: (input) =>
     ipcRenderer.invoke('literature:create-report', input),
+  createProject: (input) =>
+    ipcRenderer.invoke('projects:create', input),
+  updateProject: (input) =>
+    ipcRenderer.invoke('projects:update', input),
+  adoptExistingFiles: (workspaceRoot) =>
+    ipcRenderer.invoke('projects:adopt-existing', { workspaceRoot }),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

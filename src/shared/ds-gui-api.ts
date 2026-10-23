@@ -1,4 +1,4 @@
-import type { AppSettingsPatch, AppSettingsV1 } from './app-settings'
+import type { AppSettingsPatch, AppSettingsV1, TeacherProjectSettingsV1 } from './app-settings'
 import type { EditorListResult, EditorOpenResult, OpenEditorPathOptions } from './editor'
 import type { GitBranchesResult } from './git-branches'
 import type {
@@ -65,6 +65,7 @@ import type { DocumentCreateInput } from './document-templates'
 import type { IntentBrief, IntentExtractInput } from './intent-brief'
 import type { LessonPlanCreateInput } from './lesson-plan'
 import type { LiteratureReportInput } from './literature-report'
+import type { ProjectCreateInput, ProjectUpdateInput } from './project'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -246,6 +247,11 @@ export type DsGuiApi = {
     | { ok: true; path: string; artifact: ArtifactRecord; markdown: string }
     | { ok: false; code: string; message: string }
   >
+  /** Creates a course or research project with its folder in the writing workspace (Task 3.1). */
+  createProject: (input: ProjectCreateInput) => Promise<TeacherProjectSettingsV1>
+  updateProject: (input: ProjectUpdateInput) => Promise<TeacherProjectSettingsV1>
+  /** Registers documents and courseware already in the workspace as 未归档, without moving them. */
+  adoptExistingFiles: (workspaceRoot: string) => Promise<{ added: number }>
   extractPdfRange: (
     path: string,
     pageStart: number,

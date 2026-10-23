@@ -57,6 +57,9 @@ import {
   intentExtractPayloadSchema,
   lessonPlanCreatePayloadSchema,
   literatureReportPayloadSchema,
+  projectAdoptPayloadSchema,
+  projectCreatePayloadSchema,
+  projectUpdatePayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -123,6 +126,7 @@ import type { DocumentService } from '../services/document-service'
 import type { IntentBriefService } from '../services/intent-brief-service'
 import type { LessonPlanService } from '../services/lesson-plan-service'
 import type { LiteratureService } from '../services/literature-service'
+import type { ProjectService } from '../services/project-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -164,6 +168,7 @@ type RegisterAppIpcHandlersOptions = {
   intentBriefs: Pick<IntentBriefService, 'extract'>
   lessonPlans: Pick<LessonPlanService, 'create'>
   literature: Pick<LiteratureService, 'createReport'>
+  projects: Pick<ProjectService, 'create' | 'update' | 'adoptExisting'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -275,6 +280,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     intentBriefs,
     lessonPlans,
     literature,
+    projects,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -795,6 +801,20 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('literature:create-report', literatureReportPayloadSchema, payload)
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return literature.createReport(request)
+  })
+  // Course and research projects get a folder in the writing workspace (Task 3.1.2).
+  ipcMain.handle('projects:create', async (_, payload: unknown) => {
+    const request = parseIpcPayload('projects:create', projectCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return projects.create(request)
+  })
+  ipcMain.handle('projects:update', async (_, payload: unknown) =>
+    projects.update(parseIpcPayload('projects:update', projectUpdatePayloadSchema, payload))
+  )
+  ipcMain.handle('projects:adopt-existing', async (_, payload: unknown) => {
+    const request = parseIpcPayload('projects:adopt-existing', projectAdoptPayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return projects.adoptExisting(request)
   })
   // Reads text the renderer already holds; no files are touched.
   ipcMain.handle('intent:extract', async (_, payload: unknown) =>
