@@ -507,6 +507,8 @@ export type AppSettingsV1 = {
   theme: 'system' | 'light' | 'dark'
   uiFontScale: UiFontScale
   aiMode: AiMode
+  /** 自动完成 runs a tool's stages straight through; 逐步确认 pauses after each (§6.4). Absent means auto. */
+  workflowMode?: 'auto' | 'step'
   provider: ModelProviderSettingsV1
   agents: KunSettingsEnvelopeV1
   workspaceRoot: string

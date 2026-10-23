@@ -263,6 +263,20 @@ export function GeneralSettingsSection({ ctx }: { ctx: Record<string, any> }): R
                   }
                 />
                 <SettingRow
+                  title={t('workflowMode')}
+                  description={t('workflowModeDesc')}
+                  control={
+                    <select
+                      className={selectControlClass}
+                      value={form.workflowMode ?? 'auto'}
+                      onChange={(e) => update({ workflowMode: e.target.value as NonNullable<AppSettingsV1['workflowMode']> })}
+                    >
+                      <option value="auto">{t('workflowModeAuto')}</option>
+                      <option value="step">{t('workflowModeStep')}</option>
+                    </select>
+                  }
+                />
+                <SettingRow
                   title={t('turnCompleteNotification')}
                   description={t('turnCompleteNotificationDesc')}
                   control={

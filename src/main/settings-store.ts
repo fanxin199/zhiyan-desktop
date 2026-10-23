@@ -288,6 +288,7 @@ const defaultSettings = (): AppSettingsV1 => ({
   theme: 'system',
   uiFontScale: 'small',
   aiMode: 'deep',
+  workflowMode: 'auto',
   provider: defaultModelProviderSettings(),
   agents: {
     kun: defaultKunRuntimeSettings()
