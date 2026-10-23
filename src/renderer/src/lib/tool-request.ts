@@ -4,7 +4,7 @@ import type { DocumentTemplateId } from '@shared/document-templates'
  * Requests for a deliverable are better served by the tool that makes it than by a long answer in
  * the AI assistant (Task 1.5.2): the assistant opens the tool with the teacher's words filled in.
  */
-export type ToolModuleId = 'syllabus' | 'ppt-gen' | 'textbook' | 'write' | 'literature' | 'bioinformatics'
+export type ToolModuleId = 'syllabus' | 'ppt-gen' | 'textbook' | 'write' | 'literature' | 'bioinformatics' | 'quiz'
 
 export type ToolRequest = {
   moduleId: ToolModuleId
@@ -15,7 +15,8 @@ export type ToolRequest = {
 }
 
 /** Text a tool page puts into its input box; a new id fills it again. */
-export type ToolPrefill = { id: number; text: string }
+/** Text for a tool's input box, and the result a next step hands over as material (Task 3.4.1). */
+export type ToolPrefill = { id: number; text: string; materials?: Array<{ name: string; text: string }> }
 
 // Asking to produce something, as opposed to asking what something is.
 const MAKE = /(写|做|生成|设计|准备|撰写|起草|搭|制作|编写|出一份|拟|整理成|帮我弄)/u
@@ -25,6 +26,7 @@ const ANALYSE = /(分析|画|作图|统计|富集)/u
 type Rule = { test: (text: string) => boolean; request: ToolRequest }
 
 const RULES: Rule[] = [
+  { test: (text) => /(随堂题|选择题|简答题|论述题|练习题|测验|出题|出\s*\d+\s*道)/u.test(text), request: { moduleId: 'quiz', label: '随堂题' } },
   { test: (text) => /(教案|教学设计)/u.test(text) && MAKE.test(text), request: { moduleId: 'syllabus', label: '教案' } },
   { test: (text) => /(课件|PPT|ppt|幻灯片)/u.test(text) && MAKE.test(text), request: { moduleId: 'ppt-gen', label: '课件' } },
   { test: (text) => /(教材|讲义)/u.test(text) && MAKE.test(text), request: { moduleId: 'textbook', label: '教材' } },

@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Home,
   Library,
+  ListChecks,
   MessageCircle,
   Microscope,
   PenTool,
@@ -130,6 +131,18 @@ export const ZHIYAN_MODULE_REGISTRY = [
     // Reached from 首页 and the project pages since Task 3.1.4.
     showInSidebar: false,
     dashboard: { title: '教材' }
+  },
+  {
+    // The end of the teaching relay (Task 3.4.2).
+    id: 'quiz',
+    icon: ListChecks,
+    sidebarLabel: '随堂题',
+    section: 'teaching',
+    taskDescription: '单项选择题、简答题和论述题，含答案、解析与评分标准，可导出 Word',
+    keywords: ['随堂题', '选择题', '简答题', '论述题', '练习', '测验', '题库', '出题'],
+    requiredCapabilities: ['ai', 'workspace-files', 'native-docx-export'],
+    showInSidebar: false,
+    dashboard: { title: '随堂题' }
   },
   {
     // 文稿 keeps the route id of the writing workspace it grew from; the paper, review and grant

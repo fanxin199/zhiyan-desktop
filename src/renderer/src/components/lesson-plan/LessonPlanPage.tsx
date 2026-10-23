@@ -89,7 +89,10 @@ export function LessonPlanPage({
 
   // A request from the AI assistant fills the input box once per request.
   useEffect(() => {
-    if (prefill) setInput(prefill.text)
+    if (!prefill) return
+    setInput(prefill.text)
+    // A next step hands over the result it follows (Task 3.4.1).
+    if (prefill.materials?.length) setMaterials(prefill.materials.map((material, index) => ({ id: `prefill-${prefill.id}-${index}`, ...material })))
   }, [prefill])
 
   const showBrief = (next: IntentBrief): void => {
@@ -262,6 +265,7 @@ export function LessonPlanPage({
             ) : null}
           </>
         )}
+        artifactKind="lesson-plan"
         newLabel="新教案"
         onNew={backToStart}
         wholeLabel="整份教案"

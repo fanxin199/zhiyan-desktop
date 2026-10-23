@@ -55,6 +55,7 @@ import { IntentComposer } from '../ai-work/IntentComposer'
 import { WorkflowProgress } from '../ai-work/WorkflowProgress'
 import { ActiveProjectNote } from '../projects/ActiveProjectNote'
 import { useHabitOffer } from '../ai-work/RememberHabitOffer'
+import { artifactNextSteps, useToolOpenerStore } from '../../lib/next-steps'
 import {
   LONG_DECK_SLIDES,
   coursewareRequestFromBrief,
@@ -120,6 +121,15 @@ const labelClass = 'mb-1.5 block text-caption font-semibold text-ds-muted'
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+/** The deck as text for the next tool: each slide's title, points and notes. */
+export function coursewareOutline(title: string, slides: SlideSpec[]): string {
+  return [`# ${title}`, ...slides.map((slide, index) => [
+    `## ${index + 1}. ${slide.title}`,
+    ...slide.bullets.map((bullet) => `- ${bullet}`),
+    slide.speakerNotes ? `讲稿：${slide.speakerNotes}` : ''
+  ].filter(Boolean).join('\n'))].join('\n\n')
 }
 
 function sectionSlideTotal(blueprint: CoursewareBlueprint | null): number {
@@ -1555,6 +1565,21 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
                     ))}
                   </div>
                 )}
+                {exportPaths.length > 0 && blueprint ? (
+                  <div className="mt-3 space-y-1.5" aria-label="下一步">
+                    <p className="text-caption font-semibold text-ds-muted">下一步</p>
+                    {artifactNextSteps({ kind: 'courseware', title: blueprint.title, markdown: coursewareOutline(blueprint.title, slides) }).map((step) => (
+                      <button
+                        key={step.id}
+                        type="button"
+                        onClick={() => useToolOpenerStore.getState().open?.(step.request, step.text, step.materials)}
+                        className="block w-full rounded-lg border border-accent/20 bg-accent/[0.045] px-3 py-1.5 text-left text-caption font-semibold text-ds-text hover:border-accent/40"
+                      >
+                        {step.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </section>
 
               <button

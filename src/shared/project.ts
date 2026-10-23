@@ -128,7 +128,8 @@ export const PROJECT_FIELDS_BY_INTENT: Record<string, Record<string, string>> = 
   syllabus: { courseName: 'courseName', topic: 'chapter', audience: 'audience', hours: 'hours', major: 'major' },
   'ppt-gen': { topic: 'chapter', audience: 'audience' },
   textbook: { bookTitle: 'courseName', chapter: 'chapter', audience: 'audience' },
-  write: { topic: 'title', target: 'target' }
+  write: { topic: 'title', target: 'target' },
+  quiz: { topic: 'chapter', audience: 'audience' }
 }
 
 /** The teacher's own project with this id, if it is still in use. */

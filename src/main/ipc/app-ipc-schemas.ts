@@ -57,6 +57,7 @@ import { lessonPlanCreateInputSchema } from '../../shared/lesson-plan'
 import { literatureReportInputSchema } from '../../shared/literature-report'
 import { projectAdoptInputSchema, projectCreateInputSchema, projectUpdateInputSchema } from '../../shared/project'
 import { MAX_TEACHER_PREFERENCES, teacherPreferenceSchema } from '../../shared/preferences'
+import { questionSetCreateInputSchema } from '../../shared/question-set'
 import {
   textbookCheckInputSchema,
   textbookExportInputSchema,
@@ -910,6 +911,7 @@ export const literatureReportPayloadSchema = literatureReportInputSchema
 export const projectCreatePayloadSchema = projectCreateInputSchema
 export const projectUpdatePayloadSchema = projectUpdateInputSchema
 export const projectAdoptPayloadSchema = projectAdoptInputSchema
+export const questionSetCreatePayloadSchema = questionSetCreateInputSchema
 
 export const logErrorPayloadSchema = z
   .object({

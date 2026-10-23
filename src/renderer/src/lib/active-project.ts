@@ -45,6 +45,9 @@ export function projectNextSteps(
     if (!has(artifacts, ['courseware'])) {
       steps.push({ id: 'courseware', label: '做配套课件', request: { moduleId: 'ppt-gen', label: '课件' }, text: `做一套${lesson}的课件` })
     }
+    if (!has(artifacts, ['question-set'])) {
+      steps.push({ id: 'quiz', label: '出随堂题', request: { moduleId: 'quiz', label: '随堂题' }, text: `出${lesson}的 10 道随堂题` })
+    }
     if (!has(artifacts, ['textbook-chapter'])) {
       steps.push({ id: 'textbook', label: '编写教材章节', request: { moduleId: 'textbook', label: '教材' }, text: `编写${lesson}的教材章节` })
     }

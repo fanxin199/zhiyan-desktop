@@ -60,6 +60,7 @@ import {
   projectAdoptPayloadSchema,
   projectCreatePayloadSchema,
   projectUpdatePayloadSchema,
+  questionSetCreatePayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -127,6 +128,7 @@ import type { IntentBriefService } from '../services/intent-brief-service'
 import type { LessonPlanService } from '../services/lesson-plan-service'
 import type { LiteratureService } from '../services/literature-service'
 import type { ProjectService } from '../services/project-service'
+import type { QuestionSetService } from '../services/question-set-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -169,6 +171,7 @@ type RegisterAppIpcHandlersOptions = {
   lessonPlans: Pick<LessonPlanService, 'create'>
   literature: Pick<LiteratureService, 'createReport'>
   projects: Pick<ProjectService, 'create' | 'update' | 'adoptExisting'>
+  questionSets: Pick<QuestionSetService, 'create'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -281,6 +284,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     lessonPlans,
     literature,
     projects,
+    questionSets,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -801,6 +805,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('literature:create-report', literatureReportPayloadSchema, payload)
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return literature.createReport(request)
+  })
+  ipcMain.handle('question-sets:create', async (_, payload: unknown) => {
+    const request = parseIpcPayload('question-sets:create', questionSetCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return questionSets.create(request)
   })
   // Course and research projects get a folder in the writing workspace (Task 3.1.2).
   ipcMain.handle('projects:create', async (_, payload: unknown) => {

@@ -25,6 +25,7 @@ import { recordArtifact } from '../lib/artifact-records'
 import { buildAssistantPrompt, describeAssistantContext, type AssistantPageContext } from '../lib/assistant-context'
 import { useActiveProjectStore } from '../lib/active-project'
 import { useAssistantStore } from '../lib/assistant-store'
+import { useToolOpenerStore, type ArtifactNextStep, type ToolMaterial } from '../lib/next-steps'
 import { openDocumentArtifact, resumeTargetFor, usePendingArtifactStore } from '../lib/resume-artifact'
 import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
 import { AssistantDrawer } from './assistant/AssistantDrawer'
@@ -35,7 +36,7 @@ import {
   writeJoinPath
 } from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
-import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
+import { ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
   FileManagerPage,
   PptGenPage,
@@ -45,6 +46,7 @@ import { LessonPlanPage } from './lesson-plan/LessonPlanPage'
 import { LiteratureReportPage } from './literature/LiteratureReportPage'
 import { DataAnalysisPage } from './analysis/DataAnalysisPage'
 import { ProjectsPage } from './projects/ProjectsPage'
+import { QuizPage } from './quiz/QuizPage'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -650,10 +652,20 @@ export function Workbench(): ReactElement {
     })()
   }
   const pageContext = assistantPageContext(route, activeWriteFilePath)
+  // Next steps on any page open their tool through this (Task 3.4.1).
+  useEffect(() => {
+    useToolOpenerStore.getState().setOpen((request, text, materials) => openToolWithRequest(request, text, 'page', materials))
+    return () => useToolOpenerStore.getState().setOpen(null)
+  })
   // A deliverable asked for in the assistant opens its tool with the request filled in.
-  const openToolWithRequest = (request: ToolRequest, text: string, from: 'assistant' | 'page' = 'assistant'): void => {
+  const openToolWithRequest = (
+    request: ToolRequest,
+    text: string,
+    from: 'assistant' | 'page' = 'assistant',
+    materials?: ToolMaterial[]
+  ): void => {
     if (from === 'assistant') useAssistantStore.getState().handOff(request, text)
-    else useAssistantStore.getState().prefillTool(request, text)
+    else useAssistantStore.getState().prefillTool(request, text, materials)
     if (request.moduleId === 'write') {
       useWriteWorkspaceStore.getState().openDocumentStart(request.template ?? 'blank')
       openWriteMode()
@@ -701,6 +713,16 @@ export function Workbench(): ReactElement {
     useAssistantStore.getState().clearHandOffs()
     rememberAssistantThread(threadId)
     void selectThread(threadId)
+  }
+  // A next step on the home page opens its tool in the result's project, with the result attached.
+  const openNextStep = async (step: ArtifactNextStep, source: ArtifactListItem): Promise<void> => {
+    let materials = step.materials
+    if (step.request.moduleId !== 'ppt-gen' && step.request.moduleId !== 'textbook' && source.storage.type === 'file') {
+      const read = await window.dsGui.readWorkspaceFile({ path: source.storage.path, workspaceRoot: source.workspaceRoot }).catch(() => null)
+      if (read?.ok) materials = [{ name: source.title, text: read.content.slice(0, 20_000) }]
+    }
+    useActiveProjectStore.getState().setProjectId(source.projectId)
+    openToolWithRequest(step.request, step.text, 'page', materials)
   }
   // 继续上次的工作 on the home page returns to where the deliverable was left.
   const openArtifact = (artifact: ArtifactListItem): void => {
@@ -884,8 +906,8 @@ export function Workbench(): ReactElement {
         {route === 'dashboard' ? (
           <ZhiYanDashboard
             onOpenModule={openRegisteredModule}
-            recentThreads={getRecentDashboardThreads(threads)}
             onOpenArtifact={openArtifact}
+            onOpenNextStep={(step, source) => void openNextStep(step, source)}
             onSubmitPrompt={handleDashboardPrompt}
             className="ds-no-drag"
           />
@@ -897,6 +919,8 @@ export function Workbench(): ReactElement {
             onOpenTool={(request, text) => openToolWithRequest(request, text, 'page')}
             className="ds-no-drag"
           />
+        ) : route === 'quiz' ? (
+          <QuizPage prefill={prefillFor('quiz')} className="ds-no-drag" />
         ) : route === 'syllabus' ? (
           <LessonPlanPage
             prefill={prefillFor('syllabus')}
@@ -917,7 +941,6 @@ export function Workbench(): ReactElement {
               ...current,
               literature: undefined
             }))}
-            onOpenTool={(request, text) => openToolWithRequest(request, text, 'page')}
             className="ds-no-drag"
           />
         ) : route === 'textbook' ? (

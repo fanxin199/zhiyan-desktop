@@ -9,7 +9,7 @@ import {
   continueWorkArtifacts,
   dashboardActionCardMatches,
   filterDashboardActionCards,
-  getDashboardTaskRecommendations,
+  dashboardNextSteps,
   getRecentDashboardThreads,
   recentThreadFeatureLabel,
   recentThreadTitle,
@@ -239,36 +239,23 @@ describe('ZhiYanDashboard quick search', () => {
   })
 })
 
-describe('ZhiYanDashboard task recommendations', () => {
-  it('recommends a concrete next task from recent research work without hiding direct entries', () => {
-    const recommendations = getDashboardTaskRecommendations([
-      thread('literature', 'TLS 文献精读', '2026-07-15T08:00:00.000Z', {
-        projectId: 'teacher-project:literature:tls'
-      }),
-      thread('analysis', 'B 细胞单细胞分析', '2026-07-15T07:00:00.000Z', {
-        projectId: 'teacher-project:bioinformatics:bcell'
-      })
+describe('ZhiYanDashboard next steps (Task 3.4.1)', () => {
+  it('follows the latest result still at hand with its usual next steps', () => {
+    const next = dashboardNextSteps([
+      artifact('old', '2026-10-20T08:00:00.000Z', { kind: 'analysis-report', title: '旧分析' }),
+      artifact('plan', '2026-10-22T08:00:00.000Z', { kind: 'lesson-plan', title: '第八章 教案', toolId: 'syllabus' }),
+      artifact('gone', '2026-10-23T08:00:00.000Z', { available: false })
     ])
 
-    expect(recommendations).toMatchObject([
-      { sourceModuleId: 'literature', targetId: 'review-writing', title: '将文献证据整理成综述' },
-      { sourceModuleId: 'bioinformatics', targetId: 'paper-polish', title: '把分析结果整理成论文段落' }
+    expect(next?.source.id).toBe('plan')
+    expect(next?.steps.map((step) => [step.label, step.request.moduleId])).toEqual([
+      ['做配套课件', 'ppt-gen'],
+      ['出随堂题', 'quiz']
     ])
+    expect(dashboardNextSteps([])).toBeNull()
   })
 
-  it('shows compact next-step recommendations only when usable history exists', () => {
-    const withHistory = renderToStaticMarkup(dashboard({
-      recentThreads: [thread('grant', '自然基金立项依据', '2026-07-15T08:00:00.000Z', {
-        projectId: 'teacher-project:grant-writing:nsfc'
-      })]
-    }))
-    const withoutHistory = renderToStaticMarkup(dashboard())
-
-    expect(withHistory).toContain('推荐下一步')
-    expect(withHistory).toContain('核验立项依据中的关键文献')
-    expect(withHistory.indexOf('推荐下一步')).toBeLessThan(withHistory.indexOf('教学工具'))
-    expect(withHistory).toContain('课件')
-    expect(withHistory).toContain('数据分析')
-    expect(withoutHistory).not.toContain('推荐下一步')
+  it('shows no fixed recommendations without results', () => {
+    expect(renderToStaticMarkup(dashboard({ onOpenNextStep: noop }))).not.toContain('推荐下一步')
   })
 })

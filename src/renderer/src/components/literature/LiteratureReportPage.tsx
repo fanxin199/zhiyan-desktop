@@ -9,7 +9,7 @@ import { rendererRuntimeClient } from '../../agent/runtime-client'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
 import { requestIntentBrief } from '../../lib/intent-context'
 import { usePendingArtifactStore } from '../../lib/resume-artifact'
-import type { ToolPrefill, ToolRequest } from '../../lib/tool-request'
+import type { ToolPrefill } from '../../lib/tool-request'
 import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
 import { useActiveProjectStore } from '../../lib/active-project'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
@@ -66,15 +66,12 @@ export function LiteratureReportPage({
   prefill,
   handoffFile,
   onHandoffFileConsumed,
-  onOpenTool,
   className = ''
 }: {
   prefill?: ToolPrefill
   /** A file sent from 文件库, added as a paper. */
   handoffFile?: { name: string; path: string }
   onHandoffFileConsumed?: () => void
-  /** Next steps: 课件 for a journal club deck, 文稿 for a review or grant. */
-  onOpenTool?: (request: ToolRequest, text: string) => void
   className?: string
 }): ReactElement {
   const workspaceRoot = useWriteWorkspaceStore((state) => state.workspaceRoot)
@@ -100,7 +97,10 @@ export function LiteratureReportPage({
 
   // A request from the AI assistant fills the input box once per request.
   useEffect(() => {
-    if (prefill) setInput(prefill.text)
+    if (!prefill) return
+    setInput(prefill.text)
+    // A next step hands over the result it follows (Task 3.4.1).
+    if (prefill.materials?.length) setMaterials(prefill.materials.map((material, index) => ({ id: `prefill-${prefill.id}-${index}`, ...material })))
   }, [prefill])
 
   useEffect(() => {
@@ -222,7 +222,6 @@ export function LiteratureReportPage({
 
   if (report && (!run || run.status === 'done')) {
     const isTable = report.title.endsWith('证据表')
-    const excerpt = report.markdown.slice(0, 4_000)
     return (
       <SectionedDocumentWorkspace
         module="literature"
@@ -242,30 +241,7 @@ export function LiteratureReportPage({
         partLabel="改这一部分"
         subpartLabel="改这张图的解读"
         emptyHint="点任一部分的“改这一部分”，或在下方选择范围，说一句想怎么改，例如“局限再写具体一些”。每次修改都会保存版本，可以随时撤销。"
-        nextSteps={onOpenTool ? [
-          {
-            id: 'journal-club',
-            label: '做成组会汇报 PPT',
-            description: '在课件中选择这篇论文的 PDF 作为依据',
-            onSelect: () => onOpenTool({ moduleId: 'ppt-gen', label: '课件' }, `根据《${report.title}》做一套组会汇报 PPT，讲清研究问题、方法、关键图和局限`)
-          },
-          {
-            id: 'review',
-            label: '写进综述',
-            onSelect: () => onOpenTool(
-              { moduleId: 'write', template: 'review', label: '文稿 · 综述' },
-              `根据下面的${isTable ? '证据表' : '文献报告'}写综述的相关段落，保留文献标识：\n\n${excerpt}`
-            )
-          },
-          {
-            id: 'grant',
-            label: '写进基金立项依据',
-            onSelect: () => onOpenTool(
-              { moduleId: 'write', template: 'grant', label: '文稿 · 国自然' },
-              `根据下面的${isTable ? '证据表' : '文献报告'}写国自然立项依据的相关段落，保留文献标识：\n\n${excerpt}`
-            )
-          }
-        ] : undefined}
+        artifactKind={isTable ? 'evidence-table' : 'literature-report'}
         className={className}
       />
     )

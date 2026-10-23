@@ -66,6 +66,7 @@ import type { IntentBrief, IntentExtractInput } from './intent-brief'
 import type { LessonPlanCreateInput } from './lesson-plan'
 import type { LiteratureReportInput } from './literature-report'
 import type { ProjectCreateInput, ProjectUpdateInput } from './project'
+import type { QuestionSetCreateInput } from './question-set'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -252,6 +253,11 @@ export type DsGuiApi = {
   updateProject: (input: ProjectUpdateInput) => Promise<TeacherProjectSettingsV1>
   /** Registers documents and courseware already in the workspace as 未归档, without moving them. */
   adoptExistingFiles: (workspaceRoot: string) => Promise<{ added: number }>
+  /** Writes 随堂题 by the assessment-designer skill's rules and saves them in the writing workspace. */
+  createQuestionSet: (input: QuestionSetCreateInput) => Promise<
+    | { ok: true; path: string; artifact: ArtifactRecord; markdown: string; dropped: number }
+    | { ok: false; code: string; message: string }
+  >
   extractPdfRange: (
     path: string,
     pageStart: number,

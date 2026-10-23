@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { Download, FilePenLine, Loader2, Plus, Sparkles } from 'lucide-react'
+import type { ArtifactKind } from '@shared/artifact'
 import type { RevisionOutcome, RevisionResult, RevisionScope } from '@shared/artifact-revision'
 import { markdownBlocks, type MarkdownBlock } from '@shared/document-blocks'
+import { artifactNextSteps, useToolOpenerStore } from '../../lib/next-steps'
 import { openDocumentArtifact } from '../../lib/resume-artifact'
 import { useChatStore } from '../../store/chat-store'
 import { getZhiYanModule, type ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
@@ -101,6 +103,8 @@ type SectionedDocumentWorkspaceProps = {
   subpartLabel: string
   emptyHint: string
   nextSteps?: AiNextStep[]
+  /** What the result is; its usual next steps are offered when `nextSteps` is not given (Task 3.4.1). */
+  artifactKind?: ArtifactKind
   /** Blocks to mark after a change made outside the panel, such as a timing adjustment. */
   changedBlocks?: Set<string>
   /**
@@ -130,6 +134,7 @@ export function SectionedDocumentWorkspace({
   subpartLabel,
   emptyHint,
   nextSteps,
+  artifactKind,
   changedBlocks,
   reviseWith,
   className = ''
@@ -143,6 +148,14 @@ export function SectionedDocumentWorkspace({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const nextExchange = useRef(1)
+  const suggestedSteps: AiNextStep[] | undefined = nextSteps ?? (artifactKind
+    ? artifactNextSteps({ kind: artifactKind, title: document.title, markdown: document.markdown }).map((step) => ({
+        id: step.id,
+        label: step.label,
+        ...(step.description ? { description: step.description } : {}),
+        onSelect: () => useToolOpenerStore.getState().open?.(step.request, step.text, step.materials)
+      }))
+    : undefined)
   const habit = useHabitOffer(module, getZhiYanModule(module)?.sidebarLabel ?? toolTitle)
 
   const shownChanges = changedBlocks && changedBlocks.size > 0 ? changedBlocks : changed
@@ -280,7 +293,7 @@ export function SectionedDocumentWorkspace({
           onOpenChange={setPanelOpen}
           width={panelWidth}
           onWidthChange={setPanelWidth}
-          nextSteps={nextSteps}
+          nextSteps={suggestedSteps}
           composer={(
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-caption text-ds-muted">

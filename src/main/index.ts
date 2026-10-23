@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, shell, Tray } from 'electron'
 import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import {
@@ -45,6 +46,8 @@ import { IntentBriefService } from './services/intent-brief-service'
 import { LessonPlanService } from './services/lesson-plan-service'
 import { LiteratureService } from './services/literature-service'
 import { ProjectService } from './services/project-service'
+import { QuestionSetService } from './services/question-set-service'
+import { resolveBundledSkillSourceRoot } from './services/builtin-skill-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -794,6 +797,12 @@ app.whenReady().then(async () => {
       registry: artifactRegistry,
       versions: artifactVersions,
       loadSettings: () => store.load()
+    }),
+    questionSets: new QuestionSetService({
+      registry: artifactRegistry,
+      versions: artifactVersions,
+      loadSettings: () => store.load(),
+      loadSkillGuide: () => readFile(join(resolveBundledSkillSourceRoot(), 'assessment-designer', 'SKILL.md'), 'utf8')
     }),
     projects: new ProjectService({
       loadSettings: () => store.load(),

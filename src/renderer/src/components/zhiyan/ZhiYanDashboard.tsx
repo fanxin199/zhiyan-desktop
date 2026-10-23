@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { NormalizedThread } from '../../agent/types'
 import { formatRelativeTime } from '../../lib/format-relative-time'
+import { artifactNextSteps, type ArtifactNextStep } from '../../lib/next-steps'
 import { ARTIFACT_KIND_LABELS } from '../../lib/resume-artifact'
 import { teacherLabel } from '../../lib/teacher-label'
 import { isInternalPlaceholderThreadTitle, shouldAutoTitleThread } from '../../lib/thread-title'
@@ -42,13 +43,6 @@ type DashboardActionCard = QuickActionCardProps & {
   keywords: readonly string[]
 }
 
-export type DashboardTaskRecommendation = {
-  sourceModuleId: string
-  targetId: ZhiYanModuleRouteId
-  title: string
-  description: string
-}
-
 type ListArtifacts = Window['dsGui']['listArtifacts']
 
 const RECENT_THREAD_LIMIT = 5
@@ -57,49 +51,6 @@ const CONTINUE_WORK_LIMIT = 6
 const DASHBOARD_SECTION_LABELS = Object.fromEntries(
   ZHIYAN_MODULE_SECTIONS.map((section) => [section.id, section.dashboardLabel])
 ) as Record<ZhiYanModuleSectionId, string>
-
-const RECOMMENDATION_BY_SOURCE_MODULE: Record<string, Omit<DashboardTaskRecommendation, 'sourceModuleId'>> = {
-  syllabus: {
-    targetId: 'ppt-gen',
-    title: '根据教案制作配套课件',
-    description: '沿用最近教案的课程主题，继续生成课堂 PPT。'
-  },
-  'ppt-gen': {
-    targetId: 'syllabus',
-    title: '为课件补充完整教案',
-    description: '把最近课件对应的教学目标、流程和课堂活动整理成教案。'
-  },
-  textbook: {
-    targetId: 'ppt-gen',
-    title: '将教材章节转为课堂课件',
-    description: '从最近教材内容继续制作适合讲授的 PPT。'
-  },
-  'paper-polish': {
-    targetId: 'literature',
-    title: '核验写作中的关键证据',
-    description: '检查关键论点对应的全文依据、PMID 和 DOI。'
-  },
-  literature: {
-    targetId: 'review-writing',
-    title: '将文献证据整理成综述',
-    description: '把最近精读结果组织成证据矩阵和综述框架。'
-  },
-  'review-writing': {
-    targetId: 'literature',
-    title: '核验综述中的关键引用',
-    description: '回到文献阅读，核对全文证据和引用标识。'
-  },
-  'grant-writing': {
-    targetId: 'literature',
-    title: '核验立项依据中的关键文献',
-    description: '检查核心论点的最新证据、PMID 和 DOI。'
-  },
-  bioinformatics: {
-    targetId: 'paper-polish',
-    title: '把分析结果整理成论文段落',
-    description: '将图表、统计结果和证据边界转为 Results 或 Discussion 草稿。'
-  }
-}
 
 function normalizeDashboardSearchText(value: string): string {
   return value.trim().toLowerCase()
@@ -210,22 +161,6 @@ export function getRecentDashboardThreads(threads: NormalizedThread[]): Normaliz
       return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0)
     })
     .slice(0, RECENT_THREAD_LIMIT)
-}
-
-export function getDashboardTaskRecommendations(
-  threads: NormalizedThread[]
-): DashboardTaskRecommendation[] {
-  const recommendations: DashboardTaskRecommendation[] = []
-  const seenTargets = new Set<string>()
-  for (const thread of getRecentDashboardThreads(threads)) {
-    const sourceModuleId = moduleIdFromProjectId(thread.projectId)
-    const recommendation = RECOMMENDATION_BY_SOURCE_MODULE[sourceModuleId]
-    if (!recommendation || seenTargets.has(recommendation.targetId)) continue
-    seenTargets.add(recommendation.targetId)
-    recommendations.push({ sourceModuleId, ...recommendation })
-    if (recommendations.length >= 2) break
-  }
-  return recommendations
 }
 
 function dashboardActionCards(
@@ -365,14 +300,17 @@ export function ContinueWorkSection({
   )
 }
 
-function TaskRecommendationCard({
-  recommendation,
-  onOpen
-}: {
-  recommendation: DashboardTaskRecommendation
-  onOpen: () => void
-}): ReactElement {
-  const Icon = getZhiYanModule(recommendation.targetId)?.icon ?? MessageCircle
+/** The usual next steps after the latest result still at hand (Task 3.4.1). */
+export function dashboardNextSteps(artifacts: ArtifactListItem[]): { source: ArtifactListItem; steps: ArtifactNextStep[] } | null {
+  const source = continueWorkArtifacts(artifacts)[0]
+  if (!source) return null
+  const steps = artifactNextSteps({ kind: source.kind, title: source.title }).slice(0, 2)
+  return steps.length > 0 ? { source, steps } : null
+}
+
+function NextStepCard({ step, onOpen }: { step: ArtifactNextStep; onOpen: () => void }): ReactElement {
+  const moduleId = step.request.moduleId
+  const Icon = isZhiYanModuleRoute(moduleId) ? getZhiYanModule(moduleId)?.icon ?? MessageCircle : MessageCircle
   return (
     <button
       type="button"
@@ -383,8 +321,8 @@ function TaskRecommendationCard({
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-small font-semibold text-ds-text">{recommendation.title}</span>
-        <span className="mt-0.5 line-clamp-2 block text-caption leading-5 text-ds-muted">{recommendation.description}</span>
+        <span className="block text-small font-semibold text-ds-text">{step.label}</span>
+        <span className="mt-0.5 line-clamp-2 block text-caption leading-5 text-ds-muted">{step.description ?? step.text}</span>
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-ds-faint transition group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.8} />
     </button>
@@ -393,9 +331,9 @@ function TaskRecommendationCard({
 
 type ZhiYanDashboardProps = {
   onOpenModule: (route: ZhiYanModuleRouteId) => void
-  /** Used for next-step recommendations. */
-  recentThreads?: NormalizedThread[]
   onOpenArtifact?: (artifact: ArtifactListItem) => void
+  /** A next step after a result (Task 3.4.1): the result goes along as material. */
+  onOpenNextStep?: (step: ArtifactNextStep, source: ArtifactListItem) => void
   listArtifacts?: ListArtifacts
   onSubmitPrompt?: (prompt: string) => void
   className?: string
@@ -403,8 +341,8 @@ type ZhiYanDashboardProps = {
 
 export function ZhiYanDashboard({
   onOpenModule,
-  recentThreads = [],
   onOpenArtifact,
+  onOpenNextStep,
   listArtifacts = typeof window === 'undefined' ? undefined : window.dsGui?.listArtifacts,
   onSubmitPrompt,
   className = ''
@@ -413,7 +351,6 @@ export function ZhiYanDashboard({
   const [searchQuery, setSearchQuery] = useState('')
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfileSettingsV1 | undefined>()
   const [artifacts, setArtifacts] = useState<ArtifactListItem[]>([])
-  const taskRecommendations = getDashboardTaskRecommendations(recentThreads)
 
   useEffect(() => {
     if (typeof listArtifacts !== 'function' || !onOpenArtifact) return
@@ -455,6 +392,7 @@ export function ZhiYanDashboard({
   const visibleTeachingCards = filterDashboardActionCards(teachingCards, searchQuery)
   const visibleResearchCards = filterDashboardActionCards(researchCards, searchQuery)
   const hasSearchQuery = searchQuery.trim().length > 0
+  const nextSteps = dashboardNextSteps(artifacts)
   const hasSearchResults =
     visibleTeachingCards.length > 0 ||
     visibleResearchCards.length > 0
@@ -499,18 +437,14 @@ export function ZhiYanDashboard({
           <ContinueWorkSection artifacts={artifacts} locale={i18n.language} onOpen={onOpenArtifact} />
         ) : null}
 
-        {!hasSearchQuery && taskRecommendations.length > 0 ? (
-          <div className="mb-8" data-testid="dashboard-task-recommendations">
+        {!hasSearchQuery && onOpenNextStep && nextSteps ? (
+          <div className="mb-8" data-testid="dashboard-next-steps">
             <h2 className="mb-3 text-small font-semibold uppercase tracking-wider text-ds-faint">
-              推荐下一步
+              推荐下一步 · 接着“{nextSteps.source.title}”
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {taskRecommendations.map((recommendation) => (
-                <TaskRecommendationCard
-                  key={`${recommendation.sourceModuleId}:${recommendation.targetId}`}
-                  recommendation={recommendation}
-                  onOpen={() => onOpenModule(recommendation.targetId)}
-                />
+              {nextSteps.steps.map((step) => (
+                <NextStepCard key={step.id} step={step} onOpen={() => onOpenNextStep(step, nextSteps.source)} />
               ))}
             </div>
           </div>

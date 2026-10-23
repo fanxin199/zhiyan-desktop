@@ -76,6 +76,8 @@ const api = {
     ipcRenderer.invoke('literature:create-report', input),
   createProject: (input) =>
     ipcRenderer.invoke('projects:create', input),
+  createQuestionSet: (input) =>
+    ipcRenderer.invoke('question-sets:create', input),
   updateProject: (input) =>
     ipcRenderer.invoke('projects:update', input),
   adoptExistingFiles: (workspaceRoot) =>

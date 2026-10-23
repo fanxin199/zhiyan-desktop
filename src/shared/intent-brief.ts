@@ -6,7 +6,7 @@ import { z } from 'zod'
  * teacher's profile, remembered preferences and defaults. Every value says where it came from.
  */
 export const INTENT_SOURCES = ['teacher', 'material', 'project', 'profile', 'preference', 'default'] as const
-export const INTENT_TOOL_IDS = ['syllabus', 'ppt-gen', 'textbook', 'write', 'literature', 'bioinformatics'] as const
+export const INTENT_TOOL_IDS = ['syllabus', 'ppt-gen', 'textbook', 'write', 'literature', 'bioinformatics', 'quiz'] as const
 
 /** Sources the caller supplies; teacher and material values come from reading the request. */
 export const INTENT_CONTEXT_SOURCES = ['project', 'profile', 'preference'] as const
@@ -95,6 +95,13 @@ export const INTENT_FIELD_DEFINITIONS: Record<IntentToolId, readonly IntentField
   literature: [
     { key: 'paper', label: '文献', required: true, hint: '论文 PDF 文件名、PMID、DOI 或题名', fromMaterialNames: true },
     { key: 'question', label: '关注的问题', required: false, hint: '老师最想弄清楚的问题', defaultValue: '研究问题、方法、逐图解读、结论与局限' }
+  ],
+  quiz: [
+    { key: 'topic', label: '章节', required: true, hint: '出题范围的课程章节或主题' },
+    { key: 'count', label: '题量', required: false, hint: '如“10 道”', defaultValue: '10 道' },
+    { key: 'types', label: '题型', required: false, hint: '单项选择题、简答题、论述题', defaultValue: '单项选择题和简答题' },
+    { key: 'audience', label: '对象', required: false, hint: '学生类型', defaultValue: '本科生' },
+    { key: 'difficulty', label: '难度', required: false, hint: '基础、中等或较难', defaultValue: '中等' }
   ],
   bioinformatics: [
     { key: 'dataType', label: '数据类型', required: true, hint: '如 bulk RNA-seq、单细胞转录组' },

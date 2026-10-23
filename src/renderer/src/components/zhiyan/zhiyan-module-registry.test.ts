@@ -20,6 +20,7 @@ describe('ZhiYan module registry', () => {
       'syllabus',
       'ppt-gen',
       'textbook',
+      'quiz',
       'write',
       'paper-polish',
       'literature',
@@ -67,7 +68,8 @@ describe('ZhiYan module registry', () => {
     expect(getZhiYanDashboardModules('teaching').map((module) => module.dashboard?.title)).toEqual([
       '教案',
       '课件',
-      '教材'
+      '教材',
+      '随堂题'
     ])
     expect(getZhiYanDashboardModules('research').map((module) => module.id)).toEqual([
       'write',

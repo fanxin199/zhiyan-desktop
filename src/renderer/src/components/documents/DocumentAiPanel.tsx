@@ -13,6 +13,7 @@ import { AiSidePanel } from '../ai-work/AiSidePanel'
 import { IntentComposer } from '../ai-work/IntentComposer'
 import { RevisionResultCard } from '../ai-work/RevisionResultCard'
 import { useHabitOffer } from '../ai-work/RememberHabitOffer'
+import { artifactNextSteps, useToolOpenerStore } from '../../lib/next-steps'
 
 type Exchange = {
   id: number
@@ -26,6 +27,10 @@ type Exchange = {
 }
 
 const WHOLE_DOCUMENT = ''
+
+function documentTitle(path: string): string {
+  return (path.split(/[\\/]/u).pop() ?? path).replace(/\.(md|markdown|txt)$/iu, '')
+}
 
 /** What “说一句就改” applies to: the selection, else the chosen section, else the whole document. */
 export function documentRevisionScope(
@@ -147,6 +152,13 @@ export function DocumentAiPanel(): ReactElement {
       onOpenChange={setOpen}
       width={width}
       onWidthChange={setWidth}
+      nextSteps={activeArtifact && activeFilePath
+        ? artifactNextSteps({ kind: 'document', title: documentTitle(activeFilePath), markdown: fileContent }).map((step) => ({
+            id: step.id,
+            label: step.label,
+            onSelect: () => useToolOpenerStore.getState().open?.(step.request, step.text, step.materials)
+          }))
+        : undefined}
       composer={(
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-caption text-ds-muted">

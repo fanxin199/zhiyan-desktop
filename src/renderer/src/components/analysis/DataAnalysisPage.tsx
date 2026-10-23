@@ -348,6 +348,7 @@ export function DataAnalysisPage({
         document={report}
         onDocumentChange={setReport}
         stage="分析报告"
+        artifactKind="analysis-report"
         newLabel="新分析"
         onNew={backToStart}
         wholeLabel="整份报告"

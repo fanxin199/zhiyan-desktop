@@ -62,6 +62,11 @@ export const WORKFLOW_STAGES: Record<IntentToolId, readonly WorkflowStage[]> = {
     { id: 'report', label: '逐图解读并写成报告', estimateSeconds: 150 },
     { id: 'citations', label: '核验引用', estimateSeconds: 20 }
   ],
+  quiz: [
+    { id: 'read', label: '读取材料', estimateSeconds: 10 },
+    { id: 'draft', label: '出题', estimateSeconds: 90 },
+    { id: 'check', label: '逐题核验', estimateSeconds: 5 }
+  ],
   bioinformatics: [
     { id: 'read', label: '读取数据', estimateSeconds: 20 },
     // Sample groups and comparison direction must be confirmed by the teacher (§6.4).

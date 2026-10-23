@@ -69,7 +69,10 @@ export function DocumentStartView({ template, prefill }: { template: DocumentTem
 
   // A request from the AI assistant fills the input box once per request.
   useEffect(() => {
-    if (prefill) setInput(prefill.text)
+    if (!prefill) return
+    setInput(prefill.text)
+    // A next step hands over the result it follows (Task 3.4.1).
+    if (prefill.materials?.length) setMaterials(prefill.materials.map((material, index) => ({ id: `prefill-${prefill.id}-${index}`, ...material })))
   }, [prefill])
 
   const addFiles = async (files: File[]): Promise<void> => {

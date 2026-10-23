@@ -30,9 +30,9 @@ describe('projects', () => {
     expect(projectNextSteps(course, [])).toEqual([
       { id: 'lesson-plan', label: '写这一章的教案', request: { moduleId: 'syllabus', label: '教案' }, text: '帮我写生理学 第八章 呼吸系统的教案，2 学时，本科生' },
       { id: 'courseware', label: '做配套课件', request: { moduleId: 'ppt-gen', label: '课件' }, text: '做一套生理学 第八章 呼吸系统的课件' },
-      { id: 'textbook', label: '编写教材章节', request: { moduleId: 'textbook', label: '教材' }, text: '编写生理学 第八章 呼吸系统的教材章节' }
+      { id: 'quiz', label: '出随堂题', request: { moduleId: 'quiz', label: '随堂题' }, text: '出生理学 第八章 呼吸系统的 10 道随堂题' }
     ])
-    expect(projectNextSteps(course, [{ kind: 'lesson-plan' }, { kind: 'courseware' }]).map((step) => step.id)).toEqual(['textbook'])
+    expect(projectNextSteps(course, [{ kind: 'lesson-plan' }, { kind: 'courseware' }]).map((step) => step.id)).toEqual(['quiz', 'textbook'])
   })
 
   it('points a grant topic to a grant application', () => {
