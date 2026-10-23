@@ -42,6 +42,7 @@ import { ArtifactVersionStore } from './services/artifact-version-service'
 import { ArtifactRevisionService } from './services/artifact-revision-service'
 import { DocumentService } from './services/document-service'
 import { IntentBriefService } from './services/intent-brief-service'
+import { LessonPlanService } from './services/lesson-plan-service'
 import { registerRuntimeSseIpc } from './runtime-sse-ipc'
 import { isKunHealthResponseBody } from './kun-health'
 import { inspectPythonRuntime as inspectLocalPythonRuntime } from './services/python-runtime-service'
@@ -782,6 +783,11 @@ app.whenReady().then(async () => {
       loadSettings: () => store.load()
     }),
     intentBriefs: new IntentBriefService({ loadSettings: () => store.load() }),
+    lessonPlans: new LessonPlanService({
+      registry: artifactRegistry,
+      versions: artifactVersions,
+      loadSettings: () => store.load()
+    }),
     getMainWindow: () => mainWindow,
     applySettingsPatch,
     runtimeRequest: async (path, method, body) => {

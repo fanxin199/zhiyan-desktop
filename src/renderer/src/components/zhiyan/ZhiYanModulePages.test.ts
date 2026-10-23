@@ -6,14 +6,9 @@ import {
   BioinformaticsPage,
   buildResearchTaskDisplayText,
   buildResearchTaskPrompt,
-  buildSyllabusTaskDisplayText,
   extractResearchTaskFileText,
   LITERATURE_CONFIG,
   LiteraturePage,
-  loadSyllabusTeacherProfileDefaults,
-  buildSyllabusIdentityPromptSections,
-  buildSyllabusOutputInstructions,
-  SyllabusPage,
   BIOINFORMATICS_CONFIG
 } from './ZhiYanModulePages'
 
@@ -220,78 +215,6 @@ describe('buildResearchTaskPrompt', () => {
 
     expect(journalClubTask?.label).toBe('组会汇报 PPT 大纲')
     expect(journalClubTask?.label).not.toBe('文献汇报 PPT 大纲')
-  })
-})
-
-describe('SyllabusPage task handoff', () => {
-  it('loads teacher profile defaults for lesson-plan identity fields', async () => {
-    const getSettings = vi.fn(async () => ({
-      teacherProfile: {
-        name: '李老师',
-        school: '某某医科大学',
-        department: '基础医学院免疫学系',
-        courses: ['医学免疫学'],
-        researchTopics: ['B 细胞亚群']
-      }
-    }))
-    vi.stubGlobal('window', { dsGui: { getSettings } })
-
-    await expect(loadSyllabusTeacherProfileDefaults()).resolves.toEqual({
-      teacher: '李老师',
-      school: '某某医科大学',
-      department: '基础医学院免疫学系'
-    })
-    expect(getSettings).toHaveBeenCalledTimes(1)
-  })
-
-  it('injects resolved teacher identity values into the lesson-plan prompt sections', () => {
-    const sections = buildSyllabusIdentityPromptSections({
-      teacher: '李老师',
-      school: '某某医科大学',
-      department: '基础医学院免疫学系'
-    })
-
-    const promptText = [
-      ...sections.basicInfoLines,
-      ...sections.writingInstructionLines
-    ].join('\n')
-
-    expect(promptText).toContain('某某医科大学')
-    expect(promptText).toContain('基础医学院免疫学系')
-    expect(promptText).toContain('李老师')
-    expect(promptText).not.toContain('用户未填写')
-    expect(promptText).not.toContain('留空')
-  })
-
-  it('renders an inline conversation slot when a lesson-plan task is active', () => {
-    const html = renderToStaticMarkup(createElement(SyllabusPage, {
-      onStartChat: noop,
-      showInlineConversation: true,
-      inlineConversation: createElement('div', null, '教案生成对话')
-    }))
-
-    expect(html).toContain('教案生成对话')
-  })
-
-  it('keeps the lesson-plan task display text free of source content and templates', () => {
-    const displayText = buildSyllabusTaskDisplayText({
-      courseName: '医学免疫学',
-      topic: '移植免疫',
-      fileName: 'chapter.pdf'
-    })
-
-    expect(displayText).toBe('智能教案生成：移植免疫')
-    expect(displayText).not.toContain('chapter.pdf')
-    expect(displayText).not.toContain('教案模板')
-  })
-
-  it('uses the native writing export path instead of Python or shell commands', () => {
-    const instructions = buildSyllabusOutputInstructions().join('\n')
-
-    expect(instructions).toContain('编辑并导出 Word')
-    expect(instructions).toContain('应用原生导出 DOCX')
-    expect(instructions).not.toContain('python-docx')
-    expect(instructions).toContain('不要调用 bash、write')
   })
 })
 

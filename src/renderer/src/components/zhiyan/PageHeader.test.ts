@@ -5,10 +5,11 @@ import { CoursewarePage } from './CoursewarePage'
 import { FileManagerWorkspacePage } from './FileManagerWorkspacePage'
 import { PageHeader } from './PageHeader'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
+import { LessonPlanPage } from '../lesson-plan/LessonPlanPage'
+import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import {
   BioinformaticsPage,
-  LiteraturePage,
-  SyllabusPage
+  LiteraturePage
 } from './ZhiYanModulePages'
 import { getZhiYanSectionModule, type ZhiYanSectionModuleId } from './zhiyan-module-registry'
 
@@ -48,7 +49,7 @@ describe('PageHeader', () => {
 
 describe('tool pages', () => {
   const pages: Array<[ZhiYanSectionModuleId, ReactElement, number]> = [
-    ['syllabus', createElement(SyllabusPage, { onStartChat: vi.fn() }), 720],
+    ['syllabus', createElement(LessonPlanPage), 720],
     ['literature', createElement(LiteraturePage, { onStartChat: vi.fn() }), 720],
     ['bioinformatics', createElement(BioinformaticsPage, { onStartChat: vi.fn() }), 720],
     ['ppt-gen', createElement(CoursewarePage), 1152],
@@ -57,7 +58,12 @@ describe('tool pages', () => {
   ]
 
   it.each(pages)('renders the %s page with the registry icon in one shared header and one content width', (module, page, width) => {
+    // 教案 starts once a writing space is chosen.
+    const initial = useWriteWorkspaceStore.getInitialState()
+    const previous = initial.workspaceRoot
+    initial.workspaceRoot = '/write'
     const html = renderToStaticMarkup(page)
+    initial.workspaceRoot = previous
     const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? ''
 
     expect(html.match(/<h1/g)).toHaveLength(1)

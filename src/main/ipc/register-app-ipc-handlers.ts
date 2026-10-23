@@ -55,6 +55,7 @@ import {
   artifactRevisionPayloadSchema,
   documentCreatePayloadSchema,
   intentExtractPayloadSchema,
+  lessonPlanCreatePayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -119,6 +120,7 @@ import type { ArtifactVersionStore } from '../services/artifact-version-service'
 import type { ArtifactRevisionService } from '../services/artifact-revision-service'
 import type { DocumentService } from '../services/document-service'
 import type { IntentBriefService } from '../services/intent-brief-service'
+import type { LessonPlanService } from '../services/lesson-plan-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -158,6 +160,7 @@ type RegisterAppIpcHandlersOptions = {
   artifactRevisions: Pick<ArtifactRevisionService, 'revise'>
   documents: Pick<DocumentService, 'create'>
   intentBriefs: Pick<IntentBriefService, 'extract'>
+  lessonPlans: Pick<LessonPlanService, 'create'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -267,6 +270,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     artifactRevisions,
     documents,
     intentBriefs,
+    lessonPlans,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -777,6 +781,11 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     const request = parseIpcPayload('documents:create', documentCreatePayloadSchema, payload)
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return documents.create(request)
+  })
+  ipcMain.handle('lesson-plans:create', async (_, payload: unknown) => {
+    const request = parseIpcPayload('lesson-plans:create', lessonPlanCreatePayloadSchema, payload)
+    await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
+    return lessonPlans.create(request)
   })
   // Reads text the renderer already holds; no files are touched.
   ipcMain.handle('intent:extract', async (_, payload: unknown) =>

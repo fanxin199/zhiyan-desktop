@@ -63,6 +63,7 @@ import type {
 import type { RevisionOutcome, RevisionRequest } from './artifact-revision'
 import type { DocumentCreateInput } from './document-templates'
 import type { IntentBrief, IntentExtractInput } from './intent-brief'
+import type { LessonPlanCreateInput } from './lesson-plan'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -232,6 +233,11 @@ export type DsGuiApi = {
   /** Reads a tool's key points from the teacher's sentence and materials (§6.3). */
   extractIntentBrief: (input: IntentExtractInput) => Promise<
     | { ok: true; brief: IntentBrief }
+    | { ok: false; code: string; message: string }
+  >
+  /** Writes a lesson plan from its key points and materials and saves it in the writing workspace. */
+  createLessonPlan: (input: LessonPlanCreateInput) => Promise<
+    | { ok: true; path: string; artifact: ArtifactRecord; markdown: string }
     | { ok: false; code: string; message: string }
   >
   extractPdfRange: (

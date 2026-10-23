@@ -24,7 +24,7 @@ import {
 import { recordArtifact } from '../lib/artifact-records'
 import { buildAssistantPrompt, describeAssistantContext, type AssistantPageContext } from '../lib/assistant-context'
 import { useAssistantStore } from '../lib/assistant-store'
-import { openDocumentArtifact, resumeTargetFor, usePendingCoursewareStore } from '../lib/resume-artifact'
+import { openDocumentArtifact, resumeTargetFor, usePendingArtifactStore } from '../lib/resume-artifact'
 import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
 import { AssistantDrawer } from './assistant/AssistantDrawer'
 import {
@@ -40,9 +40,9 @@ import {
   FileManagerPage,
   LiteraturePage,
   PptGenPage,
-  SyllabusPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
+import { LessonPlanPage } from './lesson-plan/LessonPlanPage'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -705,9 +705,10 @@ export function Workbench(): ReactElement {
       void openDocumentArtifact(artifact).finally(openWriteMode)
       return
     }
-    if (target.type === 'courseware') {
-      usePendingCoursewareStore.getState().request(artifact.id)
-      setRoute('ppt-gen')
+    if (target.type === 'courseware' || target.type === 'lesson-plan') {
+      const toolId = target.type === 'courseware' ? 'ppt-gen' : 'syllabus'
+      usePendingArtifactStore.getState().request(toolId, artifact)
+      setRoute(toolId)
       return
     }
     if (isZhiYanModuleRoute(target.toolId)) openRegisteredModule(target.toolId)
@@ -885,27 +886,13 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'syllabus' ? (
-          <SyllabusPage
-            onStartChat={handleModuleQuickPrompt}
+          <LessonPlanPage
             prefill={prefillFor('syllabus')}
             handoffFile={moduleHandoffFiles.syllabus}
             onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
               ...current,
               syllabus: undefined
             }))}
-            showInlineConversation={isInlineModuleConversationVisible({
-              inlineConversationThreadIds,
-              moduleId: 'syllabus',
-              activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('教案生成', {
-              busy: '正在生成教案',
-              ready: '教案已生成'
-            }, {
-              moduleId: 'syllabus',
-              title: '智能教案',
-              actionLabel: '编辑并导出 Word'
-            })}
             className="ds-no-drag"
           />
         ) : route === 'ppt-gen' ? (

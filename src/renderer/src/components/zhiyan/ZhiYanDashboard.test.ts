@@ -167,8 +167,10 @@ describe('ZhiYanDashboard continue last work', () => {
 
   it('reopens documents in 文稿, courseware in 课件 and other results in their tool', () => {
     expect(resumeTargetFor(artifact('doc', '2026-10-22T08:00:00.000Z'))).toEqual({ type: 'document' })
-    // A lesson plan sent to the writing workspace is a Markdown file there.
+    // Lesson plans made by 教案 reopen there, section by section; other Markdown opens in 文稿.
     expect(resumeTargetFor(artifact('plan', '2026-10-22T08:00:00.000Z', { kind: 'lesson-plan', toolId: 'syllabus' })))
+      .toEqual({ type: 'lesson-plan' })
+    expect(resumeTargetFor(artifact('notes', '2026-10-22T08:00:00.000Z', { kind: 'document', toolId: 'syllabus' })))
       .toEqual({ type: 'document' })
     expect(resumeTargetFor(artifact('ppt', '2026-10-22T08:00:00.000Z', {
       kind: 'courseware',

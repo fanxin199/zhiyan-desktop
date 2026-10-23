@@ -50,7 +50,7 @@ import {
   MissingRequirementsHint,
   type MissingRequirement
 } from './missing-requirements'
-import { usePendingCoursewareStore } from '../../lib/resume-artifact'
+import { usePendingArtifactStore } from '../../lib/resume-artifact'
 import type { ToolPrefill } from '../../lib/tool-request'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
@@ -332,8 +332,8 @@ export function CoursewarePage({ className = '', prefill }: CoursewarePageProps)
 
   // Courseware chosen in 继续上次的工作 on the home page.
   useEffect(() => {
-    const artifactId = usePendingCoursewareStore.getState().take()
-    if (artifactId) void showProject(() => window.dsGui.loadCoursewareArtifact(artifactId))
+    const artifact = usePendingArtifactStore.getState().take('ppt-gen')
+    if (artifact) void showProject(() => window.dsGui.loadCoursewareArtifact(artifact.id))
   }, [showProject])
 
   async function chooseSource(): Promise<void> {

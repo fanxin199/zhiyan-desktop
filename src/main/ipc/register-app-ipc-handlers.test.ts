@@ -87,6 +87,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
     artifactRevisions: { revise: vi.fn() } as never,
     documents: { create: vi.fn(async () => ({ ok: true })) } as never,
     intentBriefs: { extract: vi.fn(async () => ({ ok: true })) } as never,
+    lessonPlans: { create: vi.fn(async () => ({ ok: true })) } as never,
     getMainWindow: () => null,
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,

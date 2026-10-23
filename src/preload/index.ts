@@ -70,6 +70,8 @@ const api = {
     ipcRenderer.invoke('documents:create', input),
   extractIntentBrief: (input) =>
     ipcRenderer.invoke('intent:extract', input),
+  createLessonPlan: (input) =>
+    ipcRenderer.invoke('lesson-plans:create', input),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>
