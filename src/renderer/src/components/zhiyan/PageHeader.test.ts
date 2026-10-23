@@ -53,7 +53,7 @@ describe('tool pages', () => {
     ['literature', createElement(LiteraturePage, { onStartChat: vi.fn() }), 720],
     ['bioinformatics', createElement(BioinformaticsPage, { onStartChat: vi.fn() }), 720],
     ['ppt-gen', createElement(CoursewarePage), 720],
-    ['textbook', createElement(TextbookWorkbenchPage), 1152],
+    ['textbook', createElement(TextbookWorkbenchPage), 720],
     ['file-manager', createElement(FileManagerWorkspacePage, { onStartChat: vi.fn() }), 1152]
   ]
 

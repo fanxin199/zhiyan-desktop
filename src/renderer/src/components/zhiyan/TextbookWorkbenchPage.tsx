@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import {
   AlertCircle,
   ArrowDown,
@@ -39,6 +39,21 @@ import {
   type MissingRequirement
 } from './missing-requirements'
 import type { ToolPrefill } from '../../lib/tool-request'
+import { updateIntentField, type IntentBrief } from '@shared/intent-brief'
+import { startWorkflowRun, type WorkflowMode, type WorkflowRunState } from '@shared/workflow'
+import { rendererRuntimeClient } from '../../agent/runtime-client'
+import { requestIntentBrief } from '../../lib/intent-context'
+import { createWorkflowRunner, type WorkflowRunner } from '../../lib/workflow-runner'
+import { AiWorkExamples } from '../ai-work/AiWorkPage'
+import { IntentBriefChips } from '../ai-work/IntentBriefChips'
+import { IntentComposer } from '../ai-work/IntentComposer'
+import { WorkflowProgress } from '../ai-work/WorkflowProgress'
+import {
+  LONG_TEXTBOOK_SECTIONS,
+  replaceTermAcrossSections,
+  sectionsToWrite,
+  textbookRequestFromBrief
+} from './textbook-flow'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
@@ -48,7 +63,13 @@ type TextbookWorkbenchPageProps = {
   prefill?: ToolPrefill
 }
 
-type Step = 'setup' | 'outline' | 'writing' | 'check'
+type Step = 'start' | 'setup' | 'outline' | 'writing' | 'check'
+
+export const TEXTBOOK_EXAMPLES = [
+  '编写《医学免疫学》第三章抗原，本科教材，每节配一个临床案例',
+  '按这份出版社要求写《生理学》呼吸系统一章，研究生教材',
+  '写一章肿瘤免疫治疗的教材，突出机制与最新进展'
+]
 type BusyAction =
   | 'format'
   | 'outline'
@@ -242,16 +263,30 @@ function statusLabel(status: TextbookSection['status']): string {
 }
 
 export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkbenchPageProps): ReactElement {
-  const [step, setStep] = useState<Step>('setup')
+  const [step, setStep] = useState<Step>('start')
   const [busy, setBusy] = useState<BusyAction>(null)
   const [message, setMessage] = useState('')
   const [metadata, setMetadata] = useState<TextbookMetadata>(initialMetadata)
   const [publisherGuidelines, setPublisherGuidelines] = useState('')
   const [formatRules, setFormatRules] = useState<TextbookFormatRules>(initialFormatRules)
-  const [teacherBrief, setTeacherBrief] = useState(prefill?.text ?? '')
+  const [teacherBrief, setTeacherBrief] = useState('')
+  const [input, setInput] = useState(prefill?.text ?? '')
+  // A request from the AI assistant fills the input box once per request.
   useEffect(() => {
-    if (prefill) setTeacherBrief(prefill.text)
+    if (prefill) setInput(prefill.text)
   }, [prefill])
+  const [showGuidelines, setShowGuidelines] = useState(false)
+  const [brief, setBrief] = useState<IntentBrief | null>(null)
+  const [run, setRun] = useState<WorkflowRunState | null>(null)
+  const [mode, setMode] = useState<WorkflowMode>('auto')
+  const [teacherName, setTeacherName] = useState('')
+  const [sectionProgress, setSectionProgress] = useState<{ done: number; total: number; title: string } | null>(null)
+  const [termFrom, setTermFrom] = useState('')
+  const [termTo, setTermTo] = useState('')
+  const [termChange, setTermChange] = useState<{ before: TextbookSection[]; count: number; changedSections: number } | null>(null)
+  const runner = useRef<WorkflowRunner | null>(null)
+  const briefRef = useRef<IntentBrief | null>(null)
+  const sentenceRef = useRef('')
   const [project, setProject] = useState<TextbookProject | null>(null)
   const [activeSectionId, setActiveSectionId] = useState('')
   const [sectionInstruction, setSectionInstruction] = useState('')
@@ -275,8 +310,29 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
     ? []
     : [{ label: '填写教材题名', targetId: 'textbook-title' }]
   const [shownMissing, setShownMissing] = useState<'format' | 'outline' | null>(null)
-  const stepIndex = step === 'setup' ? 0 : step === 'outline' ? 1 : step === 'writing' ? 2 : 3
-  const progressLabel = ['项目设置', '大纲设计', '逐节写作', '检查导出'][stepIndex]
+  const stepIndex = step === 'start' || step === 'setup' ? 0 : step === 'outline' ? 1 : step === 'writing' ? 2 : 3
+
+  // The flow's stages run before React re-renders, so they read the latest values from refs; these
+  // follow every render and are also set directly when a stage produces a new value.
+  const metadataRef = useRef(metadata)
+  const guidelinesRef = useRef(publisherGuidelines)
+  const rulesRef = useRef(formatRules)
+  const teacherBriefRef = useRef(teacherBrief)
+  const projectRef = useRef(project)
+  metadataRef.current = metadata
+  guidelinesRef.current = publisherGuidelines
+  rulesRef.current = formatRules
+  teacherBriefRef.current = teacherBrief
+  projectRef.current = project
+
+  useEffect(() => {
+    void rendererRuntimeClient.getSettings()
+      .then((settings) => {
+        setMode(settings.workflowMode === 'step' ? 'step' : 'auto')
+        setTeacherName(settings.teacherProfile.name.trim())
+      })
+      .catch(() => undefined)
+  }, [])
 
   const selectedReferenceKeys = useMemo(
     () => new Set(project?.references.map((reference) => reference.key) ?? []),
@@ -309,23 +365,26 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
   }
 
   async function parseFormatRulesWithAi(): Promise<void> {
-    if (!publisherGuidelines.trim()) {
+    const guidelines = guidelinesRef.current
+    if (!guidelines.trim()) {
       setMessage('请先粘贴或读取出版社要求。')
       return
     }
     setBusy('format')
     setMessage('')
     try {
-      const baseline = inferTextbookFormatRulesFromGuidelines(publisherGuidelines, formatRules)
+      const baseline = inferTextbookFormatRulesFromGuidelines(guidelines, rulesRef.current)
+      rulesRef.current = baseline
       setFormatRules(baseline)
       const result = await window.dsGui.parseTextbookFormatRules({
-        publisherGuidelines,
+        publisherGuidelines: guidelines,
         currentRules: baseline
       })
       if (!result.ok) {
         setMessage(`已完成本地初步解析；AI 解析未完成：${result.message}`)
         return
       }
+      rulesRef.current = result.value
       applyFormatRules(result.value)
       setMessage(result.repaired ? 'AI 已解析出版社要求，并自动修复了格式化输出。' : 'AI 已解析出版社要求。')
     } catch (error) {
@@ -370,34 +429,163 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
     }
   }
 
-  async function generateOutline(): Promise<void> {
-    if (!canGenerateOutline) {
-      setMessage('请先填写教材题名。')
-      return
+  /** Returns the failure message, or null when the outline was made. */
+  async function generateOutline(): Promise<string | null> {
+    const currentMetadata = metadataRef.current
+    if (!currentMetadata.title.trim()) {
+      const failure = '请先说明教材题名或要写的章节。'
+      setMessage(failure)
+      return failure
     }
     setBusy('outline')
     setMessage('')
     try {
       const result = await window.dsGui.generateTextbookOutline({
-        metadata,
-        publisherGuidelines,
-        formatRules,
-        teacherBrief
+        metadata: currentMetadata,
+        publisherGuidelines: guidelinesRef.current,
+        formatRules: rulesRef.current,
+        teacherBrief: teacherBriefRef.current
       })
       if (!result.ok) {
         setMessage(result.message)
-        return
+        return result.message
       }
-      const nextProject = createProject(metadata, publisherGuidelines, formatRules, result.value)
+      const nextProject = createProject(currentMetadata, guidelinesRef.current, rulesRef.current, result.value)
+      projectRef.current = nextProject
       setProject(nextProject)
       setActiveSectionId(nextProject.sections[0]?.id ?? '')
       setStep('outline')
       if (result.repaired) setMessage('模型输出已自动修复并通过结构校验，请复核大纲。')
+      return null
     } catch (error) {
-      setMessage(errorMessage(error))
+      const failure = errorMessage(error)
+      setMessage(failure)
+      return failure
     } finally {
       setBusy(null)
     }
+  }
+
+  /** Writes every section still without text, in book order; stops between sections when asked. */
+  async function writeRemainingSections(signal: AbortSignal): Promise<void> {
+    const start = projectRef.current
+    if (!start) throw new Error('还没有大纲。')
+    const pending = sectionsToWrite(start)
+    setBusy('section')
+    try {
+      for (const [done, section] of pending.entries()) {
+        if (signal.aborted) return
+        setSectionProgress({ done, total: pending.length, title: section.title })
+        const current = projectRef.current ?? start
+        const result = await window.dsGui.generateTextbookSection({ project: current, sectionId: section.id, instruction: '' })
+        if (!result.ok) throw new Error(`“${section.title}”没有写成：${result.message}`)
+        const next = updateProjectSection(projectRef.current ?? current, result.value.section)
+        projectRef.current = next
+        setProject(next)
+      }
+    } finally {
+      setSectionProgress(null)
+      setBusy(null)
+    }
+  }
+
+  const showBrief = (next: IntentBrief): void => {
+    briefRef.current = next
+    setBrief(next)
+  }
+
+  function applyBrief(next: IntentBrief): void {
+    const request = textbookRequestFromBrief(metadataRef.current, next, sentenceRef.current, teacherName)
+    metadataRef.current = request.metadata
+    teacherBriefRef.current = request.teacherBrief
+    setMetadata(request.metadata)
+    setTeacherBrief(request.teacherBrief)
+  }
+
+  /** One sentence and the publisher's requirements: rules → outline → sections → check (Task 2.4.2). */
+  async function startFlow(): Promise<void> {
+    const sentence = input.trim()
+    if (!sentence) {
+      setMessage('请先说一句要编写哪本教材、哪一章。')
+      return
+    }
+    sentenceRef.current = sentence
+    setMessage('')
+    const flow = createWorkflowRunner({
+      initial: startWorkflowRun(`textbook-${Date.now()}`, 'textbook', mode, new Date().toISOString()),
+      onChange: setRun,
+      handlers: {
+        rules: async () => {
+          const guidelines = guidelinesRef.current
+          const outcome = await requestIntentBrief(
+            'textbook',
+            sentence,
+            guidelines.trim() ? [{ name: '出版社要求', text: guidelines }] : []
+          )
+          if (!outcome.ok) throw new Error(outcome.message)
+          showBrief(outcome.brief)
+          applyBrief(outcome.brief)
+          // Common rules are read locally at once; the AI completes the rest.
+          if (guidelines.trim()) await parseFormatRulesWithAi()
+          if (outcome.brief.missing.length > 0) {
+            return { checkpoint: { kind: 'missing-required', message: outcome.brief.question ?? '还缺少必要的要点，请在上方补充。' } }
+          }
+        },
+        outline: async () => {
+          const failure = await generateOutline()
+          if (failure) throw new Error(failure)
+          return {
+            checkpoint: { kind: 'outline', message: '大纲已生成，可以调整章节后继续写作。' },
+            longContent: (projectRef.current?.sections.length ?? 0) > LONG_TEXTBOOK_SECTIONS
+          }
+        },
+        sections: async ({ signal }) => {
+          setStep('writing')
+          await writeRemainingSections(signal)
+        },
+        check: async () => {
+          await runProjectCheck()
+        },
+        ready: async () => {
+          setStep('writing')
+        }
+      }
+    })
+    runner.current = flow
+    await flow.run()
+  }
+
+  function continueFlow(): void {
+    const flow = runner.current
+    if (!flow) return
+    if (briefRef.current && briefRef.current.missing.length > 0) {
+      setMessage('请先在要点里补充标为“待补充”的内容。')
+      return
+    }
+    setMessage('')
+    void flow.run()
+  }
+
+  function restartFlow(): void {
+    runner.current?.stop()
+    runner.current = null
+    setRun(null)
+    setBrief(null)
+    briefRef.current = null
+    setStep('start')
+  }
+
+  /** Replaces a term in every section as one change that can be undone. */
+  function replaceTermInBook(): void {
+    if (!project) return
+    const result = replaceTermAcrossSections(project.sections, termFrom, termTo)
+    if (result.count === 0) {
+      setMessage(`全书没有找到“${termFrom.trim()}”。`)
+      return
+    }
+    setTermChange({ before: project.sections, count: result.count, changedSections: result.changedSections })
+    setProject({ ...project, sections: result.sections, updatedAt: nowIso() })
+    setMessage('')
   }
 
   function updateOutline(mutator: (outline: TextbookOutline) => TextbookOutline): void {
@@ -607,20 +795,19 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
   }
 
   async function runProjectCheck(): Promise<void> {
-    if (!project) return
+    const current = projectRef.current
+    if (!current) return
     setBusy('check')
     setMessage('')
     try {
-      const result = await window.dsGui.checkTextbookProject({ project })
+      const result = await window.dsGui.checkTextbookProject({ project: current })
       if (!result.ok) {
         setMessage(result.message)
         return
       }
-      setProject({
-        ...project,
-        checks: result.value.items,
-        updatedAt: nowIso()
-      })
+      const next = { ...current, checks: result.value.items, updatedAt: nowIso() }
+      projectRef.current = next
+      setProject(next)
       setMessage(result.value.summary)
     } catch (error) {
       setMessage(errorMessage(error))
@@ -688,11 +875,14 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
 
   return (
     <div className={`flex h-full flex-col overflow-hidden bg-ds-main ${className}`}>
-      <PageColumn width="work" className="shrink-0 pt-8">
+      {/* The start state is a start page (§5.3); outline and writing need the work width. */}
+      <PageColumn width={step === 'start' ? 'start' : 'work'} className="shrink-0 pt-8">
         <PageHeader
           module="textbook"
-          title="教材编写工作台"
-          description={`当前阶段：${progressLabel} · ${completedCount}/${sectionCount} 节已有正文`}
+          title="教材"
+          description={project
+            ? `${completedCount}/${sectionCount} 节已有正文`
+            : '说一句要编写哪本教材、哪一章，附上出版社要求；AI 先出大纲，再逐节写作，之后可以逐节修改。'}
           actions={
             <button type="button" onClick={() => void openProject()} className={PAGE_HEADER_ACTION_CLASS}>
               {busy === 'load' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
@@ -701,12 +891,40 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
           }
         />
 
-        <div className="flex gap-2 border-b border-ds-border-muted pb-3">
-          {renderStepButton('setup', '项目设置')}
-          {renderStepButton('outline', '大纲设计')}
-          {renderStepButton('writing', '逐节写作')}
-          {renderStepButton('check', '检查导出')}
-        </div>
+        {project && !run ? (
+          <div className="flex gap-2 border-b border-ds-border-muted pb-3">
+            {renderStepButton('setup', '设置')}
+            {renderStepButton('outline', '大纲')}
+            {renderStepButton('writing', '逐节写作')}
+            {renderStepButton('check', '检查导出')}
+          </div>
+        ) : null}
+
+        {run ? (
+          <div className="space-y-3 pb-3">
+            {brief ? (
+              <IntentBriefChips
+                brief={brief}
+                onChange={(key, value) => {
+                  const next = updateIntentField(briefRef.current ?? brief, key, value)
+                  showBrief(next)
+                  applyBrief(next)
+                }}
+              />
+            ) : null}
+            <WorkflowProgress state={run} onStop={() => runner.current?.stop()} onContinue={continueFlow} />
+            {sectionProgress ? (
+              <p role="status" className="text-small text-ds-muted">
+                正在写第 {sectionProgress.done + 1} / {sectionProgress.total} 节：{sectionProgress.title}
+              </p>
+            ) : null}
+            {run.status === 'stopped' || run.status === 'failed' ? (
+              <button type="button" onClick={restartFlow} className="text-small text-ds-muted underline-offset-2 hover:text-ds-ink hover:underline">
+                重新开始
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {message ? (
           <div className="mt-3 flex items-start gap-2 rounded-lg border border-ds-warning/30 bg-ds-warning-soft px-3 py-2 text-small text-ds-warning">
@@ -717,7 +935,61 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
       </PageColumn>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <PageColumn width="work" className="py-5">
+        <PageColumn width={step === 'start' ? 'start' : 'work'} className="py-5">
+          {step === 'start' && !run && (
+            <div className="space-y-4">
+              <IntentComposer
+                value={input}
+                onChange={setInput}
+                onSubmit={() => void startFlow()}
+                placeholder="例如：编写《医学免疫学》第三章抗原，本科教材"
+                autoFocus
+              />
+              <div className="rounded-xl border border-ds-border-muted bg-ds-card p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="min-w-0 flex-1 text-small font-semibold text-ds-text">
+                    出版社要求
+                    <span className="ml-2 font-normal text-ds-muted">
+                      {publisherGuidelines.trim() ? `已添加 ${publisherGuidelines.trim().length} 字，会自动解析排版规则` : '可选；字体、字号、体例等会自动解析'}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void pickPublisherFile()}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-ds-border px-2.5 py-1.5 text-caption font-semibold text-ds-text hover:bg-ds-hover"
+                  >
+                    <FolderOpen className="h-3.5 w-3.5" />
+                    读取文件
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowGuidelines((shown) => !shown)}
+                    className="rounded-lg border border-ds-border px-2.5 py-1.5 text-caption font-semibold text-ds-text hover:bg-ds-hover"
+                  >
+                    {showGuidelines ? '收起' : '粘贴文字'}
+                  </button>
+                </div>
+                {showGuidelines ? (
+                  <ResizableTextArea
+                    value={publisherGuidelines}
+                    onChange={(event) => handlePublisherGuidelinesChange(event.target.value)}
+                    rows={6}
+                    className={`${fieldClass} mt-3`}
+                    placeholder="粘贴出版社给出的写作与排版要求。"
+                  />
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('setup')}
+                className="text-small text-ds-muted underline-offset-2 hover:text-ds-ink hover:underline"
+              >
+                更多设置（作者、引用格式、排版要求）
+              </button>
+              <AiWorkExamples examples={TEXTBOOK_EXAMPLES} onSelect={setInput} />
+            </div>
+          )}
+
           {step === 'setup' && (
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
               <section className="space-y-5">
@@ -825,8 +1097,9 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
               </section>
 
               <aside className="space-y-5">
-                <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
-                  <h2 className="mb-4 text-heading font-bold text-ds-text">可解析格式规则</h2>
+                <details className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <summary className="cursor-pointer text-heading font-bold text-ds-text">排版要求</summary>
+                  <div className="mt-4" />
                   <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 p-3">
                     <button
                       type="button"
@@ -985,9 +1258,12 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
                       />
                     </label>
                   </div>
-                </div>
+                </details>
 
                 <div className="rounded-xl border border-ds-border-muted bg-ds-card p-5">
+                  <button type="button" onClick={() => setStep('start')} className="mb-3 text-small text-ds-muted underline-offset-2 hover:text-ds-ink hover:underline">
+                    返回一句话开始
+                  </button>
                   <h2 className="mb-3 text-heading font-bold text-ds-text">大纲生成说明</h2>
                   <ResizableTextArea
                     value={teacherBrief}
@@ -1036,7 +1312,8 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStep('writing')}
+                    // At the outline checkpoint the flow goes on to write every section.
+                    onClick={() => (run?.status === 'waiting' ? continueFlow() : setStep('writing'))}
                     className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-small font-semibold text-white"
                   >
                     <Check className="h-4 w-4" />
@@ -1263,6 +1540,41 @@ export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkb
                     {busy === 'revise' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     按指令修订当前节
                   </button>
+                </section>
+
+                <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4" aria-label="全书统一术语">
+                  <h2 className="mb-2 text-small font-bold text-ds-text">全书统一术语</h2>
+                  <div className="flex items-center gap-2">
+                    <input value={termFrom} onChange={(event) => setTermFrom(event.target.value)} placeholder="原术语" className={fieldClass} />
+                    <span className="shrink-0 text-caption text-ds-muted">改为</span>
+                    <input value={termTo} onChange={(event) => setTermTo(event.target.value)} placeholder="统一为" className={fieldClass} />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!termFrom.trim() || !termTo.trim() || busy !== null}
+                    onClick={replaceTermInBook}
+                    className="mt-2 w-full rounded-lg border border-accent px-3 py-2 text-small font-semibold text-accent hover:bg-accent/5 disabled:opacity-50"
+                  >
+                    在全书替换
+                  </button>
+                  {termChange ? (
+                    <div className="mt-2 rounded-lg bg-ds-subtle px-3 py-2 text-caption text-ds-text">
+                      已替换 {termChange.count} 处，涉及 {termChange.changedSections} 节。
+                      <span className="ml-2 inline-flex gap-2">
+                        <button type="button" onClick={() => setTermChange(null)} className="font-semibold text-accent">保留</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (project) setProject({ ...project, sections: termChange.before, updatedAt: nowIso() })
+                            setTermChange(null)
+                          }}
+                          className="font-semibold text-ds-muted"
+                        >
+                          撤销
+                        </button>
+                      </span>
+                    </div>
+                  ) : null}
                 </section>
 
                 <section className="rounded-xl border border-ds-border-muted bg-ds-card p-4">

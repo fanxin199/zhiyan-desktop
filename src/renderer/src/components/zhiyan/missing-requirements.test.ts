@@ -30,8 +30,6 @@ describe('missing requirements', () => {
     const literature = renderToStaticMarkup(createElement(LiteraturePage, { onStartChat: () => undefined }))
 
     for (const [html, label] of [
-      [textbook, 'AI 解析出版社要求'],
-      [textbook, '生成全书大纲'],
       [literature, '发送文献任务']
     ] as const) {
       const button = buttonContaining(html, label)
@@ -42,8 +40,10 @@ describe('missing requirements', () => {
     const send = courseware.match(/<button[^>]*aria-label="发送"[^>]*>/u)?.[0] ?? ''
     expect(send).not.toBe('')
     expect(send).not.toContain('disabled=""')
-    expect(textbook).toContain('id="textbook-title"')
-    expect(textbook).toContain('id="textbook-publisher-guidelines"')
+    // 教材 also starts from one sentence; its detailed settings are a step away.
+    const textbookSend = textbook.match(/<button[^>]*aria-label="发送"[^>]*>/u)?.[0] ?? ''
+    expect(textbookSend).not.toBe('')
+    expect(textbookSend).not.toContain('disabled=""')
     expect(literature).toContain('id="research-task-input"')
   })
 })
