@@ -68,6 +68,8 @@ const api = {
     ipcRenderer.invoke('artifact:revise', request),
   createDocument: (input) =>
     ipcRenderer.invoke('documents:create', input),
+  extractIntentBrief: (input) =>
+    ipcRenderer.invoke('intent:extract', input),
   extractPdfRange: (path, pageStart, pageEnd) =>
     ipcRenderer.invoke('file:extract-pdf-range', { path, pageStart, pageEnd }),
   searchPubMed: (request) =>

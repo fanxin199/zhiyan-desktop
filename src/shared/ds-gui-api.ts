@@ -62,6 +62,7 @@ import type {
 } from './artifact'
 import type { RevisionOutcome, RevisionRequest } from './artifact-revision'
 import type { DocumentCreateInput } from './document-templates'
+import type { IntentBrief, IntentExtractInput } from './intent-brief'
 import type {
   CoursewareBlueprintGenerationInput,
   CoursewareExportRequest,
@@ -226,6 +227,11 @@ export type DsGuiApi = {
   /** Creates a 文稿 in the writing workspace, with the template's first draft when a sentence or materials are given. */
   createDocument: (input: DocumentCreateInput) => Promise<
     | { ok: true; path: string; artifact: ArtifactRecord }
+    | { ok: false; code: string; message: string }
+  >
+  /** Reads a tool's key points from the teacher's sentence and materials (§6.3). */
+  extractIntentBrief: (input: IntentExtractInput) => Promise<
+    | { ok: true; brief: IntentBrief }
     | { ok: false; code: string; message: string }
   >
   extractPdfRange: (

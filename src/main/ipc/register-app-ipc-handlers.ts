@@ -54,6 +54,7 @@ import {
   artifactRestoreVersionPayloadSchema,
   artifactRevisionPayloadSchema,
   documentCreatePayloadSchema,
+  intentExtractPayloadSchema,
   artifactListPayloadSchema,
   artifactRegisterPayloadSchema,
   artifactUpdatePayloadSchema,
@@ -117,6 +118,7 @@ import type { ArtifactRegistry } from '../services/artifact-service'
 import type { ArtifactVersionStore } from '../services/artifact-version-service'
 import type { ArtifactRevisionService } from '../services/artifact-revision-service'
 import type { DocumentService } from '../services/document-service'
+import type { IntentBriefService } from '../services/intent-brief-service'
 import { analyzeCoursewareSource } from '../services/courseware-source-service'
 import { extractLegacyWordText } from '../services/legacy-word-text-service'
 import {
@@ -155,6 +157,7 @@ type RegisterAppIpcHandlersOptions = {
   artifactVersions: Pick<ArtifactVersionStore, 'createVersion' | 'listVersions' | 'restoreVersion'>
   artifactRevisions: Pick<ArtifactRevisionService, 'revise'>
   documents: Pick<DocumentService, 'create'>
+  intentBriefs: Pick<IntentBriefService, 'extract'>
   getMainWindow: () => BrowserWindow | null
   applySettingsPatch: (partial: AppSettingsPatch) => Promise<AppSettingsV1>
   runtimeRequest: (
@@ -263,6 +266,7 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     artifactVersions,
     artifactRevisions,
     documents,
+    intentBriefs,
     getMainWindow,
     applySettingsPatch,
     runtimeRequest,
@@ -774,6 +778,10 @@ export function registerAppIpcHandlers(options: RegisterAppIpcHandlersOptions): 
     await requireAuthorizedWorkspaceRoot(request.workspaceRoot)
     return documents.create(request)
   })
+  // Reads text the renderer already holds; no files are touched.
+  ipcMain.handle('intent:extract', async (_, payload: unknown) =>
+    intentBriefs.extract(parseIpcPayload('intent:extract', intentExtractPayloadSchema, payload))
+  )
 
   ipcMain.handle(
     'skill:save-file',

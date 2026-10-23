@@ -86,6 +86,7 @@ function registerOptions(overrides: Partial<Parameters<typeof registerAppIpcHand
     } as never,
     artifactRevisions: { revise: vi.fn() } as never,
     documents: { create: vi.fn(async () => ({ ok: true })) } as never,
+    intentBriefs: { extract: vi.fn(async () => ({ ok: true })) } as never,
     getMainWindow: () => null,
     applySettingsPatch,
     runtimeRequest: vi.fn() as never,
@@ -186,6 +187,16 @@ describe('registerAppIpcHandlers', () => {
       handler?.({}, { agents: { kun: { mysteryFlag: true } } })
     ).rejects.toThrow(/Invalid payload for settings:set/)
     expect(applySettingsPatch).not.toHaveBeenCalled()
+  })
+
+  it('reads intent briefs only for known tools', async () => {
+    const extract = vi.fn(async () => ({ ok: true }))
+    registerAppIpcHandlers(registerOptions({ intentBriefs: { extract } as never }))
+    const handler = handlers.get('intent:extract')
+
+    await expect(handler?.({}, { toolId: 'unknown', text: '教案' })).rejects.toThrow(/Invalid payload for intent:extract/)
+    await expect(handler?.({}, { toolId: 'syllabus', text: '第八章教案' })).resolves.toEqual({ ok: true })
+    expect(extract).toHaveBeenCalledWith({ toolId: 'syllabus', text: '第八章教案', materials: [], context: {} })
   })
 
   it('passes valid settings patches through to applySettingsPatch', async () => {
