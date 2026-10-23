@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import {
   AlertCircle,
   ArrowDown,
@@ -38,11 +38,14 @@ import {
   MissingRequirementsHint,
   type MissingRequirement
 } from './missing-requirements'
+import type { ToolPrefill } from '../../lib/tool-request'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
 type TextbookWorkbenchPageProps = {
   className?: string
+  /** A request from the AI assistant, used as the outline brief. */
+  prefill?: ToolPrefill
 }
 
 type Step = 'setup' | 'outline' | 'writing' | 'check'
@@ -238,14 +241,17 @@ function statusLabel(status: TextbookSection['status']): string {
   return '草稿'
 }
 
-export function TextbookWorkbenchPage({ className = '' }: TextbookWorkbenchPageProps): ReactElement {
+export function TextbookWorkbenchPage({ className = '', prefill }: TextbookWorkbenchPageProps): ReactElement {
   const [step, setStep] = useState<Step>('setup')
   const [busy, setBusy] = useState<BusyAction>(null)
   const [message, setMessage] = useState('')
   const [metadata, setMetadata] = useState<TextbookMetadata>(initialMetadata)
   const [publisherGuidelines, setPublisherGuidelines] = useState('')
   const [formatRules, setFormatRules] = useState<TextbookFormatRules>(initialFormatRules)
-  const [teacherBrief, setTeacherBrief] = useState('')
+  const [teacherBrief, setTeacherBrief] = useState(prefill?.text ?? '')
+  useEffect(() => {
+    if (prefill) setTeacherBrief(prefill.text)
+  }, [prefill])
   const [project, setProject] = useState<TextbookProject | null>(null)
   const [activeSectionId, setActiveSectionId] = useState('')
   const [sectionInstruction, setSectionInstruction] = useState('')

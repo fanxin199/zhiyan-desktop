@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Settings } from 'lucide-react'
+import { Settings, Sparkles } from 'lucide-react'
 import type { SettingsRouteSection } from '../../store/chat-store'
 import {
   SidebarCommandRow,
@@ -17,6 +17,9 @@ type ZhiYanSidebarProps = {
   onOpenModule: (route: ZhiYanModuleRouteId) => void
   onOpenSettings: (section?: SettingsRouteSection) => void
   onToggleSidebar: () => void
+  /** Opens or closes the AI assistant, which works over any page. */
+  onOpenAssistant?: () => void
+  assistantOpen?: boolean
 }
 
 function SectionLabel({ label }: { label: string }): ReactElement {
@@ -28,7 +31,7 @@ function SectionLabel({ label }: { label: string }): ReactElement {
 }
 
 export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
-  const { activeRoute, onOpenModule, onOpenSettings, onToggleSidebar } = props
+  const { activeRoute, onOpenModule, onOpenSettings, onToggleSidebar, onOpenAssistant, assistantOpen = false } = props
   const { t } = useTranslation('common')
   const sectionLabels = Object.fromEntries(
     ZHIYAN_MODULE_SECTIONS.map((section) => [section.id, section.label])
@@ -42,6 +45,15 @@ export function ZhiYanSidebar(props: ZhiYanSidebarProps): ReactElement {
       onCollapse={onToggleSidebar}
       footer={
         <div className="space-y-1">
+          {onOpenAssistant ? (
+            <SidebarCommandRow
+              icon={<Sparkles className="h-4 w-4" strokeWidth={1.75} />}
+              label="AI 助手"
+              onClick={onOpenAssistant}
+              active={assistantOpen}
+              variant="footer"
+            />
+          ) : null}
           <SidebarCommandRow
             icon={<Settings className="h-4 w-4" strokeWidth={1.75} />}
             label={t('settings')}

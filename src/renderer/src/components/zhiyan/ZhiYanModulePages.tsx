@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { extractPdfText } from '@renderer/lib/pdf-text-extractor'
 import { recordArtifact } from '@renderer/lib/artifact-records'
+import type { ToolPrefill } from '@renderer/lib/tool-request'
 import type { AppSettingsV1 } from '@shared/app-settings'
 import { wrapUntrustedPromptMaterial } from '@shared/prompt-boundary'
 import {
@@ -80,6 +81,8 @@ type ModulePageProps = {
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
   researchTaskExecution?: ResearchTaskExecution | null
+  /** A request from the AI assistant to put into the page's input box. */
+  prefill?: ToolPrefill
   className?: string
 }
 
@@ -398,17 +401,23 @@ function ResearchTaskEntry({
   onStartChat,
   handoffFile,
   onHandoffFileConsumed,
-  researchTaskExecution
+  researchTaskExecution,
+  prefill
 }: {
   config: ModuleConfig
   onStartChat: ModulePageProps['onStartChat']
   handoffFile?: FileManagerModuleFile
   onHandoffFileConsumed?: () => void
   researchTaskExecution?: ResearchTaskExecution | null
+  prefill?: ToolPrefill
 }): ReactElement | null {
   const entry = config.taskEntry
   const [selectedTaskId, setSelectedTaskId] = useState(entry?.taskTypes[0]?.id ?? '')
-  const [userInput, setUserInput] = useState('')
+  const [userInput, setUserInput] = useState(prefill?.text ?? '')
+  // A request from the AI assistant fills the input box once per request.
+  useEffect(() => {
+    if (prefill) setUserInput(prefill.text)
+  }, [prefill])
   const [analysisMetadata, setAnalysisMetadata] = useState('')
   const [files, setFiles] = useState<ResearchTaskFile[]>([])
   const [error, setError] = useState('')
@@ -941,6 +950,7 @@ function ModulePageShell({
   inlineConversation,
   showInlineConversation = false,
   researchTaskExecution,
+  prefill,
   className = ''
 }: {
   config: ModuleConfig
@@ -950,6 +960,7 @@ function ModulePageShell({
   inlineConversation?: ReactElement
   showInlineConversation?: boolean
   researchTaskExecution?: ResearchTaskExecution | null
+  prefill?: ToolPrefill
   className?: string
 }): ReactElement {
   const Icon = getZhiYanSectionModule(config.moduleId).icon
@@ -986,6 +997,7 @@ function ModulePageShell({
                 handoffFile={handoffFile}
                 onHandoffFileConsumed={onHandoffFileConsumed}
                 researchTaskExecution={researchTaskExecution}
+                prefill={prefill}
               />
             </div>
 
@@ -1274,6 +1286,7 @@ export function SyllabusPage({
   onHandoffFileConsumed,
   inlineConversation,
   showInlineConversation = false,
+  prefill,
   className = ''
 }: ModulePageProps): ReactElement {
   // Form fields state
@@ -1290,13 +1303,19 @@ export function SyllabusPage({
   const [focusAreas, setFocusAreas] = useState<string[]>(['临床新进展'])
 
   const [sourceType, setSourceType] = useState<'text' | 'file'>('text')
-  const [textSource, setTextSource] = useState('')
+  const [textSource, setTextSource] = useState(prefill?.text ?? '')
   const [selectedFile, setSelectedFile] = useState<{ name: string; path: string } | null>(null)
 
   const [extractedContent, setExtractedContent] = useState<ResearchFileTextExtraction | null>(null)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  // A request from the AI assistant becomes the lesson's content brief.
+  useEffect(() => {
+    if (!prefill) return
+    setSourceType('text')
+    setTextSource(prefill.text)
+  }, [prefill])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const conversationRef = useRef<HTMLDivElement | null>(null)
@@ -1878,7 +1897,7 @@ export function SyllabusPage({
 }
 
 export function PptGenPage(props: ModulePageProps): ReactElement {
-  return <CoursewarePage className={props.className} />
+  return <CoursewarePage className={props.className} prefill={props.prefill} />
 }
 
 export function LiteraturePage(props: ModulePageProps): ReactElement {
@@ -1886,7 +1905,7 @@ export function LiteraturePage(props: ModulePageProps): ReactElement {
 }
 
 export function TextbookPage(props: ModulePageProps): ReactElement {
-  return <TextbookWorkbenchPage className={props.className} />
+  return <TextbookWorkbenchPage className={props.className} prefill={props.prefill} />
 }
 
 export function BioinformaticsPage(props: ModulePageProps): ReactElement {

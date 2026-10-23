@@ -9,7 +9,6 @@ import { aiModeReasoningEffort } from '../lib/ai-mode'
 import {
   deriveThreadTitleFromPrompt,
   getDefaultThreadTitle,
-  routeAutoTitlesThreads,
   shouldAutoTitleThread
 } from '../lib/thread-title'
 import { filterThreadsForSidebar } from '../lib/thread-sidebar-visibility'
@@ -432,12 +431,10 @@ export function createThreadActions(
     const displayText = queued?.displayText ?? overrides?.displayText?.trim() ?? trimmedText
     const userDisplayText = displayText !== trimmedText ? displayText : undefined
     const generatedTitle = deriveThreadTitleFromPrompt(displayText)
-    const shouldAutoRenameForRoute = routeAutoTitlesThreads(get().route)
     const activeThread = activeThreadId
       ? get().threads.find((thread) => thread.id === activeThreadId) ?? null
       : null
     let shouldRenameThreadAfterSend =
-      shouldAutoRenameForRoute &&
       !!activeThreadId &&
       get().blocks.every((block) => block.kind !== 'user') &&
       shouldAutoTitleThread(activeThread)
@@ -517,7 +514,6 @@ export function createThreadActions(
           ? get().threads.find((thread) => thread.id === reusableThreadId) ?? null
           : null
         shouldRenameThreadAfterSend =
-          shouldAutoRenameForRoute &&
           reusableThreadId != null && shouldAutoTitleThread(reusableThread)
         const createdThread =
           reusableThreadId == null

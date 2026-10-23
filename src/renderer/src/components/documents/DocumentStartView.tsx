@@ -8,6 +8,7 @@ import {
   type DocumentTemplateId
 } from '@shared/document-templates'
 import { formatWorkspacePickerError } from '../../lib/format-workspace-picker-error'
+import type { ToolPrefill } from '../../lib/tool-request'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
 import { AiWorkExamples, AiWorkPage, AiWorkRecentArtifacts } from '../ai-work/AiWorkPage'
 import { IntentComposer } from '../ai-work/IntentComposer'
@@ -53,12 +54,12 @@ export async function readDocumentMaterials(files: File[]): Promise<{ materials:
  * The start state of 文稿 (Task 1.4.2): choose a template, say in one sentence what to write and
  * add materials; the AI writes the first draft into a new document, which then opens for editing.
  */
-export function DocumentStartView({ template }: { template: DocumentTemplateId }): ReactElement {
+export function DocumentStartView({ template, prefill }: { template: DocumentTemplateId; prefill?: ToolPrefill }): ReactElement {
   const workspaceRoot = useWriteWorkspaceStore((state) => state.workspaceRoot)
   const activeFilePath = useWriteWorkspaceStore((state) => state.activeFilePath)
   const loadWriteSettings = useWriteWorkspaceStore((state) => state.loadWriteSettings)
   const [selected, setSelected] = useState<DocumentTemplateId>(template)
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(prefill?.text ?? '')
   const [materials, setMaterials] = useState<LoadedMaterial[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -69,6 +70,11 @@ export function DocumentStartView({ template }: { template: DocumentTemplateId }
   }, [loadWriteSettings])
 
   useEffect(() => setSelected(template), [template])
+
+  // A request from the AI assistant fills the input box once per request.
+  useEffect(() => {
+    if (prefill) setInput(prefill.text)
+  }, [prefill])
 
   const addFiles = async (files: File[]): Promise<void> => {
     const { materials: loaded, rejected } = await readDocumentMaterials(files)

@@ -22,7 +22,16 @@ import {
   type ComposerFileContextEntry
 } from '../lib/composer-file-references'
 import { recordArtifact } from '../lib/artifact-records'
-import { useWriteWorkspaceStore, writeJoinPath } from '../write/write-workspace-store'
+import { buildAssistantPrompt, describeAssistantContext, type AssistantPageContext } from '../lib/assistant-context'
+import { useAssistantStore } from '../lib/assistant-store'
+import { detectToolRequest, type ToolModuleId, type ToolPrefill, type ToolRequest } from '../lib/tool-request'
+import { AssistantDrawer } from './assistant/AssistantDrawer'
+import {
+  useWriteWorkspaceStore,
+  writeBasenameFromPath,
+  writeDocumentTitle,
+  writeJoinPath
+} from '../write/write-workspace-store'
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
 import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
@@ -51,8 +60,20 @@ import {
 } from './zhiyan/research-task-card'
 import {
   ZHIYAN_MODULE_ROUTE_IDS,
+  getZhiYanModule,
+  isZhiYanModuleRoute,
   type ZhiYanModuleRouteId
 } from './zhiyan/zhiyan-module-registry'
+
+
+/** The page and open artifact the AI assistant is told about (Task 1.5.1). */
+export function assistantPageContext(route: string, activeDocumentPath: string | null): AssistantPageContext {
+  const page = isZhiYanModuleRoute(route) ? getZhiYanModule(route)?.sidebarLabel ?? '工作台' : '工作台'
+  if (route === 'write' && activeDocumentPath) {
+    return { page, artifact: { kind: '文稿', title: writeDocumentTitle(writeBasenameFromPath(activeDocumentPath)) } }
+  }
+  return { page }
+}
 
 const PluginMarketplaceView = lazy(() =>
   import('./PluginMarketplaceView').then((module) => ({ default: module.PluginMarketplaceView }))
@@ -380,6 +401,19 @@ export function Workbench(): ReactElement {
   const [inlineResearchTaskIds, setInlineResearchTaskIds] =
     useState<InlineResearchTaskIds>({})
   const [moduleHandoffFiles, setModuleHandoffFiles] = useState<ModuleHandoffFiles>({})
+  const assistantOpen = useAssistantStore((state) => state.open)
+  const setAssistantOpen = useAssistantStore((state) => state.setOpen)
+  const assistantThreadId = useAssistantStore((state) => state.threadId)
+  const rememberAssistantThread = useAssistantStore((state) => state.rememberThread)
+  const toolPrefill = useAssistantStore((state) => state.prefill)
+  const assistantHandOffs = useAssistantStore((state) => state.handOffs)
+  const prefillFor = (moduleId: ToolModuleId): ToolPrefill | undefined =>
+    toolPrefill?.moduleId === moduleId ? toolPrefill : undefined
+  // A handed-off request fills its tool once; leaving that tool drops it.
+  useEffect(() => {
+    const pending = useAssistantStore.getState().prefill
+    if (pending && pending.moduleId !== route) useAssistantStore.getState().clearPrefill()
+  }, [route])
   const documentStart = useWriteWorkspaceStore((state) => state.documentStart)
   const activeWriteFilePath = useWriteWorkspaceStore((state) => state.activeFilePath)
 
@@ -611,17 +645,65 @@ export function Workbench(): ReactElement {
       }
     })()
   }
+  const pageContext = assistantPageContext(route, activeWriteFilePath)
+  // A deliverable asked for in the assistant opens its tool with the request filled in.
+  const openToolWithRequest = (request: ToolRequest, text: string): void => {
+    useAssistantStore.getState().handOff(request, text)
+    if (request.moduleId === 'write') {
+      useWriteWorkspaceStore.getState().openDocumentStart(request.template ?? 'blank')
+      openWriteMode()
+      return
+    }
+    setRoute(request.moduleId)
+  }
+  // The assistant keeps its own conversation, so module pages keep theirs.
+  const showAssistantThread = async (): Promise<void> => {
+    const threadId = useAssistantStore.getState().threadId
+    if (!threadId || !useChatStore.getState().threads.some((thread) => thread.id === threadId)) return
+    if (useChatStore.getState().activeThreadId !== threadId) await selectThread(threadId)
+  }
+  // The drawer shows only the assistant's own conversation.
+  const showingAssistantThread = assistantThreadId !== null && activeThreadId === assistantThreadId
+  const openAssistant = (): void => {
+    setAssistantOpen(true)
+    void showAssistantThread()
+  }
+  const sendAssistantMessage = (text: string, options?: { answerInChat?: boolean }): ToolRequest | null => {
+    const request = options?.answerInChat ? null : detectToolRequest(text)
+    if (request) {
+      openToolWithRequest(request, text)
+      return request
+    }
+    const prompt = buildAssistantPrompt(text, pageContext)
+    void (async () => {
+      const threadId = useAssistantStore.getState().threadId
+      const knownThread = threadId && useChatStore.getState().threads.some((thread) => thread.id === threadId)
+      if (knownThread) {
+        await showAssistantThread()
+      } else {
+        await createThread()
+        rememberAssistantThread(useChatStore.getState().activeThreadId)
+      }
+      await sendMessage(prompt, 'agent', { displayText: text })
+    })()
+    return null
+  }
+  const startNewAssistantConversation = (): void => {
+    useAssistantStore.getState().clearHandOffs()
+    void createThread({ forceNew: true }).then(() => rememberAssistantThread(useChatStore.getState().activeThreadId))
+  }
+  const selectAssistantThread = (threadId: string): void => {
+    useAssistantStore.getState().clearHandOffs()
+    rememberAssistantThread(threadId)
+    void selectThread(threadId)
+  }
   const openRecentThread = (threadId: string): void => {
-    void openRecentDashboardThread({ threadId, setRoute, selectThread })
+    rememberAssistantThread(threadId)
+    openAssistant()
   }
   const handleDashboardPrompt = (prompt: string): void => {
-    void startDashboardPrompt({
-      prompt,
-      setRoute,
-      createThread,
-      sendMessage,
-      setInput
-    })
+    openAssistant()
+    sendAssistantMessage(prompt)
   }
   const handleModuleQuickPrompt = (
     prompt: string,
@@ -745,12 +827,34 @@ export function Workbench(): ReactElement {
             onOpenModule={openRegisteredModule}
             onOpenSettings={(section) => openSettings(route === 'write' ? 'write' : section)}
             onToggleSidebar={() => setLeftSidebarCollapsed(true)}
+            onOpenAssistant={() => (assistantOpen ? setAssistantOpen(false) : openAssistant())}
+            assistantOpen={assistantOpen}
           />
 
         </div>
       ) : null}
 
       <main className="ds-stage-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <AssistantDrawer
+          open={assistantOpen}
+          onClose={() => setAssistantOpen(false)}
+          contextLabel={describeAssistantContext(pageContext)}
+          threads={threads}
+          activeThreadId={showingAssistantThread ? activeThreadId : null}
+          blocks={showingAssistantThread ? blocks : []}
+          liveReasoning={showingAssistantThread ? liveReasoning : ''}
+          liveAssistant={showingAssistantThread ? liveAssistant : ''}
+          runtimeConnection={runtimeConnection}
+          busy={showingAssistantThread && busy}
+          onSend={sendAssistantMessage}
+          handOffs={assistantHandOffs}
+          onDismissHandOff={(id) => useAssistantStore.getState().dismissHandOff(id)}
+          onNewConversation={startNewAssistantConversation}
+          onSelectThread={selectAssistantThread}
+          onInterrupt={() => void interrupt()}
+          onRetryConnection={() => void probeRuntime('user')}
+          onOpenSettings={() => openSettings('agents')}
+        />
         {needsStageSidebarRestore ? (
           <div className="pointer-events-none absolute left-3 top-3 z-40">
             <SidebarTitlebarToggleButton
@@ -772,6 +876,7 @@ export function Workbench(): ReactElement {
         ) : route === 'syllabus' ? (
           <SyllabusPage
             onStartChat={handleModuleQuickPrompt}
+            prefill={prefillFor('syllabus')}
             handoffFile={moduleHandoffFiles.syllabus}
             onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
               ...current,
@@ -793,10 +898,11 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'ppt-gen' ? (
-          <PptGenPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <PptGenPage onStartChat={handleModuleQuickPrompt} prefill={prefillFor('ppt-gen')} className="ds-no-drag" />
         ) : route === 'literature' ? (
           <LiteraturePage
             onStartChat={handleModuleQuickPrompt}
+            prefill={prefillFor('literature')}
             researchTaskExecution={researchTaskExecutionFor('literature')}
             handoffFile={moduleHandoffFiles.literature}
             onHandoffFileConsumed={() => setModuleHandoffFiles((current) => ({
@@ -815,10 +921,11 @@ export function Workbench(): ReactElement {
             className="ds-no-drag"
           />
         ) : route === 'textbook' ? (
-          <TextbookPage onStartChat={handleModuleQuickPrompt} className="ds-no-drag" />
+          <TextbookPage onStartChat={handleModuleQuickPrompt} prefill={prefillFor('textbook')} className="ds-no-drag" />
         ) : route === 'bioinformatics' ? (
           <BioinformaticsPage
             onStartChat={handleModuleQuickPrompt}
+            prefill={prefillFor('bioinformatics')}
             researchTaskExecution={researchTaskExecutionFor('bioinformatics')}
             showInlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
@@ -851,7 +958,7 @@ export function Workbench(): ReactElement {
             <PluginMarketplaceView />
           </Suspense>
         ) : route === 'write' && (documentStart !== null || !activeWriteFilePath) ? (
-          <DocumentStartView template={documentStart ?? 'blank'} />
+          <DocumentStartView template={documentStart ?? 'blank'} prefill={prefillFor('write')} />
         ) : route === 'write' ? (
           <>
             {runtimeConnection !== 'ready'

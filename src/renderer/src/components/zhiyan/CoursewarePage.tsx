@@ -49,11 +49,14 @@ import {
   MissingRequirementsHint,
   type MissingRequirement
 } from './missing-requirements'
+import type { ToolPrefill } from '../../lib/tool-request'
 import { PAGE_HEADER_ACTION_CLASS, PageColumn, PageHeader } from './PageHeader'
 import { ResizableTextArea } from './ResizableTextArea'
 
 type CoursewarePageProps = {
   className?: string
+  /** A request from the AI assistant, used as the lesson topic. */
+  prefill?: ToolPrefill
 }
 
 type Step = 'request' | 'blueprint' | 'slides'
@@ -191,7 +194,7 @@ function SlidePreview({ slide, selected }: { slide: SlideSpec; selected: boolean
   )
 }
 
-export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactElement {
+export function CoursewarePage({ className = '', prefill }: CoursewarePageProps): ReactElement {
   const [step, setStep] = useState<Step>('request')
   const [busy, setBusy] = useState<BusyAction>(null)
   const [message, setMessage] = useState('')
@@ -224,6 +227,10 @@ export function CoursewarePage({ className = '' }: CoursewarePageProps): ReactEl
     literatureQuery: '',
     maxLiteratureResults: 6
   })
+  // A request from the AI assistant goes into the teaching focus; topic and textbook are still chosen here.
+  useEffect(() => {
+    if (prefill) setRequest((current) => ({ ...current, focus: prefill.text }))
+  }, [prefill])
 
   const [figurePage, setFigurePage] = useState(1)
   const [figureCaption, setFigureCaption] = useState('')
