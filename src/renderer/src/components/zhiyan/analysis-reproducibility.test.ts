@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createPythonRuntimeStatus } from '@shared/python-runtime'
 import {
+  buildAnalysisReportPrompt,
   buildAnalysisReproducibilityPrompt,
   createAnalysisReproducibilityManifest,
   persistAnalysisReproducibilityManifest,
@@ -54,7 +55,8 @@ describe('analysis reproducibility manifest', () => {
       artifacts: {
         code: '.zhiyan-analysis/research-task-bioinformatics-abc/analysis.py',
         log: '.zhiyan-analysis/research-task-bioinformatics-abc/run.log',
-        outputs: '.zhiyan-analysis/research-task-bioinformatics-abc/outputs.json'
+        outputs: '.zhiyan-analysis/research-task-bioinformatics-abc/outputs.json',
+        report: '.zhiyan-analysis/research-task-bioinformatics-abc/report.md'
       },
       outputFiles: []
     })
@@ -83,13 +85,17 @@ describe('analysis reproducibility manifest', () => {
       workspaceRoot: 'J:/study',
       path: '.zhiyan-analysis/task-1/manifest.json'
     }))
-    expect(writeWorkspaceFile).toHaveBeenCalledTimes(4)
+    expect(writeWorkspaceFile).toHaveBeenCalledTimes(5)
     expect(writeWorkspaceFile.mock.calls.map(([payload]) => payload.path)).toEqual([
       '.zhiyan-analysis/task-1/manifest.json',
       '.zhiyan-analysis/task-1/analysis.py',
       '.zhiyan-analysis/task-1/run.log',
-      '.zhiyan-analysis/task-1/outputs.json'
+      '.zhiyan-analysis/task-1/outputs.json',
+      '.zhiyan-analysis/task-1/report.md'
     ])
+    // The report starts as a placeholder that the agent overwrites; the prompt says how.
+    expect(buildAnalysisReportPrompt(manifest)).toContain('.zhiyan-analysis/task-1/report.md')
+    expect(buildAnalysisReportPrompt(manifest)).toContain('## 可复现记录')
     const prompt = buildAnalysisReproducibilityPrompt(manifest)
     expect(prompt).toContain('不得根据文件名猜测样本分组')
     expect(prompt).toContain('计算每个输入文件的 SHA-256 和大小')

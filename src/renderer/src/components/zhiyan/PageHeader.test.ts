@@ -7,7 +7,7 @@ import { PageHeader } from './PageHeader'
 import { TextbookWorkbenchPage } from './TextbookWorkbenchPage'
 import { LessonPlanPage } from '../lesson-plan/LessonPlanPage'
 import { useWriteWorkspaceStore } from '../../write/write-workspace-store'
-import { BioinformaticsPage } from './ZhiYanModulePages'
+import { DataAnalysisPage } from '../analysis/DataAnalysisPage'
 import { LiteratureReportPage } from '../literature/LiteratureReportPage'
 import { getZhiYanSectionModule, type ZhiYanSectionModuleId } from './zhiyan-module-registry'
 
@@ -49,7 +49,7 @@ describe('tool pages', () => {
   const pages: Array<[ZhiYanSectionModuleId, ReactElement, number]> = [
     ['syllabus', createElement(LessonPlanPage), 720],
     ['literature', createElement(LiteratureReportPage), 720],
-    ['bioinformatics', createElement(BioinformaticsPage, { onStartChat: vi.fn() }), 720],
+    ['bioinformatics', createElement(DataAnalysisPage, { onStartAgentTask: vi.fn(), researchTaskExecution: null }), 720],
     ['ppt-gen', createElement(CoursewarePage), 720],
     ['textbook', createElement(TextbookWorkbenchPage), 720],
     ['file-manager', createElement(FileManagerWorkspacePage, { onStartChat: vi.fn() }), 1152]

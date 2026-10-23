@@ -36,13 +36,13 @@ import {
 import { ZhiYanSidebar } from './zhiyan/ZhiYanSidebar'
 import { getRecentDashboardThreads, ZhiYanDashboard } from './zhiyan/ZhiYanDashboard'
 import {
-  BioinformaticsPage,
   FileManagerPage,
   PptGenPage,
   TextbookPage
 } from './zhiyan/ZhiYanModulePages'
 import { LessonPlanPage } from './lesson-plan/LessonPlanPage'
 import { LiteratureReportPage } from './literature/LiteratureReportPage'
+import { DataAnalysisPage } from './analysis/DataAnalysisPage'
 import type { InlineModuleId } from './zhiyan/ZhiYanModulePages'
 import type { FileManagerModuleFile, FileManagerModuleTarget } from './zhiyan/FileManagerWorkspacePage'
 import { MessageTimeline } from './chat/MessageTimeline'
@@ -911,19 +911,18 @@ export function Workbench(): ReactElement {
         ) : route === 'textbook' ? (
           <TextbookPage onStartChat={handleModuleQuickPrompt} prefill={prefillFor('textbook')} className="ds-no-drag" />
         ) : route === 'bioinformatics' ? (
-          <BioinformaticsPage
-            onStartChat={handleModuleQuickPrompt}
+          <DataAnalysisPage
+            onStartAgentTask={handleModuleQuickPrompt}
             prefill={prefillFor('bioinformatics')}
             researchTaskExecution={researchTaskExecutionFor('bioinformatics')}
-            showInlineConversation={isInlineModuleConversationVisible({
+            inlineConversation={isInlineModuleConversationVisible({
               inlineConversationThreadIds,
               moduleId: 'bioinformatics',
               activeThreadId
-            })}
-            inlineConversation={renderModuleConversation('科研数据分析', {
+            }) ? renderModuleConversation('数据分析', {
               busy: '正在读取并分析数据',
               ready: '分析已完成'
-            })}
+            }) : undefined}
             className="ds-no-drag"
           />
         ) : route === 'file-manager' ? (

@@ -4,16 +4,14 @@ import bulkExpression from '../../../../../test/fixtures/teacher-validation/bulk
 import bulkMetadata from '../../../../../test/fixtures/teacher-validation/bulk-sample-metadata.tsv?raw'
 import singleCellMarkers from '../../../../../test/fixtures/teacher-validation/single-cell-bcell-markers.csv?raw'
 import singleCellMetadata from '../../../../../test/fixtures/teacher-validation/single-cell-cluster-metadata.tsv?raw'
-import {
-  BIOINFORMATICS_CONFIG,
-  buildResearchTaskPrompt,
-  extractResearchTaskFileText
-} from './ZhiYanModulePages'
+import { tablePreview } from '../analysis/DataAnalysisPage'
+import { extractResearchTaskFileText } from './ZhiYanModulePages'
 import {
   resolveAnalysisEnvironmentPreflight,
   runAnalysisPreflightAction
 } from './analysis-environment-preflight'
 import {
+  buildAnalysisReportPrompt,
   buildAnalysisReproducibilityPrompt,
   createAnalysisReproducibilityManifest,
   persistAnalysisReproducibilityManifest,
@@ -123,9 +121,7 @@ describe('3.4 teacher-facing analysis acceptance', () => {
     }]
 
     for (const entry of cases) {
-      const task = BIOINFORMATICS_CONFIG.taskEntry?.taskTypes.find(({ id }) => id === entry.taskTypeId)
-      expect(task).toBeDefined()
-      if (!task) continue
+      const task = { label: entry.taskTypeId === 'bulk' ? 'bulk mRNA 数据分析' : '单细胞下游分析' }
       const files = await Promise.all(entry.files.map(async ({ name, text }) => {
         const path = `D:/teacher-analysis/inputs/${name}`
         const extracted = await extractResearchTaskFileText({ name, dataBase64: utf8Base64(text) })
@@ -136,10 +132,8 @@ describe('3.4 teacher-facing analysis acceptance', () => {
       for (const expected of entry.expectedText) expect(combinedText).toContain(expected)
       expect(validateAnalysisMetadata(entry.taskTypeId, entry.groupingMetadata)).toEqual({ ok: true })
 
-      const prompt = buildResearchTaskPrompt(BIOINFORMATICS_CONFIG, task, entry.objective, files)
-      expect(prompt).toContain(entry.objective)
-      expect(prompt).toContain('先检查数据格式、列名、样本分组、阈值')
-      expect(prompt).toContain('<<<ZHIYAN_UNTRUSTED_MATERIAL_START>>>')
+      // The AI proposes the grouping from the first lines of each table, which carry the group labels.
+      expect(files.map(({ extractedText }) => tablePreview(extractedText)).join('\n')).toMatch(/sample_id|cluster|response/u)
       const taskId = `teacher-validation-${entry.taskTypeId}`
       const manifest = createAnalysisReproducibilityManifest({
         taskId,
@@ -159,6 +153,7 @@ describe('3.4 teacher-facing analysis acceptance', () => {
       }
       expect(savedManifest.inputs?.map(({ name }) => name)).toEqual(entry.files.map(({ name }) => name))
       expect(buildAnalysisReproducibilityPrompt(manifest)).toContain('不得根据文件名猜测样本分组')
+      expect(buildAnalysisReportPrompt(manifest)).toContain(manifest.artifacts.report)
       for (const artifact of Object.values(manifest.artifacts)) expect(writtenFiles.has(artifact)).toBe(true)
 
       const card = createResearchTaskCard({

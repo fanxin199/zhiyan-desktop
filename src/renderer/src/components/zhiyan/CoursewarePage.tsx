@@ -12,8 +12,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
-  BookOpen,
-  Check,
   ChevronRight,
   FileText,
   ImagePlus,
@@ -22,7 +20,6 @@ import {
   Presentation,
   RefreshCw,
   Save,
-  Sparkles,
   Trash2,
   Upload
 } from 'lucide-react'

@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { Download, FilePenLine, Loader2, Plus, Sparkles } from 'lucide-react'
-import type { RevisionResult, RevisionScope } from '@shared/artifact-revision'
+import type { RevisionOutcome, RevisionResult, RevisionScope } from '@shared/artifact-revision'
 import { markdownBlocks, type MarkdownBlock } from '@shared/document-blocks'
 import { openDocumentArtifact } from '../../lib/resume-artifact'
 import { useChatStore } from '../../store/chat-store'
 import type { ZhiYanSectionModuleId } from '../zhiyan/zhiyan-module-registry'
-import { AssistantMarkdown } from '../chat/AssistantMarkdown'
+import { WriteMarkdownPreview } from '../write/WriteMarkdownPreview'
 import { AiSidePanel, type AiNextStep } from './AiSidePanel'
 import { AiWorkPage } from './AiWorkPage'
 import { ArtifactTopBar } from './ArtifactTopBar'
@@ -39,14 +39,21 @@ export function changedDocumentBlocks(before: string, after: string): Set<string
   return new Set(markdownBlocks(after).blocks.filter((block) => previous.get(block.title) !== block.body).map((block) => block.title))
 }
 
+/** Markdown as the 文稿 preview shows it, so pictures next to the document (such as charts) appear. */
+function DocumentMarkdown({ text, document }: { text: string; document: OpenSectionedDocument }): ReactElement {
+  return <WriteMarkdownPreview content={text} isMarkdown filePath={document.path} workspaceRoot={document.workspaceRoot} />
+}
+
 function BlockCard({
   block,
+  document,
   changed,
   selected,
   label,
   onRevise
 }: {
   block: MarkdownBlock
+  document: OpenSectionedDocument
   changed: boolean
   selected: boolean
   label: string
@@ -70,7 +77,7 @@ function BlockCard({
           {label}
         </button>
       </header>
-      {block.body ? <AssistantMarkdown text={block.body} streaming={false} className="text-body" /> : null}
+      {block.body ? <DocumentMarkdown text={block.body} document={document} /> : null}
     </section>
   )
 }
@@ -95,6 +102,11 @@ type SectionedDocumentWorkspaceProps = {
   nextSteps?: AiNextStep[]
   /** Blocks to mark after a change made outside the panel, such as a timing adjustment. */
   changedBlocks?: Set<string>
+  /**
+   * Makes the change another way than `artifact:revise`, such as rerunning an analysis through the
+   * agent; it must save versions so the result can be undone.
+   */
+  reviseWith?: (instruction: string, scope: RevisionScope, scopeLabel: string) => Promise<RevisionOutcome>
   className?: string
 }
 
@@ -118,6 +130,7 @@ export function SectionedDocumentWorkspace({
   emptyHint,
   nextSteps,
   changedBlocks,
+  reviseWith,
   className = ''
 }: SectionedDocumentWorkspaceProps): ReactElement {
   const [exchanges, setExchanges] = useState<Exchange[]>([])
@@ -153,9 +166,14 @@ export function SectionedDocumentWorkspace({
     const id = nextExchange.current++
     setExchanges((current) => [...current, { id, instruction, scopeLabel, status: 'working' }])
     try {
-      const artifact = await window.dsGui.getArtifact(document.artifactId)
-      if (!artifact) throw new Error('找不到这份成果的登记记录。')
-      const outcome = await window.dsGui.reviseArtifact({ artifactId: document.artifactId, baseVersion: artifact.currentVersion, scope, instruction })
+      let outcome: RevisionOutcome
+      if (reviseWith) {
+        outcome = await reviseWith(instruction, scope, scopeLabel)
+      } else {
+        const artifact = await window.dsGui.getArtifact(document.artifactId)
+        if (!artifact) throw new Error('找不到这份成果的登记记录。')
+        outcome = await window.dsGui.reviseArtifact({ artifactId: document.artifactId, baseVersion: artifact.currentVersion, scope, instruction })
+      }
       if (!outcome.ok) {
         updateExchange(id, { status: 'error', error: outcome.message })
         return
@@ -230,17 +248,18 @@ export function SectionedDocumentWorkspace({
           {banner}
           {blocks.intro ? (
             <div className="rounded-xl border border-ds-border-muted bg-ds-card px-5 py-4">
-              <AssistantMarkdown text={blocks.intro} streaming={false} className="text-body" />
+              <DocumentMarkdown text={blocks.intro} document={document} />
             </div>
           ) : null}
           {blocks.blocks.length === 0 ? (
             <div className="rounded-xl border border-ds-border-muted bg-ds-card px-5 py-4">
-              <AssistantMarkdown text={document.markdown} streaming={false} className="text-body" />
+              <DocumentMarkdown text={document.markdown} document={document} />
             </div>
           ) : blocks.blocks.map((block) => (
             <BlockCard
               key={block.sectionId}
               block={block}
+              document={document}
               changed={shownChanges.has(block.title)}
               selected={block.sectionId === scopeId}
               label={block.level === 3 ? subpartLabel : partLabel}

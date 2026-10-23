@@ -31,6 +31,8 @@ export type AnalysisReproducibilityManifestV1 = {
     code: string
     log: string
     outputs: string
+    /** The 分析报告 the agent writes (Task 2.6.2); absent in records made before it. */
+    report?: string
   }
   outputFiles: Array<{ path: string; sha256?: string; size?: number }>
 }
@@ -96,7 +98,8 @@ export function createAnalysisReproducibilityManifest(input: {
       manifest: `${directory}/manifest.json`,
       code: `${directory}/analysis.py`,
       log: `${directory}/run.log`,
-      outputs: `${directory}/outputs.json`
+      outputs: `${directory}/outputs.json`,
+      report: `${directory}/report.md`
     },
     outputFiles: []
   }
@@ -125,7 +128,8 @@ export async function persistAnalysisReproducibilityManifest(
     {
       path: manifest.artifacts.outputs,
       content: '[]\n'
-    }
+    },
+    ...(manifest.artifacts.report ? [{ path: manifest.artifacts.report, content: ANALYSIS_REPORT_PLACEHOLDER }] : [])
   ]
   for (const file of initialFiles) {
     const result = await api.writeWorkspaceFile({
@@ -136,6 +140,26 @@ export async function persistAnalysisReproducibilityManifest(
     if (!result.ok) throw new Error(result.message)
   }
   return manifest.artifacts.manifest
+}
+
+/** report.md until the agent has written the real report. */
+export const ANALYSIS_REPORT_PLACEHOLDER = '# 分析报告\n\n分析尚未完成。\n'
+
+/** What the agent must write as the 分析报告 so it opens part by part like other results (Task 2.6.2). */
+export function buildAnalysisReportPrompt(manifest: AnalysisReproducibilityManifestV1): string {
+  const report = manifest.artifacts.report ?? ''
+  return [
+    '## 分析报告（必须写入文件）',
+    `分析完成后，把报告写入 ${report}（覆盖其中的占位内容），使用中文 Markdown，结构固定为：`,
+    '- 一级标题：报告题目',
+    '- ## 分析概要：三五句话说明做了什么、主要发现',
+    '- ## 数据与分组：输入文件、样本数、老师确认的分组与比较方向',
+    '- ## 统计方法：方法、软件包版本、阈值与多重检验校正',
+    '- ## 结果：每张图一个三级标题（### 图 1 ……），用 ![图注](相对路径) 引用本任务目录下的图片，下面写关键数字和解读',
+    '- ## 解释与边界：哪些结论有数据支持，哪些只是推断',
+    '- ## 可复现记录：分析代码、运行日志、分析清单和输出清单的路径',
+    '图片保存为 PNG，路径相对于报告所在目录；不要在报告中粘贴大段代码。'
+  ].join('\n')
 }
 
 export function buildAnalysisReproducibilityPrompt(

@@ -19,7 +19,7 @@ export type ResumeTarget =
   /** A text file: it opens in 文稿, wherever it was made. */
   | { type: 'document' }
   /** Reopened by the tool that made it: courseware projects, lesson plans, literature reports. */
-  | { type: 'reopen'; toolId: 'ppt-gen' | 'syllabus' | 'literature' }
+  | { type: 'reopen'; toolId: 'ppt-gen' | 'syllabus' | 'literature' | 'bioinformatics' }
   /** Anything else opens the tool that made it. */
   | { type: 'tool'; toolId: string }
 
@@ -33,6 +33,7 @@ export function resumeTargetFor(artifact: Pick<ArtifactListItem, 'kind' | 'stora
     if ((artifact.kind === 'literature-report' || artifact.kind === 'evidence-table') && artifact.toolId === 'literature') {
       return { type: 'reopen', toolId: 'literature' }
     }
+    if (artifact.kind === 'analysis-report' && artifact.toolId === 'bioinformatics') return { type: 'reopen', toolId: 'bioinformatics' }
   }
   if (DOCUMENT_FILE.test(artifact.storage.path)) return { type: 'document' }
   return { type: 'tool', toolId: artifact.toolId }
