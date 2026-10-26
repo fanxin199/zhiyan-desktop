@@ -7,11 +7,16 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
-import { ArrowUp, Paperclip, Square, X } from 'lucide-react'
+import { ArrowUp, Mic, Paperclip, Square, X } from 'lucide-react'
 
 export type IntentAttachment = { id: string; name: string }
 
 /** Enter sends and Shift+Enter starts a new line; keys pressed while an input method is composing are left alone. */
+/** Windows has its own voice typing (Task 4.4.1); the start box points to it rather than recording audio itself. */
+export function hasWindowsVoiceTyping(userAgent = typeof navigator === 'undefined' ? '' : navigator.userAgent): boolean {
+  return /Windows/u.test(userAgent)
+}
+
 export function composerKeyAction(event: {
   key: string
   shiftKey: boolean
@@ -148,6 +153,7 @@ export function IntentComposer({
         }`}
       />
       <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1">
         {onAddFiles ? (
           <>
             <button
@@ -170,7 +176,14 @@ export function IntentComposer({
               }}
             />
           </>
-        ) : <span />}
+        ) : null}
+        {large && hasWindowsVoiceTyping() ? (
+          <span className="inline-flex items-center gap-1 px-2 text-caption text-ds-muted" title="Windows 自带的语音输入：先点一下输入框，再按 Win + H，说完会自动转成文字">
+            <Mic className="h-3.5 w-3.5" strokeWidth={1.8} />
+            按 Win + H 可以直接说
+          </span>
+        ) : null}
+        </span>
         {busy && onStop ? (
           <button
             type="button"

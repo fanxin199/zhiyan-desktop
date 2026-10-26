@@ -10,7 +10,7 @@ import {
 import { AiWorkExamples, AiWorkPage } from './AiWorkPage'
 import { ArtifactTopBar } from './ArtifactTopBar'
 import { artifactVersionSourceLabel } from './ArtifactVersionMenu'
-import { IntentComposer, composerKeyAction } from './IntentComposer'
+import { IntentComposer, composerKeyAction, hasWindowsVoiceTyping } from './IntentComposer'
 
 const noop = vi.fn()
 
@@ -159,5 +159,12 @@ describe('artifact version labels', () => {
     expect(artifactVersionSourceLabel('ai-revise')).toBe('AI 修改')
     expect(artifactVersionSourceLabel('teacher-edit')).toBe('手动修改')
     expect(artifactVersionSourceLabel('restore')).toBe('恢复')
+  })
+})
+
+describe('hasWindowsVoiceTyping', () => {
+  it('points to Win + H on Windows only', () => {
+    expect(hasWindowsVoiceTyping('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Electron/33')).toBe(true)
+    expect(hasWindowsVoiceTyping('Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)')).toBe(false)
   })
 })
