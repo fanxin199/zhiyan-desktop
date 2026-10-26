@@ -21,9 +21,9 @@
 | --- | --- |
 | ![智研助手工作台](docs/images/zhiyan-workbench.png) | ![课件 PPT 制作](docs/images/zhiyan-courseware.png) |
 
-| 无代码科研数据分析 | 简洁的自由写作台 |
+| 无代码科研数据分析 | 文稿：说一句就改，交付前自查 |
 | --- | --- |
-| ![科研数据分析](docs/images/zhiyan-data-analysis.png) | ![自由写作台](docs/images/zhiyan-free-writing.png) |
+| ![科研数据分析](docs/images/zhiyan-data-analysis.png) | ![文稿与 AI 自查](docs/images/zhiyan-free-writing.png) |
 
 ## 一套软件，覆盖教学与科研常见任务
 
